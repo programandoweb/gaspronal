@@ -1,0 +1,2 @@
+# Gaspronal Browser Collector
+Extensión Chrome MV3 para el agente **Lucía**. Cargar como extensión descomprimida desde `extensions/gaspronal-browser-collector`. Por defecto conecta a `wss://gaspronal.programandoweb.net/browser`. Primera versión sin autenticación extensión ↔ orquestador.
