@@ -463,3 +463,18 @@ Reglas:
 - el backend debe validar siempre ambos permisos; ocultar opciones del menú no sustituye la autorización;
 - el sidebar solo debe mostrar **Heroes del home** a usuarios con `heroes.view`;
 - cualquier nuevo rol o usuario debe recibir estos permisos únicamente de acuerdo con la política de acceso definida por el responsable del proyecto.
+
+
+## 22. Recolector web y agente creador de contenido
+
+El agente `lucia` utiliza `extensions/gaspronal-browser-collector` para recolectar fuentes web y producir borradores de Gaspro-notas.
+
+- Las fuentes se declaran en `realtime/agents/lucia/Tools.md`.
+- Realtime expone WebSocket nativo en `BROWSER_SOCKET_PATH` sin sustituir Socket.IO de los chats.
+- `REALTIME_CORS_ORIGIN` admite varios orígenes separados por coma; inicialmente `https://gaspronal.programandoweb.net`.
+- La primera versión no autentica la extensión contra el orquestador por decisión explícita del responsable.
+- Cada corrida se registra en `content_creator_runs` y sus artefactos en `content_creator_artifacts`.
+- Las imágenes se guardan en `backend/public/images/uploads/agente-contenido/{uuid}/`.
+- Se producen exactamente cinco imágenes y cada una debe persistirse antes de solicitar la siguiente.
+- El post final se crea como `draft`, nunca se publica automáticamente.
+- `GEMINI_IMAGE_MODEL` controla el modelo visual y no se hardcodean API keys.
