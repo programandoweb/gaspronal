@@ -8,6 +8,7 @@ import { LaravelAgentSettingsClient } from "./laravel-agent-settings.client";
 import { LaravelCommercialClient } from "./laravel-commercial.client";
 import { LaravelKnowledgeClient } from "./laravel-knowledge.client";
 import { LaravelAgentAnalyticsClient } from "./laravel-agent-analytics.client";
+import { ContentCreatorService } from "./content-creator.service";
 import type { AgentMessageInput, AgentResponse } from "./agent.types";
 
 const CLAUDIO_FUNCTIONS: GeminiFunctionDeclaration[] = [
@@ -154,6 +155,7 @@ export class AgentRuntimeService {
     private readonly commercial: LaravelCommercialClient,
     private readonly knowledge: LaravelKnowledgeClient,
     private readonly analytics: LaravelAgentAnalyticsClient,
+    private readonly contentCreator: ContentCreatorService,
   ) {}
 
   async execute(agentId: string, input: AgentMessageInput): Promise<AgentResponse> {
@@ -166,6 +168,17 @@ export class AgentRuntimeService {
     const startedAt = Date.now();
     const requestId = input.requestId?.trim() || randomUUID();
     const credentials = await this.settings.credentials(agent.id);
+
+    if (agent.id === "lucia") {
+      const geminiModel = [credentials.primary, credentials.fallback].find(item => item?.provider.driver === "gemini" && item.provider.api_key);
+      const apiKey = geminiModel?.provider.api_key || credentials.api_key;
+      const textModel = geminiModel?.model_identifier || credentials.model || "gemini-3.8-flash";
+      if (!apiKey) {
+        return { requestId, agent: { id: agent.id, name: agent.name, role: agent.role }, message: "Lucía necesita un modelo Gemini configurado con API key.", status: "configuration_required" };
+      }
+      const answer = await this.contentCreator.execute({ topic: message, apiKey, textModel });
+      return this.finish(requestId, agent, message, answer, startedAt, input.sessionId);
+    }
 
     const system = [
       agent.prompt,
