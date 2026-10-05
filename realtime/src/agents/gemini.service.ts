@@ -84,4 +84,17 @@ export class GeminiService {
     if (!text) throw new Error("Gemini respondió sin texto.");
     return { type: "text", text, content };
   }
+  async generateImage(input: { apiKey: string; model: string; prompt: string }): Promise<{ data: string; mimeType: string }> {
+    const model = encodeURIComponent(input.model || "gemini-3.1-flash-image");
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-goog-api-key": input.apiKey },
+      body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: input.prompt }] }], generationConfig: { responseModalities: ["IMAGE"] } }),
+    });
+    const json = await response.json() as any;
+    if (!response.ok) throw new Error(json?.error?.message ?? `Gemini Image respondió HTTP ${response.status}.`);
+    const image = (json?.candidates?.[0]?.content?.parts ?? []).find((part: any) => part?.inlineData?.data);
+    if (!image?.inlineData?.data) throw new Error("Gemini Image respondió sin imagen.");
+    return { data: String(image.inlineData.data), mimeType: String(image.inlineData.mimeType || "image/png") };
+  }
 }
