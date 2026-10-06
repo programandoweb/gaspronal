@@ -396,6 +396,14 @@ export class ChannelsRuntimeService implements OnModuleInit, OnModuleDestroy {
         throw new Error(response.message);
       }
 
+      const liveStatus = await this.client
+        .conversationStatus(inbound.conversation.id)
+        .catch(() => inbound.conversation.status);
+
+      if (liveStatus === "human_active" || liveStatus === "closed") {
+        return;
+      }
+
       const sent = await this.send(provider.id, {
         recipient: contactPhone,
         text: response.message,
