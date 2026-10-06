@@ -14,11 +14,21 @@ export type AgentConversationMessage = {
   content: string;
 };
 
+export type AgentExecutionContext = {
+  channel?: "dashboard" | "whatsapp";
+  communicationConversationId?: number;
+  customerPhone?: string;
+  customerName?: string;
+  customerEmail?: string;
+  hasDataProcessingConsent?: boolean;
+};
+
 export type AgentMessageInput = {
   message: string;
   requestId?: string;
   sessionId?: number;
   history?: AgentConversationMessage[];
+  context?: AgentExecutionContext;
 };
 
 export type AgentResponse = {
