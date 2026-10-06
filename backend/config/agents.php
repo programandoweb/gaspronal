@@ -17,4 +17,5 @@ if ($sharedSecret === '') {
 
 return [
     'shared_secret' => $sharedSecret,
+    'realtime_internal_url' => rtrim((string) env('REALTIME_INTERNAL_URL', 'http://realtime:4100'), '/'),
 ];
