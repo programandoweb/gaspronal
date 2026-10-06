@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\V1\CommercialQuoteController;
 use App\Http\Controllers\Api\V1\CommercialAppointmentController;
 use App\Http\Controllers\Api\V1\JorgeResearchController;
 use App\Http\Controllers\Api\V1\CommunicationProviderController;
+use App\Http\Controllers\Api\V1\CommunicationConversationController;
 use App\Http\Controllers\Api\V1\AiProviderController;
 use App\Http\Controllers\Api\V1\UserAccessController;
 use App\Http\Controllers\Api\V1\HeroSlideController;
@@ -47,6 +48,9 @@ Route::prefix('v1')->group(function (): void {
     Route::post('internal/content-creator/runs/{run}/fail', [InternalContentCreatorController::class, 'fail']);
     Route::get('internal/communications/providers', [CommunicationProviderController::class, 'internalList']);
     Route::post('internal/communications/outbound-log', [CommunicationProviderController::class, 'internalLog']);
+    Route::post('internal/communications/inbound', [CommunicationConversationController::class, 'internalReceive']);
+    Route::post('internal/communications/conversations/{communicationConversation}/outbound', [CommunicationConversationController::class, 'internalRecordOutbound']);
+    Route::patch('internal/communications/conversations/{communicationConversation}/status', [CommunicationConversationController::class, 'internalStatus']);
 
     Route::prefix('auth')->group(function (): void {
         Route::post('login', [AuthController::class, 'login'])->middleware('throttle:login');
@@ -91,6 +95,13 @@ Route::prefix('v1')->group(function (): void {
         Route::post('communications/providers', [CommunicationProviderController::class, 'store'])->middleware('permission:channels.manage');
         Route::put('communications/providers/{communicationProvider}', [CommunicationProviderController::class, 'update'])->middleware('permission:channels.manage');
         Route::delete('communications/providers/{communicationProvider}', [CommunicationProviderController::class, 'destroy'])->middleware('permission:channels.manage');
+
+        Route::get('agents/claudio/whatsapp-conversations', [CommunicationConversationController::class, 'index'])->middleware('permission:agents.view');
+        Route::get('agents/claudio/whatsapp-conversations/{communicationConversation}', [CommunicationConversationController::class, 'show'])->middleware('permission:agents.view');
+        Route::post('agents/claudio/whatsapp-conversations/{communicationConversation}/takeover', [CommunicationConversationController::class, 'takeover'])->middleware('permission:agents.manage');
+        Route::post('agents/claudio/whatsapp-conversations/{communicationConversation}/resume', [CommunicationConversationController::class, 'resume'])->middleware('permission:agents.manage');
+        Route::post('agents/claudio/whatsapp-conversations/{communicationConversation}/close', [CommunicationConversationController::class, 'close'])->middleware('permission:agents.manage');
+        Route::post('agents/claudio/whatsapp-conversations/{communicationConversation}/messages', [CommunicationConversationController::class, 'reply'])->middleware('permission:agents.manage');
 
         Route::get('commercial/quotes', [CommercialQuoteController::class, 'index'])->middleware('permission:commercial.quotes.view');
         Route::get('commercial/quotes/{commercialQuote}', [CommercialQuoteController::class, 'show'])->middleware('permission:commercial.quotes.view');
