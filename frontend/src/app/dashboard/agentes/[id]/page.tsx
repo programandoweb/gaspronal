@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ArrowLeft, BookOpen, Bot, CheckCircle2, HelpCircle, KeyRound, LoaderCircle, Pause, Play, PlugZap, Save, Search, Send, ShieldCheck, Square, XCircle } from "lucide-react";
 import { use, useEffect, useRef, useState } from "react";
+import ClaudioWhatsAppConversations from "@/components/dashboard/ClaudioWhatsAppConversations";
 import { connectAgentSocket, type AgentSocket } from "@/lib/agent-socket";
 
 type Agent = { id:string; name:string; role:string };
@@ -588,5 +589,7 @@ export default function AgentChatPage({ params }:{ params:Promise<{id:string}> }
         </form>}
       </aside>
     </section>
+
+    {id==="claudio"&&<ClaudioWhatsAppConversations/>}
   </div>;
 }
