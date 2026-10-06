@@ -9,7 +9,7 @@ import { LaravelCommercialClient } from "./laravel-commercial.client";
 import { LaravelKnowledgeClient } from "./laravel-knowledge.client";
 import { LaravelAgentAnalyticsClient } from "./laravel-agent-analytics.client";
 import { ContentCreatorService } from "./content-creator.service";
-import type { AgentMessageInput, AgentResponse } from "./agent.types";
+import type { AgentExecutionContext, AgentMessageInput, AgentResponse } from "./agent.types";
 
 const CLAUDIO_FUNCTIONS: GeminiFunctionDeclaration[] = [
   {
@@ -184,6 +184,7 @@ export class AgentRuntimeService {
       agent.prompt,
       agent.memory ? "\n## Memoria\n" + agent.memory : "",
       agent.tools ? "\n## Herramientas\n" + agent.tools : "",
+      this.contextInstructions(input.context),
       "\nResponde siempre en español salvo que el usuario solicite otro idioma.",
     ].join("\n").trim();
 
@@ -203,6 +204,7 @@ export class AgentRuntimeService {
                 system,
                 message,
                 input.history ?? [],
+                input.context,
               )
             : await this.generateWithRoutedModel(routedModel, system, message);
 
@@ -234,6 +236,7 @@ export class AgentRuntimeService {
           system,
           message,
           input.history ?? [],
+          input.context,
         )
       : await this.gemini.generate({
           apiKey: credentials.api_key,
@@ -255,6 +258,7 @@ export class AgentRuntimeService {
     system: string,
     message: string,
     history: Array<{ role: "user" | "assistant"; content: string }>,
+    context?: AgentExecutionContext,
   ): Promise<string> {
     const functions = agentId === "claudio" ? CLAUDIO_FUNCTIONS : SOFIA_FUNCTIONS;
 
@@ -271,6 +275,7 @@ export class AgentRuntimeService {
         message,
         history,
         functions,
+        context,
       );
     }
 
@@ -297,7 +302,7 @@ export class AgentRuntimeService {
           return turn.text;
         }
 
-        const result = await this.executeTool(agentId, turn.name, turn.args);
+        const result = await this.executeTool(agentId, turn.name, turn.args, context);
         messages.push({
           role: "tool",
           tool_call_id: turn.toolCallId,
@@ -318,6 +323,7 @@ export class AgentRuntimeService {
     system: string,
     message: string,
     history: Array<{ role: "user" | "assistant"; content: string }>,
+    context?: AgentExecutionContext,
   ): Promise<string> {
     const functions = agentId === "claudio" ? CLAUDIO_FUNCTIONS : SOFIA_FUNCTIONS;
 
@@ -340,6 +346,7 @@ export class AgentRuntimeService {
     message: string,
     history: Array<{ role: "user" | "assistant"; content: string }>,
     functions: GeminiFunctionDeclaration[],
+    context?: AgentExecutionContext,
   ): Promise<string> {
     const contents: GeminiContent[] = [
       ...history.slice(-20).map(item => ({
@@ -379,15 +386,45 @@ export class AgentRuntimeService {
     agentId: string,
     name: string,
     args: Record<string, unknown>,
+    context?: AgentExecutionContext,
   ): Promise<unknown> {
+    let toolArgs: Record<string, unknown> = { ...args };
+
+    if (agentId === "claudio" && context?.communicationConversationId) {
+      toolArgs.communication_conversation_id = context.communicationConversationId;
+
+      if (name === "register_customer" && context.customerPhone) {
+        toolArgs.whatsapp = context.customerPhone;
+      }
+    }
+
     if (
       agentId === "claudio"
       && ["catalog_search", "create_quote", "create_appointment", "handoff_to_human", "register_customer"].includes(name)
     ) {
-      return this.commercial.execute(agentId, name, args);
+      return this.commercial.execute(agentId, name, toolArgs);
     }
 
-    return this.knowledge.execute(agentId, name, args);
+    return this.knowledge.execute(agentId, name, toolArgs);
+  }
+
+  private contextInstructions(context?: AgentExecutionContext): string {
+    if (context?.channel !== "whatsapp") return "";
+
+    const lines = [
+      "\n## Contexto de WhatsApp",
+      "Estás atendiendo una conversación real del WhatsApp comercial de Gaspronal.",
+      "El número del remitente proviene del canal y debe considerarse el WhatsApp confirmado del cliente.",
+      context.customerPhone ? `WhatsApp confirmado: ${context.customerPhone}. No vuelvas a pedir el número; usa este valor cuando una herramienta lo requiera.` : "",
+      context.customerName ? `Cliente vinculado: ${context.customerName}.` : "",
+      context.customerEmail ? `Correo ya vinculado: ${context.customerEmail}.` : "",
+      context.hasDataProcessingConsent
+        ? "El cliente vinculado ya tiene consentimiento de tratamiento de datos registrado. No vuelvas a solicitar esos datos ni el consentimiento salvo que el cliente pida actualizarlos."
+        : "Si aún no existe consentimiento registrado, solicita nombre y correo, explica la finalidad y pide aceptación expresa antes de registrar al cliente.",
+      "Si el cliente solicita una persona o la situación necesita intervención humana, utiliza handoff_to_human. Después del handoff no prometas que un asesor ya respondió; indica que la conversación quedó escalada.",
+    ];
+
+    return lines.filter(Boolean).join("\n");
   }
 
   private async generateWithRoutedModel(
