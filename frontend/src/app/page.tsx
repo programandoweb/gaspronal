@@ -4,6 +4,7 @@ import Link from "next/link";
 import ProductUseCasesCarousel, { type UseCaseProduct } from "@/components/public/ProductUseCasesCarousel";
 import HomeHeroVariants, { type FullHeroSlide } from "@/components/public/HomeHeroVariants";
 import PublicHeader from "@/components/public/PublicHeader";
+import { GASPRONAL_WHATSAPP_HREF } from "@/lib/public-contact";
 import {
   ArrowRight,
   Building2,
@@ -17,8 +18,7 @@ import {
   Wind,
 } from "lucide-react";
 
-const whatsappHref =
-  "https://wa.me/573045527575?text=Hola%20Gaspronal,%20quiero%20recibir%20asesor%C3%ADa%20para%20mi%20proyecto.";
+const whatsappHref = GASPRONAL_WHATSAPP_HREF;
 
 const backendUrl = process.env.LARAVEL_API_URL ?? "http://127.0.0.1:8000";
 const publicBackendUrl = (
