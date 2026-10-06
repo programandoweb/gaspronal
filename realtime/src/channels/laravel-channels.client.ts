@@ -59,6 +59,15 @@ export class LaravelChannelsClient {
     });
   }
 
+  async conversationStatus(
+    conversationId: number,
+  ): Promise<"active" | "waiting_human" | "human_active" | "closed"> {
+    const response = await this.request<{data: {status: "active" | "waiting_human" | "human_active" | "closed"}}>(
+      `/internal/communications/conversations/${conversationId}/state`,
+    );
+    return response.data.status;
+  }
+
   async updateConversation(
     conversationId: number,
     status: "active" | "waiting_human" | "human_active" | "closed",
