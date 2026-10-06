@@ -49,6 +49,16 @@ export class ChannelsController {
     return { data: await this.runtime.test(id, payload) };
   }
 
+  @Post(":id/send")
+  async sendWithProvider(
+    @Param("id") id: string,
+    @Body() payload: ChannelMessage,
+    @Headers("authorization") authorization?: string,
+  ) {
+    this.authorize(authorization);
+    return { data: await this.runtime.send(id, payload) };
+  }
+
   @Post("send/:channel")
   async send(
     @Param("channel") channel: Channel,
