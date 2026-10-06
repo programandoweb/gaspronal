@@ -284,6 +284,22 @@ class CommunicationConversationController extends Controller
         );
     }
 
+    public function internalState(
+        Request $request,
+        CommunicationConversation $communicationConversation,
+    ): JsonResponse {
+        $this->authorizeInternal($request);
+        $conversation = $this->claudioConversation($communicationConversation);
+
+        return response()->json([
+            'data' => [
+                'id' => $conversation->id,
+                'status' => $conversation->status,
+                'should_automate' => $conversation->status === 'active',
+            ],
+        ]);
+    }
+
     public function internalStatus(
         Request $request,
         CommunicationConversation $communicationConversation,
