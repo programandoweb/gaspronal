@@ -2,6 +2,26 @@ import { Injectable, InternalServerErrorException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import type { ChannelProvider } from "./channel.types";
 
+export type InboundConversationResult = {
+  conversation: {
+    id: number;
+    provider_id?: number | null;
+    contact_phone?: string | null;
+    contact_name?: string | null;
+    status: "active" | "waiting_human" | "human_active" | "closed";
+  };
+  history: Array<{ role: "user" | "assistant"; content: string }>;
+  customer?: {
+    id: number;
+    name: string;
+    email?: string | null;
+    whatsapp?: string | null;
+    has_data_processing_consent: boolean;
+  } | null;
+  duplicate: boolean;
+  should_automate: boolean;
+};
+
 @Injectable()
 export class LaravelChannelsClient {
   private readonly baseUrl: string;
@@ -21,6 +41,31 @@ export class LaravelChannelsClient {
     await this.request("/internal/communications/outbound-log", {
       method: "POST",
       body: JSON.stringify(payload),
+    });
+  }
+
+  async receiveInbound(payload: Record<string, unknown>): Promise<InboundConversationResult> {
+    const response = await this.request<{data: InboundConversationResult}>("/internal/communications/inbound", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    return response.data;
+  }
+
+  async recordOutbound(conversationId: number, payload: Record<string, unknown>): Promise<void> {
+    await this.request(`/internal/communications/conversations/${conversationId}/outbound`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async updateConversation(
+    conversationId: number,
+    status: "active" | "waiting_human" | "human_active" | "closed",
+  ): Promise<void> {
+    await this.request(`/internal/communications/conversations/${conversationId}/status`, {
+      method: "PATCH",
+      body: JSON.stringify({ status }),
     });
   }
 
