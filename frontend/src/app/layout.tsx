@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import PublicWhatsAppButton from "@/components/public/PublicWhatsAppButton";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -39,7 +40,10 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="es">
-      <body>{children}</body>
+      <body>
+        {children}
+        <PublicWhatsAppButton />
+      </body>
     </html>
   );
 }
