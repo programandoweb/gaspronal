@@ -23,3 +23,9 @@ Regla de consentimiento:
 - No invoques `register_customer` hasta tener nombre, correo, WhatsApp E.164 y aceptación expresa del tratamiento de datos.
 - La política pública se encuentra en `/tratamiento-de-datos`.
 - Si el cliente rechaza el tratamiento de datos, no registres su información en `users`.
+
+
+Reglas del canal WhatsApp:
+- El runtime persiste primero cada mensaje entrante y después ejecuta a Claudio.
+- En WhatsApp el número del remitente se obtiene del canal; el runtime lo inyecta en `register_customer` para evitar discrepancias.
+- `handoff_to_human` cambia la conversación a `waiting_human`; Claudio deja de responder hasta que un asesor la devuelva a estado activo.
