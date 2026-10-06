@@ -10,12 +10,15 @@ import { ConfigService } from "@nestjs/config";
 import makeWASocket, {
   DisconnectReason,
   useMultiFileAuthState,
+  type WAMessage,
 } from "@whiskeysockets/baileys";
 import nodemailer from "nodemailer";
 import * as QRCode from "qrcode";
+import { randomUUID } from "node:crypto";
 import { promises as fs } from "node:fs";
 import { resolve } from "node:path";
 import { LaravelChannelsClient } from "./laravel-channels.client";
+import { AgentRuntimeService } from "../agents/agent-runtime.service";
 import type {
   Channel,
   ChannelMessage,
@@ -43,6 +46,7 @@ export class ChannelsRuntimeService implements OnModuleInit, OnModuleDestroy {
 
   constructor(
     private readonly client: LaravelChannelsClient,
+    private readonly agents: AgentRuntimeService,
     config: ConfigService,
   ) {
     this.sessionsPath = resolve(
@@ -134,6 +138,15 @@ export class ChannelsRuntimeService implements OnModuleInit, OnModuleDestroy {
 
     this.runtime.set(id, { status: "connecting", socket, manualClose: false });
     socket.ev.on("creds.update", saveCreds);
+    socket.ev.on("messages.upsert", ({ messages, type }) => {
+      if (type !== "notify") return;
+
+      for (const message of messages) {
+        void this.handleIncomingMessage(provider, message).catch((error) => {
+          this.logger.error(`WhatsApp inbound ${provider.id}: ${this.errorMessage(error)}`);
+        });
+      }
+    });
 
     socket.ev.on("connection.update", async (update) => {
       const latest = await this.findProvider(id);
@@ -223,6 +236,10 @@ export class ChannelsRuntimeService implements OnModuleInit, OnModuleDestroy {
   }
 
   async test(id: string, payload: ChannelMessage): Promise<Record<string, unknown>> {
+    return this.send(id, payload);
+  }
+
+  async send(id: string, payload: ChannelMessage): Promise<Record<string, unknown>> {
     const provider = await this.requireProvider(id);
     const result = await this.sendWithProvider(provider, payload);
 
@@ -307,6 +324,108 @@ export class ChannelsRuntimeService implements OnModuleInit, OnModuleDestroy {
       current.socket?.end(undefined);
     }
     this.runtime.clear();
+  }
+
+  private async handleIncomingMessage(provider: ChannelProvider, message: WAMessage): Promise<void> {
+    if (message.key.fromMe) return;
+
+    const remoteJid = String(message.key.remoteJid ?? "");
+    if (
+      !remoteJid
+      || remoteJid === "status@broadcast"
+      || remoteJid.endsWith("@g.us")
+      || remoteJid.endsWith("@newsletter")
+    ) {
+      return;
+    }
+
+    const text = this.messageText(message);
+    if (!text) return;
+
+    const digits = remoteJid.split("@")[0].split(":")[0].replace(/\D/g, "");
+    if (!digits) return;
+
+    const contactPhone = `+${digits}`;
+    const inbound = await this.client.receiveInbound({
+      provider_id: Number(provider.id),
+      external_thread_id: remoteJid,
+      external_message_id: message.key.id ?? randomUUID(),
+      contact_phone: contactPhone,
+      contact_name: message.pushName?.trim() || null,
+      text,
+      metadata: {
+        message_type: Object.keys(message.message ?? {})[0] ?? "text",
+      },
+    });
+
+    if (inbound.duplicate || !inbound.should_automate) return;
+
+    try {
+      const response = await this.agents.execute("claudio", {
+        message: text,
+        history: inbound.history,
+        context: {
+          channel: "whatsapp",
+          communicationConversationId: inbound.conversation.id,
+          customerPhone: contactPhone,
+          customerName: inbound.customer?.name ?? inbound.conversation.contact_name ?? undefined,
+          customerEmail: inbound.customer?.email ?? undefined,
+          hasDataProcessingConsent: inbound.customer?.has_data_processing_consent ?? false,
+        },
+      });
+
+      if (response.status !== "completed") {
+        throw new Error(response.message);
+      }
+
+      const sent = await this.send(provider.id, {
+        recipient: contactPhone,
+        text: response.message,
+      });
+
+      await this.client.recordOutbound(inbound.conversation.id, {
+        external_message_id: sent.message_id ?? null,
+        text: response.message,
+        sender_type: "agent",
+        status: "sent",
+      });
+    } catch (error) {
+      this.logger.warn(`Claudio no pudo responder WhatsApp ${contactPhone}: ${this.errorMessage(error)}`);
+      await this.client.updateConversation(inbound.conversation.id, "waiting_human").catch(() => undefined);
+
+      const fallback = "Gracias por escribir a Gaspronal. En este momento no pude completar la atención automática. Dejé tu conversación pendiente para que un asesor pueda continuarla.";
+
+      try {
+        const sent = await this.send(provider.id, {
+          recipient: contactPhone,
+          text: fallback,
+        });
+
+        await this.client.recordOutbound(inbound.conversation.id, {
+          external_message_id: sent.message_id ?? null,
+          text: fallback,
+          sender_type: "system",
+          status: "sent",
+        });
+      } catch (sendError) {
+        this.logger.error(`No fue posible enviar fallback WhatsApp ${contactPhone}: ${this.errorMessage(sendError)}`);
+      }
+    }
+  }
+
+  private messageText(message: WAMessage): string {
+    const wrapped =
+      message.message?.ephemeralMessage?.message
+      ?? message.message?.viewOnceMessage?.message
+      ?? message.message;
+
+    return String(
+      wrapped?.conversation
+      ?? wrapped?.extendedTextMessage?.text
+      ?? wrapped?.imageMessage?.caption
+      ?? wrapped?.videoMessage?.caption
+      ?? "",
+    ).trim();
   }
 
   private async sendWithProvider(
