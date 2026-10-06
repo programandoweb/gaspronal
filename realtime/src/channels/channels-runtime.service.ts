@@ -42,6 +42,7 @@ export class ChannelsRuntimeService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(ChannelsRuntimeService.name);
   private readonly runtime = new Map<string, RuntimeConnection>();
   private readonly reconnectTimers = new Map<string, NodeJS.Timeout>();
+  private readonly inboundQueues = new Map<string, Promise<void>>();
   private readonly sessionsPath: string;
 
   constructor(
@@ -142,9 +143,7 @@ export class ChannelsRuntimeService implements OnModuleInit, OnModuleDestroy {
       if (type !== "notify") return;
 
       for (const message of messages) {
-        void this.handleIncomingMessage(provider, message).catch((error) => {
-          this.logger.error(`WhatsApp inbound ${provider.id}: ${this.errorMessage(error)}`);
-        });
+        this.enqueueIncomingMessage(provider, message);
       }
     });
 
@@ -324,6 +323,25 @@ export class ChannelsRuntimeService implements OnModuleInit, OnModuleDestroy {
       current.socket?.end(undefined);
     }
     this.runtime.clear();
+    this.inboundQueues.clear();
+  }
+
+  private enqueueIncomingMessage(provider: ChannelProvider, message: WAMessage): void {
+    const key = `${provider.id}:${String(message.key.remoteJid ?? "unknown")}`;
+    const previous = this.inboundQueues.get(key) ?? Promise.resolve();
+
+    const next = previous
+      .then(() => this.handleIncomingMessage(provider, message))
+      .catch((error) => {
+        this.logger.error(`WhatsApp inbound ${provider.id}: ${this.errorMessage(error)}`);
+      });
+
+    this.inboundQueues.set(key, next);
+    void next.finally(() => {
+      if (this.inboundQueues.get(key) === next) {
+        this.inboundQueues.delete(key);
+      }
+    });
   }
 
   private async handleIncomingMessage(provider: ChannelProvider, message: WAMessage): Promise<void> {
