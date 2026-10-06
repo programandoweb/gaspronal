@@ -7,6 +7,7 @@ use App\Models\CatalogItem;
 use App\Models\CommercialAppointment;
 use App\Models\CommercialLead;
 use App\Models\CommercialQuote;
+use App\Models\CommunicationConversation;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -145,6 +146,7 @@ class InternalAgentCommercialController extends Controller
             'whatsapp' => ['required', 'string', 'max:20', 'regex:/^\\+[1-9]\\d{7,14}$/'],
             'accepts_data_processing' => ['required', 'accepted'],
             'policy_version' => ['nullable', 'string', 'max:40'],
+            'communication_conversation_id' => ['nullable', 'integer', 'exists:communication_conversations,id'],
         ])->validate();
 
         $email = mb_strtolower(trim((string) $arguments['email']));
@@ -176,6 +178,18 @@ class InternalAgentCommercialController extends Controller
             $user->assignRole('cliente');
         }
 
+        if (! empty($arguments['communication_conversation_id'])) {
+            CommunicationConversation::query()
+                ->whereKey($arguments['communication_conversation_id'])
+                ->where('agent_id', 'claudio')
+                ->where('channel', 'whatsapp')
+                ->update([
+                    'user_id' => $user->id,
+                    'contact_name' => $user->name,
+                    'contact_phone' => $user->whatsapp,
+                ]);
+        }
+
         return response()->json([
             'data' => [
                 'id' => $user->id,
@@ -195,6 +209,7 @@ class InternalAgentCommercialController extends Controller
             'email' => ['required', 'email', 'max:190'],
             'whatsapp' => ['required', 'string', 'max:40'],
             'notes' => ['nullable', 'string', 'max:3000'],
+            'communication_conversation_id' => ['nullable', 'integer', 'exists:communication_conversations,id'],
         ])->validate();
 
         $lead = CommercialLead::query()->firstOrCreate(
@@ -207,6 +222,17 @@ class InternalAgentCommercialController extends Controller
             'notes' => $arguments['notes'] ?? $lead->notes,
             'human_followup_at' => now(),
         ]);
+
+        if (! empty($arguments['communication_conversation_id'])) {
+            CommunicationConversation::query()
+                ->whereKey($arguments['communication_conversation_id'])
+                ->where('agent_id', 'claudio')
+                ->where('channel', 'whatsapp')
+                ->update([
+                    'status' => 'waiting_human',
+                    'human_takeover_at' => now(),
+                ]);
+        }
 
         return response()->json(['data' => $lead]);
     }
