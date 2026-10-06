@@ -512,3 +512,23 @@ Las Gaspro-notas son contenido comercial público y su presentación al comparti
 - El metadata global mantiene `metadataBase`, identidad de autor/editor y directivas para permitir previews grandes de imagen.
 - No depender únicamente de la imagen editorial original como `og:image`: WhatsApp y redes deben recibir la tarjeta de marca generada específicamente para social sharing.
 
+
+
+## 23. Atención comercial de Claudio por WhatsApp
+
+El WhatsApp comercial conectado mediante el driver Baileys es atendido automáticamente por el agente `claudio`.
+
+Reglas de arquitectura:
+
+- los mensajes entrantes se reciben exclusivamente en `realtime`, se persisten en Laravel antes de ejecutar el agente y se responden por el mismo proveedor que recibió el mensaje;
+- `communication_conversations` y `communication_messages` son la fuente de verdad del historial multicanal; no reutilizar las sesiones internas del chat del dashboard para clientes externos;
+- cada conversación WhatsApp pertenece a `claudio`; otros agentes no deben responder ese canal sin una decisión explícita posterior;
+- el runtime procesa mensajes nuevos de Baileys (`messages.upsert` tipo `notify`) y serializa el procesamiento por conversación para evitar respuestas concurrentes;
+- el número del remitente se obtiene del canal y se inyecta como contexto confiable a Claudio;
+- si el número coincide con un `users.whatsapp`, la conversación se vincula al usuario; `register_customer` completa esa vinculación después del consentimiento expreso;
+- `handoff_to_human` cambia la conversación a `waiting_human`; `human_active` bloquea nuevas respuestas automáticas hasta que un asesor devuelva la conversación a `active`;
+- el dashboard de Claudio es el único perfil de agente que muestra la bandeja de conversaciones WhatsApp;
+- las respuestas humanas salen por el mismo `communication_provider` de la conversación;
+- una conversación cerrada se reactiva automáticamente si el cliente vuelve a escribir;
+- los mensajes entrantes se deduplican por conversación e identificador externo;
+- el acceso público a WhatsApp debe conservarse visible y mobile-first en las rutas públicas, pero no en dashboard ni autenticación.
