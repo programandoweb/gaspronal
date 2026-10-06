@@ -50,6 +50,7 @@ Route::prefix('v1')->group(function (): void {
     Route::post('internal/communications/outbound-log', [CommunicationProviderController::class, 'internalLog']);
     Route::post('internal/communications/inbound', [CommunicationConversationController::class, 'internalReceive']);
     Route::post('internal/communications/conversations/{communicationConversation}/outbound', [CommunicationConversationController::class, 'internalRecordOutbound']);
+    Route::get('internal/communications/conversations/{communicationConversation}/state', [CommunicationConversationController::class, 'internalState']);
     Route::patch('internal/communications/conversations/{communicationConversation}/status', [CommunicationConversationController::class, 'internalStatus']);
 
     Route::prefix('auth')->group(function (): void {
