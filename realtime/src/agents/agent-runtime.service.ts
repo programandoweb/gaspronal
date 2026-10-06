@@ -335,6 +335,7 @@ export class AgentRuntimeService {
       message,
       history,
       functions,
+      context,
     );
   }
 
@@ -372,7 +373,7 @@ export class AgentRuntimeService {
         return turn.text;
       }
 
-      const result = await this.executeTool(agentId, turn.name, turn.args);
+      const result = await this.executeTool(agentId, turn.name, turn.args, context);
       contents.push({
         role: "user",
         parts: [{ functionResponse: { name: turn.name, response: result } }],
