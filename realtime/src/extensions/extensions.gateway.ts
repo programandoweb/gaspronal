@@ -73,10 +73,13 @@ export class ExtensionsGateway
       return { ok: false, message: "La extensión no está conectada." };
     }
 
+    const registered = this.registry.list().find((item) => item.installationId === installationId);
+
     try {
-      const response = await extensionSocket.timeout(15000).emitWithAck("extension.test", {
+      const response = await extensionSocket.timeout(20000).emitWithAck("extension.test", {
         installationId,
-        targetUrl: "https://web.whatsapp.com/",
+        extensionType: registered?.extensionType ?? "whatsapp_web",
+        targetUrl: registered?.targetUrl ?? "https://web.whatsapp.com/",
         requestedAt: new Date().toISOString(),
       });
 
