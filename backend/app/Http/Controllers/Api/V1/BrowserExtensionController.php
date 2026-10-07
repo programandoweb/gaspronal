@@ -27,7 +27,7 @@ class BrowserExtensionController extends Controller
         $data = $request->validate([
             'installation_id' => ['required', 'uuid', 'unique:browser_extensions,installation_id'],
             'name' => ['required', 'string', 'max:120'],
-            'type' => ['nullable', Rule::in(['whatsapp_web'])],
+            'type' => ['nullable', Rule::in(['whatsapp_web', 'gemini_web'])],
             'version' => ['nullable', 'string', 'max:40'],
             'machine_name' => ['nullable', 'string', 'max:120'],
             'whatsapp_number' => ['nullable', 'string', 'max:32'],
