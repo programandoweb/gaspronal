@@ -3168,3 +3168,19 @@ No incluyas nada antes ni despues del JSON.`,
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
 })();
+
+chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+  if (message?.type !== 'GASPRONAL_EXTENSION_HEALTHCHECK') return false;
+
+  const composer = document.querySelector('[contenteditable="true"][data-tab], footer [contenteditable="true"]');
+  sendResponse({
+    ok: true,
+    page: 'whatsapp-web',
+    url: window.location.href,
+    title: document.title,
+    composerDetected: Boolean(composer),
+    respondedAt: new Date().toISOString()
+  });
+  return false;
+});
+
