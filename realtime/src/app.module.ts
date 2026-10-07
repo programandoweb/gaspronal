@@ -19,6 +19,7 @@ import { ContentCreatorService } from "./agents/content-creator.service";
 import { LaravelContentTraceClient } from "./agents/laravel-content-trace.client";
 import { InferenceGateway } from "./inference/inference.gateway";
 import { LmStudioProxyService } from "./inference/lm-studio-proxy.service";
+import { BrowserAgentRouterService } from "./inference/browser-agent-router.service";
 import { ExtensionRegistryService } from "./extensions/extension-registry.service";
 import { ExtensionsGateway } from "./extensions/extensions.gateway";
 
@@ -42,6 +43,7 @@ import { ExtensionsGateway } from "./extensions/extensions.gateway";
     LaravelContentTraceClient,
     InferenceGateway,
     LmStudioProxyService,
+    BrowserAgentRouterService,
     ExtensionRegistryService,
     ExtensionsGateway,
   ],
