@@ -739,7 +739,8 @@ También se conservan los mensajes internos `MIGO_GEMINI_*` y el bloque multimed
 - el token no se hardcodea ni se versiona;
 - `BrowserAgentRouterService` registra agentes por `agentId`;
 - cuando un cliente de inferencia envía `lm.request` con `agentId=browser-gemini` y dicho agente está online, NestJS enruta la solicitud a esa extensión;
-- si el `agentId` no corresponde a un agente browser online, el flujo existente hacia `LmStudioProxyService` permanece sin cambios;
+- `agentId=browser-gemini` es un destino browser explícito: si está offline debe responder error y **no** caer a LM Studio;
+- para solicitudes que no apunten a un agente browser reservado, el flujo existente hacia `LmStudioProxyService` permanece sin cambios;
 - lifecycle y errores retornan al cliente solicitante usando los mismos eventos `lm.*`;
 - `lm.cancel` debe reenviarse al agente browser correspondiente cuando exista una ruta activa.
 
