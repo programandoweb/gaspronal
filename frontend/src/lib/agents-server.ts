@@ -12,7 +12,7 @@ export async function authenticatedUser() {
   if (!response.ok) return null;
 
   const json = await response.json();
-  return { token, user: json.data as { id: number; name: string; email: string } };
+  return { token, user: json.data as { id: number; name: string; email: string; roles?: string[]; permissions?: string[] } };
 }
 
 export async function realtimeFetch(path: string, init: RequestInit = {}) {
