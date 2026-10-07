@@ -401,6 +401,11 @@ Sin autorización explícita, no:
 
 ## 18. Pendiente temporal de recuperación de contraseña
 
+Nota operativa corregida:
+- las credenciales `ADMIN_EMAIL` / `ADMIN_PASSWORD` son únicamente de bootstrap inicial;
+- los seeders de despliegue no deben sobrescribir la contraseña de un usuario existente;
+- cualquier cambio futuro al seeding de usuarios debe preservar contraseñas ya establecidas salvo una acción explícita de administración.
+
 Existe un tema temporal con el flujo de recuperación de contraseña que debe cerrarse por seguridad.
 
 Reglas obligatorias:
