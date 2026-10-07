@@ -62,6 +62,9 @@ export class ExtensionsGateway
     @MessageBody() payload: { installationId?: string },
   ): Promise<{ ok: boolean; message: string; data?: unknown }> {
     this.authorize(client);
+    if (!client.data.extensionsManage) {
+      return { ok: false, message: "No autorizado para ejecutar pruebas." };
+    }
     const installationId = String(payload?.installationId ?? "").trim();
     if (!installationId) return { ok: false, message: "installationId es obligatorio." };
 
@@ -95,7 +98,11 @@ export class ExtensionsGateway
     const token = String(client.handshake.auth?.token ?? "").trim();
     try {
       const payload = verifySocketToken(token, secret);
-      if (!String(payload.sub || "").startsWith("extensions:")) throw new ForbiddenException();
+      const subject = String(payload.sub || "");
+      if (!subject.startsWith("extensions:view:") && !subject.startsWith("extensions:manage:")) {
+        throw new ForbiddenException();
+      }
+      client.data.extensionsManage = subject.startsWith("extensions:manage:");
     } catch {
       throw new ForbiddenException();
     }
