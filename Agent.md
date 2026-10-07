@@ -553,3 +553,89 @@ Reglas:
 - Se utiliza como referencia administrable para botones/enlaces públicos de WhatsApp en Gaspro-notas, productos, servicios, heroes u otras secciones.
 - La interfaz de Canales debe mostrarlo como “WhatsApp · Botón / enlace” y ocultar acciones de conectar/probar.
 - No duplicar números de CTA dentro del frontend cuando exista un canal `whatsapp_link` destinado a ese uso.
+
+## 25. Extensión WhatsApp Web administrada por Gaspronal y bridge directo a LM Studio
+
+La extensión oficial de asistencia sobre WhatsApp Web vive en `extensions/gaspronal-extension-ws`. Forma parte del repositorio Gaspronal y su runtime remoto es `realtime` (NestJS). No depende ni debe depender de Migo, `migo-monitor-suite` ni de un Hub externo.
+
+### Contrato Socket.IO protegido por compatibilidad
+
+La extensión conserva deliberadamente el contrato histórico ya probado. No renombrar, eliminar ni reinterpretar estos eventos sin una migración explícita y versionada de ambos extremos:
+
+- `lm.request`;
+- `lm.cancel`;
+- `lm.accepted`;
+- `lm.started`;
+- `lm.completed`;
+- `lm.error`;
+- `enterprise.registration.turn`.
+
+También se conservan por compatibilidad técnica los nombres internos `MIGO_WA_AI_*`, selectores `migo-wa-*`, campos `migo_*` y claves de storage heredadas. Esos identificadores **no significan una dependencia de Migo** y no deben motivar una integración con Migo. Renombrarlos requiere una tarea específica con migración y QA de la extensión.
+
+### Flujo de inferencia
+
+El flujo vigente es:
+
+```text
+WhatsApp Web
+  -> extensions/gaspronal-extension-ws
+  -> Socket.IO público de Gaspronal / realtime NestJS
+  -> LmStudioProxyService
+  -> LM_STUDIO_BASE_URL
+  -> LM Studio
+```
+
+Reglas obligatorias:
+
+- Chrome nunca debe conectarse directamente a LM Studio;
+- `LM_STUDIO_BASE_URL` se configura por entorno; el valor operativo inicial es `http://10.8.0.2:1234` a través de la red privada/WireGuard;
+- no hardcodear credenciales ni tokens en la extensión o en Git;
+- `INFERENCE_CLIENT_TOKEN` debe configurarse en runtime y coincidir con el valor ingresado en la extensión;
+- el gateway de inferencia acepta clientes con `auth.type = "inference-client"` y mantiene el ACK de `lm.request`;
+- el proxy sólo puede reenviar las rutas LM Studio expresamente permitidas por `LmStudioProxyService`;
+- `agentId` y `contextId` se conservan en el transporte por compatibilidad, pero Gaspronal no los utiliza para enrutar hacia Migo;
+- `migo_context_id` heredado puede recibirse, pero no debe enviarse a la API de LM Studio;
+- los orígenes `chrome-extension://...` se aceptan únicamente en Socket.IO; la autenticación por token sigue siendo obligatoria.
+
+### Evento enterprise.registration.turn
+
+`enterprise.registration.turn` se conserva para no romper el contrato de la extensión, pero actualmente Gaspronal **no habilita el flujo empresarial heredado**. El gateway debe responder de forma explícita que no está disponible y nunca debe reenviarlo a Migo.
+
+Si Gaspronal decide implementar ese flujo en el futuro, debe hacerse con servicios propios de Gaspronal, persistencia Laravel/MariaDB y una decisión arquitectónica registrada.
+
+### Relación con Claudio, Baileys y conversaciones
+
+La extensión y el driver Baileys pueden coexistir, pero hoy representan flujos diferentes:
+
+- Baileys + Claudio utiliza `communication_conversations` y `communication_messages` como fuente de verdad comercial;
+- la extensión `gaspronal-extension-ws` utiliza NestJS como proxy de inferencia hacia LM Studio y opera sobre el DOM de WhatsApp Web.
+
+La existencia de la extensión **no convierte automáticamente sus conversaciones en conversaciones persistidas del CRM**. Si en una tarea futura la extensión pasa a ser un canal comercial oficial equivalente a Baileys, todos los mensajes entrantes/salientes deberán integrarse con `communication_conversations` y `communication_messages`; no crear una segunda fuente de verdad.
+
+### Riesgos heredados conocidos
+
+Mientras se preserve el comportamiento actual:
+
+- existen nombres internos heredados de Migo que sólo son contratos de compatibilidad;
+- existe lógica heredada de registro empresarial que permanece deshabilitada del lado Gaspronal;
+- la extensión requiere permisos amplios de host para manejar medios remotos; no ampliar esos permisos sin necesidad y reducirlos cuando el contrato de medios lo permita;
+- cualquier número de operador hardcodeado dentro de código heredado debe considerarse temporal y no fuente de verdad para decisiones comerciales;
+- la URL pública de realtime debe resolver correctamente a NestJS y soportar WebSocket/Socket.IO antes de considerar la integración operativa.
+
+### QA mínimo obligatorio
+
+Todo cambio en esta extensión o en su bridge NestJS debe validar, como mínimo:
+
+1. `node --check background.js`;
+2. `node --check content.js`;
+3. `node --check popup.js`;
+4. parseo válido de `manifest.json`;
+5. build/typecheck de `realtime`;
+6. conexión Socket.IO autenticada desde una extensión Chrome real;
+7. ciclo completo `lm.request -> lm.accepted -> lm.started -> lm.completed`;
+8. `lm.cancel` y timeout;
+9. consulta real desde NestJS a `LM_STUDIO_BASE_URL`;
+10. no afirmar QA end-to-end si no fue ejecutado realmente.
+
+Los archivos `README.md` y `VALIDACION.txt` dentro de `extensions/gaspronal-extension-ws` deben mantenerse alineados con este contrato.
+
