@@ -88,7 +88,7 @@ export default function ExtensionsPage() {
 
     async function connect() {
       try {
-        const tokenResponse = await fetch("/api/agents/socket-token", { cache: "no-store" });
+        const tokenResponse = await fetch("/api/extensions/socket-token", { cache: "no-store" });
         const tokenJson = await tokenResponse.json();
         if (!tokenResponse.ok) throw new Error(tokenJson.message ?? "No fue posible autenticar Socket.IO.");
 
