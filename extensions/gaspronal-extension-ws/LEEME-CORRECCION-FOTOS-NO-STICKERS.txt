@@ -1,0 +1,16 @@
+MIGO WHATSAPP IA - CORRECCION FOTOS v0.33.2
+
+Problema corregido:
+WhatsApp podía seleccionar el input interno del creador de stickers y publicar las imágenes como pegatinas.
+
+Solución:
+1. La extensión acepta únicamente el selector seguro de Fotos y videos.
+2. Rechaza cualquier input o editor relacionado con stickers, cámara, documentos, audio o contactos.
+3. Todas las imágenes se normalizan a JPEG antes de entregarlas a WhatsApp.
+4. Si se detecta el editor de stickers, se cierra sin enviar y se usa otro método.
+5. Se conservan álbum, descripción, tolerancia a descargas fallidas y protección contra duplicados.
+
+Instalación:
+- Desactivar o eliminar la versión anterior.
+- Cargar esta carpeta descomprimida en chrome://extensions con Modo desarrollador.
+- Recargar WhatsApp Web con Ctrl+F5.

@@ -1,0 +1,23 @@
+MIGO WHATSAPP IA - CORRECCION MULTIMEDIA v0.33.1
+
+CAMBIO QUIRURGICO
+- Se modificaron únicamente content.js, background.js, manifest.json y documentación.
+- No se modificaron Hub, Agent, Socket.IO, contexto Delice ni registro empresarial.
+
+INSTALACION
+1. Descomprima el ZIP.
+2. Abra chrome://extensions.
+3. Active Modo desarrollador.
+4. Quite o desactive versiones duplicadas de Migo WhatsApp IA.
+5. Pulse Cargar descomprimida y seleccione esta carpeta, o reemplace la carpeta actual.
+6. Recargue https://web.whatsapp.com/ con Ctrl+F5.
+
+PRUEBA RAPIDA
+1. Envíe desde el cliente: "Mándame fotos de vestidos".
+2. Debe aparecer primero el álbum o las fotos reales, con una sola descripción.
+3. En el panel de depuración busque ENVIO PRIORITARIO DE IMAGENES.
+4. deliveryMethod indicará album:file-input, album:drop, album:paste o individual:*.
+5. Si una imagen falla, las demás deben enviarse y el estado será partial.
+
+IMPORTANTE
+Mantenga una sola copia de la extensión activa. Dos copias pueden procesar el mismo chat y generar comportamientos duplicados.

@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Gaspronal WA IA</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <main>
+    <div class="brand"><img src="https://gaspronal.programandoweb.net/programandoweb/brand/isotipo-gaspronal-full-color.png" alt="Gaspronal"><div><h1>Gaspronal WA IA</h1><p>WhatsApp Web · NestJS · LM Studio</p></div></div>
+    
+
+    <label class="switch-row">
+      <input id="autoReplyEnabled" type="checkbox">
+      <span>Respuestas automáticas</span>
+    </label>
+
+    <label class="switch-row">
+      <input id="autoReplyUnreadEnabled" type="checkbox">
+      <span>Responder chats no leídos visibles</span>
+    </label>
+
+    <label class="switch-row">
+      <input id="autoReplyGroupsEnabled" type="checkbox">
+      <span>Responder grupos</span>
+    </label>
+
+    <label>
+      URL Realtime Gaspronal
+      <input id="hubUrl" type="text" autocomplete="off">
+    </label>
+
+    <label>
+      Token de inferencia
+      <input id="inferenceToken" type="password" autocomplete="off">
+    </label>
+
+    <div class="grid">
+      <label>
+        Agent ID compatible
+        <input id="agentId" type="text" autocomplete="off">
+      </label>
+      <label>
+        Client ID
+        <input id="clientId" type="text" autocomplete="off">
+      </label>
+    </div>
+
+
+    <label>
+      Contexto
+      <input id="contextId" type="text" autocomplete="off">
+    </label>
+
+    <label>
+      Modelo
+      <input id="model" type="text" autocomplete="off">
+    </label>
+
+    <label>
+      WhatsApp operador autorizado
+      <input id="operatorWhatsapp" type="text" inputmode="tel" placeholder="3115000926" autocomplete="off">
+    </label>
+
+    <div class="grid">
+      <label>
+        Mensajes
+        <input id="maxMessages" type="number" min="2" max="30">
+      </label>
+      <label>
+        Temp.
+        <input id="temperature" type="number" min="0" max="1.5" step="0.05">
+      </label>
+    </div>
+
+    <label>
+      Espera auto. ms
+      <input id="autoReplyDelayMs" type="number" min="600" max="10000" step="100">
+    </label>
+
+    <label>
+      Prompt del sistema
+      <textarea id="systemPrompt" rows="6"></textarea>
+    </label>
+
+    <button id="save" type="button">Guardar</button>
+    <div id="status"></div>
+  </main>
+
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+Correccion v0.31.1
+
+- Se conserva intacto content.js del ZIP funcional entregado por el usuario.
+- El flujo de registro empresarial queda vinculado exclusivamente al chat donde se inicio.
+- Una sesion de registro activa ya no intercepta mensajes de otros chats no leidos.
+- Se mantiene la deteccion y apertura automatica de conversaciones nuevas de la version funcional.
+
+Instalacion:
+Reemplace estos cuatro archivos en la extension y recarguela desde chrome://extensions.

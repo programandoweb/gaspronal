@@ -1,0 +1,13 @@
+Version 0.33.1
+
+- Prioridad absoluta para solicitudes de fotos.
+- Descarga cada imagen de forma independiente: una URL fallida no cancela las demás.
+- Ruta principal mediante input nativo de WhatsApp para crear un álbum.
+- Fallbacks controlados: drag & drop, paste y envío individual.
+- La descripción se agrega como caption; no se repite en cada foto.
+- Si ya se presionó Enviar, no se envía texto ni se repite el álbum.
+- Sólo usa texto de respaldo cuando ninguna imagen fue comprometida.
+- Registra prepared, sent, failed, deliveryMethod, warnings y error.
+- Conserva deduplicación, bloqueo entre instancias, socket y contexto sin cambios.
+- background.js, content.js y popup.js validados con node --check.
+- manifest.json validado como JSON.
