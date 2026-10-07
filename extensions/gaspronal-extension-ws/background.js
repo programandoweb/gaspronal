@@ -263,6 +263,27 @@ function startExtensionHeartbeat(socket, identity) {
   extensionHeartbeatTimer = setInterval(send, 15000);
 }
 
+async function waitForTabReady(tabId, timeoutMs = 15000) {
+  const current = await chrome.tabs.get(tabId).catch(() => null);
+  if (current?.status === 'complete') return current;
+
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      chrome.tabs.onUpdated.removeListener(listener);
+      reject(new Error('WhatsApp Web no terminó de cargar durante la prueba.'));
+    }, timeoutMs);
+
+    const listener = (updatedId, changeInfo, updatedTab) => {
+      if (updatedId !== tabId || changeInfo.status !== 'complete') return;
+      clearTimeout(timer);
+      chrome.tabs.onUpdated.removeListener(listener);
+      resolve(updatedTab);
+    };
+
+    chrome.tabs.onUpdated.addListener(listener);
+  });
+}
+
 async function executeExtensionTest(payload = {}) {
   const targetUrl = String(payload.targetUrl || 'https://web.whatsapp.com/');
 
@@ -278,11 +299,26 @@ async function executeExtensionTest(payload = {}) {
     tab = await chrome.tabs.create({ url: targetUrl, active: true });
   }
 
+  if (!tab?.id) throw new Error('Chrome no devolvió una pestaña válida para WhatsApp Web.');
+  tab = await waitForTabReady(tab.id);
+
+  const contentHealth = await chrome.tabs.sendMessage(tab.id, {
+    type: 'GASPRONAL_EXTENSION_HEALTHCHECK',
+    requestedAt: new Date().toISOString()
+  }).catch((error) => {
+    throw new Error(`La pestaña abrió, pero el content script no respondió: ${error?.message || error}`);
+  });
+
+  if (!contentHealth?.ok) {
+    throw new Error(contentHealth?.message || 'El content script de WhatsApp no superó la prueba.');
+  }
+
   return {
     ok: true,
-    message: 'WhatsApp Web fue abierto y la extensión respondió correctamente.',
-    tabId: tab?.id || null,
-    url: tab?.url || targetUrl,
+    message: 'Socket, extensión y WhatsApp Web respondieron correctamente.',
+    tabId: tab.id,
+    url: tab.url || targetUrl,
+    content: contentHealth,
     testedAt: new Date().toISOString()
   };
 }
