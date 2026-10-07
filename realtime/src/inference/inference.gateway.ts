@@ -200,6 +200,14 @@ export class InferenceGateway
       return this.browserAgents.route(socket, payload);
     }
 
+    if (agentId === "browser-gemini") {
+      return {
+        ok: false,
+        requestId: String(payload?.requestId ?? ""),
+        error: "Browser agent browser-gemini is offline",
+      };
+    }
+
     return this.lmStudio.start(
       socket.id,
       payload,
