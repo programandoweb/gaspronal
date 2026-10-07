@@ -94,7 +94,8 @@ export class ExtensionsGateway
 
     const token = String(client.handshake.auth?.token ?? "").trim();
     try {
-      verifySocketToken(token, secret);
+      const payload = verifySocketToken(token, secret);
+      if (!String(payload.sub || "").startsWith("extensions:")) throw new ForbiddenException();
     } catch {
       throw new ForbiddenException();
     }
