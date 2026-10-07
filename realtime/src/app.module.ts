@@ -17,6 +17,8 @@ import { LaravelChannelsClient } from "./channels/laravel-channels.client";
 import { BrowserBridgeService } from "./browser/browser-bridge.service";
 import { ContentCreatorService } from "./agents/content-creator.service";
 import { LaravelContentTraceClient } from "./agents/laravel-content-trace.client";
+import { InferenceGateway } from "./inference/inference.gateway";
+import { LmStudioProxyService } from "./inference/lm-studio-proxy.service";
 
 @Module({
   imports: [ConfigModule.forRoot({ isGlobal: true })],
@@ -36,6 +38,8 @@ import { LaravelContentTraceClient } from "./agents/laravel-content-trace.client
     BrowserBridgeService,
     ContentCreatorService,
     LaravelContentTraceClient,
+    InferenceGateway,
+    LmStudioProxyService,
   ],
 })
 export class AppModule {}
