@@ -8,6 +8,7 @@ import {
 } from "@nestjs/websockets";
 import { ForbiddenException } from "@nestjs/common";
 import { verifySocketToken } from "../socket-auth";
+import { socketCorsOrigin } from "../socket-cors";
 import type { Server, Socket } from "socket.io";
 import { AgentRegistryService } from "./agent-registry.service";
 import { AgentRuntimeService } from "./agent-runtime.service";
@@ -15,7 +16,7 @@ import type { AgentMessageInput } from "./agent.types";
 
 @WebSocketGateway({
   namespace: "/agents",
-  cors: { origin: process.env.CORS_ORIGIN?.split(",").map(v => v.trim()).filter(Boolean) || true },
+  cors: { origin: socketCorsOrigin, credentials: true },
 })
 export class AgentGateway implements OnGatewayConnection {
   @WebSocketServer()
