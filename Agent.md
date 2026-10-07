@@ -639,3 +639,70 @@ Todo cambio en esta extensión o en su bridge NestJS debe validar, como mínimo:
 
 Los archivos `README.md` y `VALIDACION.txt` dentro de `extensions/gaspronal-extension-ws` deben mantenerse alineados con este contrato.
 
+## 26. CRUD y supervisión realtime de extensiones Chrome
+
+Gaspronal administra las instalaciones Chrome desde `/dashboard/extensiones`.
+
+Esta feature es una excepción explícitamente aprobada al patrón general de formularios en rutas dedicadas: **Agregar/Editar extensión utiliza Drawer**, porque el alta depende del descubrimiento realtime de instalaciones conectadas en ese mismo momento.
+
+### Identidad de instalación
+
+- cada instalación de `extensions/gaspronal-extension-ws` genera una sola vez un UUID `installationId` y lo persiste en `chrome.storage.local`;
+- `clientId` histórico se conserva por compatibilidad, pero no identifica de forma única una instalación;
+- dos o más Chrome pueden ejecutar la misma extensión simultáneamente porque NestJS enruta por `installationId`;
+- no reutilizar un UUID entre equipos ni convertir el nombre visible en clave técnica.
+
+### Presencia y salud
+
+- la extensión se conecta al Socket.IO raíz como `inference-client`, conservando todos los contratos `lm.*`;
+- en el mismo socket reporta `extension.heartbeat` cada 15 segundos con `installationId`, nombre y versión;
+- `ExtensionRegistryService` mantiene únicamente presencia en memoria del runtime NestJS;
+- el dashboard se conecta al namespace `/extensions` y recibe `extension:presence` en tiempo real;
+- estado **Online** significa socket de esa instalación actualmente conectado al runtime; no inferir salud desde timestamps de base de datos;
+- cerrar Chrome, desconectar la extensión o perder Socket.IO debe retirar esa instalación de la presencia activa.
+
+### Seguridad del dashboard realtime
+
+- `/dashboard/extensiones` requiere `extensions.view`;
+- mutaciones CRUD requieren `extensions.manage`;
+- el token Socket.IO administrativo se emite desde `/api/extensions/socket-token` únicamente a usuarios con `extensions.view`;
+- el subject del token debe usar prefijo `extensions:`;
+- el namespace `/extensions` debe rechazar tokens genéricos de otros módulos aunque estén firmados correctamente;
+- nunca exponer `INFERENCE_CLIENT_TOKEN` al dashboard.
+
+### Alta por descubrimiento
+
+Al pulsar **Agregar**:
+
+1. se abre el Drawer;
+2. el dashboard solicita `extension:list` por Socket.IO;
+3. muestra únicamente instalaciones online todavía no registradas;
+4. el usuario selecciona una instalación;
+5. Laravel persiste el registro en `browser_extensions`;
+6. MariaDB sigue siendo fuente de verdad del CRUD y NestJS sólo es fuente de verdad de presencia online.
+
+### Test funcional
+
+El botón **Test** sólo está disponible cuando la instalación está online.
+
+Flujo obligatorio:
+
+```text
+Dashboard
+  -> /extensions Socket.IO
+  -> extension:test
+  -> instalación Chrome seleccionada
+  -> abre/enfoca https://web.whatsapp.com/
+  -> service worker consulta GASPRONAL_EXTENSION_HEALTHCHECK
+  -> content script responde
+  -> ACK vuelve al dashboard
+```
+
+Una prueba se considera exitosa únicamente cuando responden las tres capas: NestJS, service worker y content script sobre WhatsApp Web. Abrir una pestaña sin respuesta del content script no es éxito.
+
+### Persistencia
+
+`browser_extensions` contiene configuración administrativa. No duplicar en esa tabla el estado efímero del Socket.IO como una segunda fuente de verdad. Campos de identidad/configuración: `installation_id`, `name`, `type`, `version`, `machine_name`, `whatsapp_number`, `enabled`, `settings`.
+
+La presencia realtime no convierte por sí misma a la extensión en canal CRM. La integración de conversaciones con `communication_conversations` continúa siendo una decisión separada.
+
