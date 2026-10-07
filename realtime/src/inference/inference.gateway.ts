@@ -9,6 +9,7 @@ import {
   WebSocketGateway,
 } from "@nestjs/websockets";
 import type { Socket } from "socket.io";
+import { socketCorsOrigin } from "../socket-cors";
 import { LmStudioProxyService } from "./lm-studio-proxy.service";
 import type {
   LmStudioProxyCancel,
@@ -16,7 +17,7 @@ import type {
 } from "./lm-studio-proxy.types";
 
 @WebSocketGateway({
-  cors: { origin: true, credentials: false },
+  cors: { origin: socketCorsOrigin, credentials: true },
   transports: ["websocket", "polling"],
 })
 export class InferenceGateway
