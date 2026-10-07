@@ -1,8 +1,8 @@
 export type AgentSocket = {
   connected: boolean;
-  emit: (event: string, payload?: unknown) => void;
+  emit: (event: string, payload?: unknown, callback?: (response: any) => void) => void;
   on: (event: string, callback: (payload: any) => void) => void;
-  off: (event: string) => void;
+  off: (event: string, callback?: (payload: any) => void) => void;
   disconnect: () => void;
 };
 
