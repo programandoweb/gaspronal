@@ -7,6 +7,8 @@ export type ConnectedExtension = {
   clientId: string;
   name: string;
   version: string;
+  extensionType: string;
+  targetUrl: string;
   socketId: string;
   connectedAt: string;
   lastSeenAt: string;
@@ -28,6 +30,8 @@ export class ExtensionRegistryService {
       clientId: String(socket.handshake.auth?.clientId ?? "gaspronal-wa-extension"),
       name: String(socket.handshake.auth?.extensionName ?? "Gaspronal WhatsApp IA"),
       version: String(socket.handshake.auth?.version ?? ""),
+      extensionType: String(socket.handshake.auth?.extensionType ?? "whatsapp_web"),
+      targetUrl: String(socket.handshake.auth?.targetUrl ?? "https://web.whatsapp.com/"),
       socketId: socket.id,
       connectedAt: now,
       lastSeenAt: now,
@@ -53,6 +57,8 @@ export class ExtensionRegistryService {
       lastSeenAt: new Date().toISOString(),
       version: String(payload.version ?? current.version ?? ""),
       name: String(payload.name ?? current.name ?? "Gaspronal WhatsApp IA"),
+      extensionType: String(payload.type ?? current.extensionType ?? "whatsapp_web"),
+      targetUrl: String(payload.targetUrl ?? current.targetUrl ?? "https://web.whatsapp.com/"),
     };
 
     this.sockets.set(installationId, socket);
