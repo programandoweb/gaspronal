@@ -666,6 +666,7 @@ Esta feature es una excepción explícitamente aprobada al patrón general de fo
 - `/dashboard/extensiones` requiere `extensions.view`;
 - mutaciones CRUD requieren `extensions.manage`;
 - el token Socket.IO administrativo se emite desde `/api/extensions/socket-token` únicamente a usuarios con `extensions.view`;
+- el subject distingue `extensions:view:` y `extensions:manage:`; `extension:test` requiere `extensions.manage`;
 - el subject del token debe usar prefijo `extensions:`;
 - el namespace `/extensions` debe rechazar tokens genéricos de otros módulos aunque estén firmados correctamente;
 - nunca exponer `INFERENCE_CLIENT_TOKEN` al dashboard.
