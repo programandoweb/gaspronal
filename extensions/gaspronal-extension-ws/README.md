@@ -80,3 +80,11 @@ La extensión no consume Migo ni `migo-monitor-suite`. Los identificadores `MIGO
 
 Las reglas normativas completas están en `Agent.md`, sección **Extensión WhatsApp Web administrada por Gaspronal y bridge directo a LM Studio**.
 
+## Administración desde Gaspronal
+
+Desde la versión 1.1.0 cada instalación genera un `installationId` UUID persistente. Esto permite tener varias instalaciones simultáneas —por ejemplo dos Chrome en equipos distintos— usando el mismo contrato Socket.IO sin colisiones.
+
+La extensión reporta presencia mediante `extension.heartbeat` y acepta `extension.test`. Estos eventos son de administración y no modifican los contratos históricos `lm.*`.
+
+El botón **Test** del dashboard abre o enfoca WhatsApp Web en la instalación seleccionada y valida que el content script responda `GASPRONAL_EXTENSION_HEALTHCHECK`. Sólo entonces la prueba se considera exitosa.
+
