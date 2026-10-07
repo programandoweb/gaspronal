@@ -189,3 +189,47 @@ Preparar:
 - registro de errores de integraciones;
 - auditoría del dashboard;
 - métricas comerciales.
+
+## 10. Extensión WhatsApp Web e inferencia LM Studio
+
+Gaspronal incluye una extensión Chrome oficial en:
+
+```text
+extensions/gaspronal-extension-ws
+```
+
+Su responsabilidad es interactuar con WhatsApp Web y delegar la inferencia al servicio `realtime` de Gaspronal mediante Socket.IO.
+
+```text
+WhatsApp Web
+    │
+    ▼
+gaspronal-extension-ws
+    │ Socket.IO autenticado
+    ▼
+realtime / NestJS
+    │
+    ▼
+LmStudioProxyService
+    │ red privada / WireGuard
+    ▼
+LM Studio
+http://10.8.0.2:1234
+```
+
+El contrato Socket.IO de la extensión es un contrato de compatibilidad y se mantiene estable:
+
+```text
+lm.request
+lm.cancel
+lm.accepted
+lm.started
+lm.completed
+lm.error
+enterprise.registration.turn
+```
+
+Los identificadores internos heredados `MIGO_WA_AI_*`, `migo-wa-*` y `migo_*` se conservan únicamente para compatibilidad del cliente Chrome y no representan una dependencia de Migo.
+
+El bridge de inferencia no sustituye el runtime comercial de Claudio ni la persistencia de conversaciones gestionada por Laravel. Si la extensión se promueve a canal CRM oficial, deberá integrarse con `communication_conversations` y `communication_messages` para conservar una única fuente de verdad.
+
