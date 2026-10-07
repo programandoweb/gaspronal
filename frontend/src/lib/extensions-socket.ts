@@ -1,16 +1,6 @@
-export type ExtensionSocket = {
-  connected: boolean;
-  emit: (event: string, payload?: unknown, callback?: (response: any) => void) => void;
-  on: (event: string, callback: (payload: any) => void) => void;
-  off: (event: string, callback?: (payload: any) => void) => void;
-  disconnect: () => void;
-};
+import type { AgentSocket } from "@/lib/agent-socket";
 
-declare global {
-  interface Window {
-    io?: (url: string, options?: Record<string, unknown>) => ExtensionSocket;
-  }
-}
+export type ExtensionSocket = AgentSocket;
 
 let loader: Promise<void> | null = null;
 
