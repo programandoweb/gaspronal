@@ -19,6 +19,8 @@ import { ContentCreatorService } from "./agents/content-creator.service";
 import { LaravelContentTraceClient } from "./agents/laravel-content-trace.client";
 import { InferenceGateway } from "./inference/inference.gateway";
 import { LmStudioProxyService } from "./inference/lm-studio-proxy.service";
+import { ExtensionRegistryService } from "./extensions/extension-registry.service";
+import { ExtensionsGateway } from "./extensions/extensions.gateway";
 
 @Module({
   imports: [ConfigModule.forRoot({ isGlobal: true })],
@@ -40,6 +42,8 @@ import { LmStudioProxyService } from "./inference/lm-studio-proxy.service";
     LaravelContentTraceClient,
     InferenceGateway,
     LmStudioProxyService,
+    ExtensionRegistryService,
+    ExtensionsGateway,
   ],
 })
 export class AppModule {}
