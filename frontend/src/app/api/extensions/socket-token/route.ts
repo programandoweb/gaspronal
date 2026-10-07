@@ -11,7 +11,7 @@ export async function GET(request: Request) {
 
   try {
     return NextResponse.json({
-      token: createSocketToken(`extensions:${auth.user.id}`),
+      token: createSocketToken(`${auth.user.permissions?.includes("extensions.manage") ? "extensions:manage" : "extensions:view"}:${auth.user.id}`),
       realtime_url: process.env.NEXT_PUBLIC_REALTIME_URL?.trim() || new URL(request.url).origin,
       expires_in: 300,
     });
