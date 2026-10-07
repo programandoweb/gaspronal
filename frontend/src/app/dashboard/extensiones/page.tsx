@@ -37,6 +37,8 @@ type OnlineExtension = {
   socketId: string;
   connectedAt: string;
   lastSeenAt: string;
+  extensionType: "whatsapp_web" | "gemini_web" | string;
+  targetUrl: string;
 };
 
 type FormState = {
@@ -46,6 +48,7 @@ type FormState = {
   machine_name: string;
   whatsapp_number: string;
   enabled: boolean;
+  type: "whatsapp_web" | "gemini_web";
 };
 
 const EMPTY_FORM: FormState = {
@@ -54,6 +57,7 @@ const EMPTY_FORM: FormState = {
   machine_name: "",
   whatsapp_number: "",
   enabled: true,
+  type: "whatsapp_web",
 };
 
 export default function ExtensionsPage() {
@@ -145,6 +149,7 @@ export default function ExtensionsPage() {
       machine_name: "",
       whatsapp_number: "",
       enabled: true,
+      type: item.extensionType === "gemini_web" ? "gemini_web" : "whatsapp_web",
     });
   }
 
@@ -156,6 +161,7 @@ export default function ExtensionsPage() {
       machine_name: item.machine_name ?? "",
       whatsapp_number: item.whatsapp_number ?? "",
       enabled: item.enabled,
+      type: item.type === "gemini_web" ? "gemini_web" : "whatsapp_web",
     });
     setDrawerOpen(true);
   }
@@ -175,7 +181,7 @@ export default function ExtensionsPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         ...form,
-        type: "whatsapp_web",
+        type: form.type,
         version: detected?.version ?? undefined,
       }),
     });
@@ -307,7 +313,7 @@ export default function ExtensionsPage() {
                   <tr key={item.id} className="transition hover:bg-[var(--app-bg)]">
                     <td className="px-5 py-4">
                       <strong className="block text-sm">{item.name}</strong>
-                      <span className="text-xs text-[var(--muted)]">{item.machine_name || "Sin alias de equipo"}</span>
+                      <span className="text-xs text-[var(--muted)]">{item.type === "gemini_web" ? "Gemini Web" : "WhatsApp Web"} · {item.machine_name || "Sin alias de equipo"}</span>
                     </td>
                     <td className="px-5 py-4 font-mono text-xs text-[var(--muted)]">{item.installation_id}</td>
                     <td className="px-5 py-4 text-sm">{live?.version || item.version || "—"}</td>
@@ -386,7 +392,7 @@ export default function ExtensionsPage() {
                         <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600"><FiWifi /> Online</span>
                       </div>
                       <div className="mt-2 font-mono text-[11px] text-[var(--muted)]">{item.installationId}</div>
-                      <div className="mt-1 text-xs text-[var(--muted)]">Versión {item.version || "desconocida"}</div>
+                      <div className="mt-1 text-xs text-[var(--muted)]">{item.extensionType === "gemini_web" ? "Gemini Web" : "WhatsApp Web"} · Versión {item.version || "desconocida"}</div>
                     </button>
                   ))}
                 </div>
@@ -394,6 +400,10 @@ export default function ExtensionsPage() {
             )}
 
             <section className="mt-6 space-y-4">
+              <label className="block">
+                <span className="mb-1.5 block text-sm font-semibold">Tipo</span>
+                <input readOnly value={form.type === "gemini_web" ? "Gemini Web" : "WhatsApp Web"} className="min-h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--app-bg)] px-3 text-[var(--muted)]" />
+              </label>
               <label className="block">
                 <span className="mb-1.5 block text-sm font-semibold">Nombre</span>
                 <input value={form.name} onChange={(e) => setForm((v) => ({ ...v, name: e.target.value }))} className="min-h-11 w-full rounded-xl border border-[var(--border)] bg-transparent px-3 outline-none focus:border-[var(--brand)]" />
