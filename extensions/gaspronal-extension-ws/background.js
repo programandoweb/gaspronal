@@ -225,7 +225,67 @@ const HARD_GUARD_PROMPT = [
 let inferenceSocket = null;
 let inferenceSocketKey = '';
 let inferenceConnectPromise = null;
+let extensionHeartbeatTimer = null;
 const pendingInferenceRequests = new Map();
+
+async function getInstallationIdentity() {
+  const stored = await chrome.storage.local.get(['gaspronalInstallationId', 'gaspronalExtensionName']);
+  let installationId = String(stored.gaspronalInstallationId || '').trim();
+
+  if (!installationId) {
+    installationId = globalThis.crypto?.randomUUID
+      ? globalThis.crypto.randomUUID()
+      : `gaspronal-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    await chrome.storage.local.set({ gaspronalInstallationId: installationId });
+  }
+
+  return {
+    installationId,
+    extensionName: String(stored.gaspronalExtensionName || 'Gaspronal WhatsApp IA').trim(),
+    version: String(chrome.runtime.getManifest()?.version || '')
+  };
+}
+
+function startExtensionHeartbeat(socket, identity) {
+  if (extensionHeartbeatTimer) clearInterval(extensionHeartbeatTimer);
+
+  const send = () => {
+    if (!socket?.connected) return;
+    socket.emit('extension.heartbeat', {
+      installationId: identity.installationId,
+      name: identity.extensionName,
+      version: identity.version,
+      at: new Date().toISOString()
+    });
+  };
+
+  send();
+  extensionHeartbeatTimer = setInterval(send, 15000);
+}
+
+async function executeExtensionTest(payload = {}) {
+  const targetUrl = String(payload.targetUrl || 'https://web.whatsapp.com/');
+
+  const tabs = await chrome.tabs.query({ url: 'https://web.whatsapp.com/*' });
+  let tab = tabs.find((item) => typeof item.id === 'number');
+
+  if (tab?.id) {
+    tab = await chrome.tabs.update(tab.id, { active: true });
+    if (typeof tab.windowId === 'number') {
+      await chrome.windows.update(tab.windowId, { focused: true }).catch(() => undefined);
+    }
+  } else {
+    tab = await chrome.tabs.create({ url: targetUrl, active: true });
+  }
+
+  return {
+    ok: true,
+    message: 'WhatsApp Web fue abierto y la extensión respondió correctamente.',
+    tabId: tab?.id || null,
+    url: tab?.url || targetUrl,
+    testedAt: new Date().toISOString()
+  };
+}
 
 function getInferenceSettings(settings) {
   return {
@@ -254,9 +314,25 @@ function rejectAllPendingInference(error) {
   }
 }
 
-function attachInferenceSocketListeners(socket) {
+function attachInferenceSocketListeners(socket, identity) {
   socket.on('connect', () => {
     inferenceConnectPromise = null;
+    startExtensionHeartbeat(socket, identity);
+  });
+
+  socket.on('extension.test', async (payload, ack) => {
+    try {
+      const result = await executeExtensionTest(payload);
+      if (typeof ack === 'function') ack(result);
+    } catch (error) {
+      if (typeof ack === 'function') {
+        ack({
+          ok: false,
+          message: error?.message || 'No fue posible abrir WhatsApp Web.',
+          testedAt: new Date().toISOString()
+        });
+      }
+    }
   });
 
   socket.on('disconnect', (reason) => {
@@ -319,6 +395,7 @@ async function getInferenceSocket(config, debug = null) {
   }
 
   if (!inferenceSocket) {
+    const identity = await getInstallationIdentity();
     inferenceSocketKey = key;
     inferenceSocket = io(config.hubUrl, {
       transports: ['websocket'],
@@ -330,10 +407,13 @@ async function getInferenceSocket(config, debug = null) {
       auth: {
         type: 'inference-client',
         token: config.inferenceToken,
-        clientId: config.clientId || 'gaspronal-wa-extension'
+        clientId: config.clientId || 'gaspronal-wa-extension',
+        installationId: identity.installationId,
+        extensionName: identity.extensionName,
+        version: identity.version
       }
     });
-    attachInferenceSocketListeners(inferenceSocket);
+    attachInferenceSocketListeners(inferenceSocket, identity);
   }
 
   if (inferenceSocket.connected) return inferenceSocket;
