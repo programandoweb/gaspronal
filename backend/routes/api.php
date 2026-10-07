@@ -22,6 +22,7 @@ use App\Http\Controllers\Api\V1\CommunicationConversationController;
 use App\Http\Controllers\Api\V1\AiProviderController;
 use App\Http\Controllers\Api\V1\UserAccessController;
 use App\Http\Controllers\Api\V1\HeroSlideController;
+use App\Http\Controllers\Api\V1\BrowserExtensionController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function (): void {
@@ -91,6 +92,11 @@ Route::prefix('v1')->group(function (): void {
         Route::post('ai/models', [AiProviderController::class, 'storeModel'])->middleware('permission:ai.manage');
         Route::put('ai/models/{aiModel}', [AiProviderController::class, 'updateModel'])->middleware('permission:ai.manage');
         Route::delete('ai/models/{aiModel}', [AiProviderController::class, 'destroyModel'])->middleware('permission:ai.manage');
+
+        Route::get('extensions', [BrowserExtensionController::class, 'index'])->middleware('permission:extensions.view');
+        Route::post('extensions', [BrowserExtensionController::class, 'store'])->middleware('permission:extensions.manage');
+        Route::put('extensions/{browserExtension}', [BrowserExtensionController::class, 'update'])->middleware('permission:extensions.manage');
+        Route::delete('extensions/{browserExtension}', [BrowserExtensionController::class, 'destroy'])->middleware('permission:extensions.manage');
 
         Route::get('communications/providers', [CommunicationProviderController::class, 'index'])->middleware('permission:channels.view');
         Route::get('communications/providers/{communicationProvider}', [CommunicationProviderController::class, 'show'])->middleware('permission:channels.view');
