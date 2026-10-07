@@ -11,6 +11,7 @@ import {
 import type { Socket } from "socket.io";
 import { socketCorsOrigin } from "../socket-cors";
 import { LmStudioProxyService } from "./lm-studio-proxy.service";
+import { ExtensionRegistryService } from "../extensions/extension-registry.service";
 import type {
   LmStudioProxyCancel,
   LmStudioProxyRequest,
@@ -28,6 +29,7 @@ export class InferenceGateway
   constructor(
     private readonly config: ConfigService,
     private readonly lmStudio: LmStudioProxyService,
+    private readonly extensions: ExtensionRegistryService,
   ) {}
 
   handleConnection(socket: Socket): void {
@@ -66,17 +68,30 @@ export class InferenceGateway
         socket.id,
     );
 
+    this.extensions.register(socket);
+
     this.logger.log(
       `Inference client connected: ${socket.data.clientId} (${socket.id})`,
     );
   }
 
   handleDisconnect(socket: Socket): void {
+    this.extensions.unregister(socket);
     if (socket.data.role === "inference-client") {
       this.logger.log(
         `Inference client disconnected: ${socket.data.clientId || socket.id}`,
       );
     }
+  }
+
+  @SubscribeMessage("extension.heartbeat")
+  handleExtensionHeartbeat(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() payload: Record<string, unknown>,
+  ): { ok: boolean; data?: unknown } {
+    if (socket.data.role !== "inference-client") return { ok: false };
+    const data = this.extensions.heartbeat(socket, payload);
+    return { ok: Boolean(data), data };
   }
 
   @SubscribeMessage("lm.request")
