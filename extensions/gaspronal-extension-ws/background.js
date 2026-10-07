@@ -1734,3 +1734,42 @@ function friendlyError(error) {
   }
   return error?.message || 'Error desconocido generando la respuesta.';
 }
+
+async function ensureManagedRealtimeConnection() {
+  try {
+    const settings = await chrome.storage.sync.get(DEFAULTS);
+    const config = getInferenceSettings(settings);
+    if (!config.hubUrl || !config.inferenceToken) return;
+    await getInferenceSocket(config);
+  } catch (error) {
+    console.warn('[Gaspronal Extension] No fue posible iniciar realtime administrado:', error?.message || error);
+  }
+}
+
+chrome.runtime.onStartup.addListener(() => {
+  void ensureManagedRealtimeConnection();
+});
+
+chrome.runtime.onInstalled.addListener(() => {
+  void ensureManagedRealtimeConnection();
+});
+
+chrome.storage.onChanged.addListener((changes, areaName) => {
+  if (areaName !== 'sync') return;
+  const relevant = ['hubUrl', 'inferenceToken', 'agentId', 'clientId', 'contextId'];
+  if (!relevant.some((key) => Object.prototype.hasOwnProperty.call(changes, key))) return;
+
+  if (inferenceSocket) {
+    inferenceSocket.disconnect();
+    inferenceSocket = null;
+    inferenceSocketKey = '';
+    inferenceConnectPromise = null;
+  }
+  void ensureManagedRealtimeConnection();
+});
+
+// Manifest V3: al despertar el service worker intentamos restablecer inmediatamente
+// la presencia administrada. El heartbeat mantiene vivo el WebSocket mientras
+// Chrome y la extensión estén activos.
+void ensureManagedRealtimeConnection();
+
