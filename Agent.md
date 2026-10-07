@@ -712,3 +712,64 @@ Una prueba se considera exitosa únicamente cuando responden las tres capas: Nes
 
 La presencia realtime no convierte por sí misma a la extensión en canal CRM. La integración de conversaciones con `communication_conversations` continúa siendo una decisión separada.
 
+## 27. Extensión Gaspronal Gemini Web como agente remoto lm.*
+
+La extensión adaptada de Gemini Web conserva el mismo schema y contratos de la extensión fuente y se integra con Gaspronal sin depender de Migo.
+
+### Contratos preservados
+
+No renombrar ni reinterpretar sin una migración explícita:
+
+- `agent.register`;
+- `agent.heartbeat`;
+- `lm.request`;
+- `lm.cancel`;
+- `lm.accepted`;
+- `lm.started`;
+- `lm.completed`;
+- `lm.error`.
+
+También se conservan los mensajes internos `MIGO_GEMINI_*` y el bloque multimedia `migo` dentro de la respuesta OpenAI-compatible. Esos nombres son compatibilidad histórica y no representan dependencia runtime de Migo.
+
+### Routing Gaspronal
+
+`browser-gemini` es un agente remoto conectado al Socket.IO raíz con `auth.type = "agent"`.
+
+- autentica con `BROWSER_AGENT_TOKEN`;
+- el token no se hardcodea ni se versiona;
+- `BrowserAgentRouterService` registra agentes por `agentId`;
+- cuando un cliente de inferencia envía `lm.request` con `agentId=browser-gemini` y dicho agente está online, NestJS enruta la solicitud a esa extensión;
+- si el `agentId` no corresponde a un agente browser online, el flujo existente hacia `LmStudioProxyService` permanece sin cambios;
+- lifecycle y errores retornan al cliente solicitante usando los mismos eventos `lm.*`;
+- `lm.cancel` debe reenviarse al agente browser correspondiente cuando exista una ruta activa.
+
+### Administración
+
+La extensión Gemini participa en `/dashboard/extensiones` igual que la extensión WhatsApp:
+
+- genera `installationId` UUID persistente;
+- reporta presencia realtime;
+- utiliza tipo `gemini_web`;
+- su target administrado es `https://gemini.google.com/app`;
+- `extension.test` abre/enfoca Gemini Web y sólo responde OK si el content script responde a `MIGO_GEMINI_PING`.
+
+La presencia realtime sigue siendo responsabilidad de NestJS; la configuración administrativa permanece en MariaDB.
+
+### QA mínimo
+
+Antes de afirmar la integración completa:
+
+1. `node --check background.js`;
+2. `node --check content.js`;
+3. `node --check popup.js`;
+4. parseo de `manifest.json`;
+5. build/typecheck de realtime;
+6. conexión real con `BROWSER_AGENT_TOKEN`;
+7. `agent.register` y heartbeat visibles;
+8. descubrimiento en `/dashboard/extensiones`;
+9. Test remoto exitoso sobre Gemini Web;
+10. ciclo real `lm.request -> browser-gemini -> Gemini Web -> lm.completed`;
+11. validar una respuesta de texto y una respuesta de imagen.
+
+No afirmar los puntos 5 a 11 si no se ejecutaron.
+
