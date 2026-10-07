@@ -24,7 +24,9 @@ class DatabaseSeeder extends Seeder
         $password = (string) env('ADMIN_PASSWORD', '');
 
         if ($email !== '' && $password !== '') {
-            User::query()->updateOrCreate(
+            // Credenciales de bootstrap: sólo se aplican al crear la cuenta.
+            // Nunca sobrescribir una contraseña existente durante un deploy/seed.
+            User::query()->firstOrCreate(
                 ['email' => $email],
                 [
                     'name' => env('ADMIN_NAME', 'Administrador Gaspronal'),
