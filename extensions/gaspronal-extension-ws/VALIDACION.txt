@@ -1,13 +1,27 @@
-Version 0.33.1
+Gaspronal WhatsApp IA
+Manifest: 1.0.0
+Base histórica de la extensión: 0.33.1
 
-- Prioridad absoluta para solicitudes de fotos.
-- Descarga cada imagen de forma independiente: una URL fallida no cancela las demás.
-- Ruta principal mediante input nativo de WhatsApp para crear un álbum.
-- Fallbacks controlados: drag & drop, paste y envío individual.
-- La descripción se agrega como caption; no se repite en cada foto.
-- Si ya se presionó Enviar, no se envía texto ni se repite el álbum.
-- Sólo usa texto de respaldo cuando ninguna imagen fue comprometida.
-- Registra prepared, sent, failed, deliveryMethod, warnings y error.
-- Conserva deduplicación, bloqueo entre instancias, socket y contexto sin cambios.
-- background.js, content.js y popup.js validados con node --check.
-- manifest.json validado como JSON.
+Validación ejecutada sobre los archivos versionados en extensions/gaspronal-extension-ws:
+
+- background.js: node --check OK.
+- content.js: node --check OK.
+- popup.js: node --check OK.
+- manifest.json: parse JSON OK.
+- Los archivos principales del paquete revisado corresponden a los incorporados al repositorio antes de esta actualización documental.
+- Contratos Socket.IO preservados: lm.request, lm.cancel, lm.accepted, lm.started, lm.completed, lm.error y enterprise.registration.turn.
+- Identificadores históricos MIGO_WA_AI_*, migo-wa-* y migo_* preservados por compatibilidad; no implican dependencia de Migo.
+- La extensión configura Gaspronal realtime como endpoint.
+- LM Studio es consumido por NestJS, no directamente por Chrome.
+- LM_STUDIO_BASE_URL operativo inicial: http://10.8.0.2:1234, configurable por entorno.
+
+Pendientes / riesgos que NO se consideran validados todavía:
+
+- QA end-to-end real desde Chrome -> Socket.IO público -> NestJS -> LM Studio -> extensión.
+- Verificar DNS/proxy público de realtime y upgrade WebSocket en producción.
+- enterprise.registration.turn permanece deshabilitado en Gaspronal.
+- El número de operador hardcodeado del flujo empresarial heredado debe considerarse temporal.
+- Los host_permissions amplios deben revisarse cuando se pueda limitar el origen de medios.
+- La extensión todavía no convierte automáticamente sus chats en communication_conversations del CRM.
+
+No afirmar estos puntos como validados hasta ejecutar la prueba correspondiente.
