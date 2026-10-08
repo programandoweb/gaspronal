@@ -11,6 +11,6 @@ Schedule::command('agent:jorge:research-next')
     ->everyMinute()
     ->withoutOverlapping(10);
 
-Schedule::command('agent:jorge:enhance-next')
+Schedule::command('agent:leonardo:enhance-next')
     ->everyMinute()
     ->withoutOverlapping(10);
