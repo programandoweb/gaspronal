@@ -62,7 +62,7 @@ export default function PublicHeader({ whatsappHref }: PublicHeaderProps) {
               width={220}
               height={78}
               priority
-              className="h-auto w-[170px] sm:w-[205px]"
+              className="h-auto w-[190px] sm:w-[240px]"
             />
           </Link>
         </motion.div>
