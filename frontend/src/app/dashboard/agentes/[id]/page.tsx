@@ -665,9 +665,9 @@ export default function AgentChatPage({ params }:{ params:Promise<{id:string}> }
             <p className="text-xs leading-5 text-[var(--muted)]">La regeneración crea otra imagen, la hace principal y conserva todas las anteriores.</p>
           </div>
 
-          {imageEnhancement?.recent_results?.length>0&&<div className="space-y-2">
+          {(imageEnhancement?.recent_results?.length ?? 0) > 0&&<div className="space-y-2">
             <span className="block text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">Últimos resultados</span>
-            {imageEnhancement.recent_results.slice(0,5).map(result=><div key={result.id} className="rounded-xl border border-[var(--border)] p-3 text-xs">
+            {imageEnhancement?.recent_results?.slice(0,5).map(result=><div key={result.id} className="rounded-xl border border-[var(--border)] p-3 text-xs">
               <div className="flex items-center justify-between gap-3">
                 <strong className="truncate">#{result.catalog_item_id} · {result.catalog_item?.name??"Producto"}</strong>
                 <span className={result.status==="completed"?"font-semibold text-emerald-700":"font-semibold text-red-700"}>{result.status==="completed"?"OK":"Error"}</span>
