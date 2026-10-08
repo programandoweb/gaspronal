@@ -22,6 +22,7 @@ use App\Http\Controllers\Api\V1\CommunicationConversationController;
 use App\Http\Controllers\Api\V1\AiProviderController;
 use App\Http\Controllers\Api\V1\UserAccessController;
 use App\Http\Controllers\Api\V1\HeroSlideController;
+use App\Http\Controllers\Api\V1\PageBlockController;
 use App\Http\Controllers\Api\V1\BrowserExtensionController;
 use Illuminate\Support\Facades\Route;
 
@@ -34,6 +35,7 @@ Route::prefix('v1')->group(function (): void {
     Route::get('catalog/public/categories', [CatalogController::class, 'publicCategories']);
     Route::get('content/public/posts', [PostController::class, 'publicIndex']);
     Route::get('content/public/posts/{slug}', [PostController::class, 'publicShow']);
+    Route::get('page-blocks/public', [PageBlockController::class, 'publicIndex']);
     Route::get('heroes/public', [HeroSlideController::class, 'publicIndex']);
     Route::get('communications/public/whatsapp-link', [CommunicationProviderController::class, 'publicWhatsappLink']);
     Route::get('heroes/media/{heroSlide}/{filename}', [HeroSlideController::class, 'media'])->where('filename', '[A-Za-z0-9._-]+');
@@ -141,6 +143,11 @@ Route::prefix('v1')->group(function (): void {
         Route::post('catalog/categories', [CatalogController::class, 'storeCategory'])->middleware('permission:catalog.manage');
         Route::put('catalog/categories/{catalogCategory}', [CatalogController::class, 'updateCategory'])->middleware('permission:catalog.manage');
         Route::delete('catalog/categories/{catalogCategory}', [CatalogController::class, 'destroyCategory'])->middleware('permission:catalog.manage');
+
+        Route::get('page-blocks', [PageBlockController::class, 'index'])->middleware('permission:heroes.view');
+        Route::post('page-blocks', [PageBlockController::class, 'store'])->middleware('permission:heroes.manage');
+        Route::put('page-blocks/{pageBlock}', [PageBlockController::class, 'update'])->middleware('permission:heroes.manage');
+        Route::delete('page-blocks/{pageBlock}', [PageBlockController::class, 'destroy'])->middleware('permission:heroes.manage');
 
         Route::get('heroes', [HeroSlideController::class, 'index'])->middleware('permission:heroes.view');
         Route::post('heroes', [HeroSlideController::class, 'store'])->middleware('permission:heroes.manage');
