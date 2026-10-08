@@ -142,7 +142,7 @@ class JorgeImageEnhancementController extends Controller
     private function run(): AgentImageEnhancementRun
     {
         return AgentImageEnhancementRun::query()->firstOrCreate(
-            ['agent_id' => 'jorge'],
+            ['agent_id' => 'leonardo'],
             [
                 'status' => 'idle',
                 'total_items' => CatalogItem::query()->where('type', 'product')->count(),
