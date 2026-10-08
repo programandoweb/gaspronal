@@ -10,8 +10,8 @@ use Throwable;
 
 class JorgeEnhanceNextProduct extends Command
 {
-    protected $signature = 'agent:jorge:enhance-next';
-    protected $description = 'Mejora la imagen del siguiente producto pendiente de Jorge mediante Gemini API.';
+    protected $signature = 'agent:leonardo:enhance-next';
+    protected $description = 'Mejora la imagen del siguiente producto pendiente de Leonardo mediante Gemini API.';
 
     public function handle(JorgeImageEnhancementService $service): int
     {
