@@ -18,4 +18,5 @@ if ($sharedSecret === '') {
 return [
     'shared_secret' => $sharedSecret,
     'realtime_internal_url' => rtrim((string) env('REALTIME_INTERNAL_URL', 'http://realtime:4100'), '/'),
+    'gemini_image_model' => trim((string) env('GEMINI_IMAGE_MODEL', 'gemini-3.1-flash-image')),
 ];

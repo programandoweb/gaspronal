@@ -42,6 +42,30 @@ type ResearchState = {
   pending_items:number;
   completed_items:number;
 };
+type ImageEnhancementState = {
+  run:{
+    status:"idle"|"running"|"paused"|"stopped"|"completed";
+    total_items:number;
+    processed_items:number;
+    successful_items:number;
+    failed_items:number;
+    last_error?:string|null;
+    current_item?:{id:number;name:string;reference?:string|null}|null;
+  };
+  pending_items:number;
+  completed_items:number;
+  failed_items:number;
+  recent_results:Array<{
+    id:number;
+    catalog_item_id:number;
+    mode:"auto"|"manual";
+    status:"completed"|"failed";
+    generated_image?:string|null;
+    error?:string|null;
+    catalog_item?:{id:number;name:string;reference?:string|null}|null;
+  }>;
+};
+
 type LuciaRun = {
   uuid:string;
   topic:string;
@@ -81,6 +105,10 @@ export default function AgentChatPage({ params }:{ params:Promise<{id:string}> }
   const [research,setResearch]=useState<ResearchState|null>(null);
   const [researchBusy,setResearchBusy]=useState(false);
   const [researchMessage,setResearchMessage]=useState("");
+  const [imageEnhancement,setImageEnhancement]=useState<ImageEnhancementState|null>(null);
+  const [imageEnhancementBusy,setImageEnhancementBusy]=useState(false);
+  const [imageEnhancementMessage,setImageEnhancementMessage]=useState("");
+  const [regenerateProductId,setRegenerateProductId]=useState("");
   const [luciaRun,setLuciaRun]=useState<LuciaRun|null>(null);
   const [unanswered,setUnanswered]=useState<UnansweredQuestion[]>([]);
   const [unansweredLoading,setUnansweredLoading]=useState(false);
@@ -220,6 +248,21 @@ export default function AgentChatPage({ params }:{ params:Promise<{id:string}> }
   },[id]);
 
   useEffect(()=>{
+    if(id!=="jorge")return;
+    let active=true;
+
+    async function loadImageEnhancement(){
+      const response=await fetch("/api/admin/agents/jorge/image-enhancement",{cache:"no-store"});
+      const json=await response.json().catch(()=>({}));
+      if(active&&response.ok)setImageEnhancement(json.data);
+    }
+
+    void loadImageEnhancement();
+    const timer=window.setInterval(()=>void loadImageEnhancement(),5000);
+    return ()=>{active=false;window.clearInterval(timer);};
+  },[id]);
+
+  useEffect(()=>{
     if(id!=="claudio")return;
     let active=true;
 
@@ -252,6 +295,38 @@ export default function AgentChatPage({ params }:{ params:Promise<{id:string}> }
     }
     setResearch(json.data);
     setResearchMessage(action==="play"?"Investigación iniciada.":action==="pause"?"Investigación pausada.":"Investigación detenida.");
+  }
+
+  async function imageEnhancementAction(action:"play"|"pause"|"stop"){
+    setImageEnhancementBusy(true);
+    setImageEnhancementMessage("");
+    const response=await fetch(`/api/admin/agents/jorge/image-enhancement/${action}`,{method:"POST"});
+    const json=await response.json().catch(()=>({}));
+    setImageEnhancementBusy(false);
+    if(!response.ok){
+      setImageEnhancementMessage(json.message??"No fue posible cambiar el estado del mejoramiento de imágenes.");
+      return;
+    }
+    setImageEnhancement(json.data);
+    setImageEnhancementMessage(action==="play"?"Mejoramiento iniciado.":action==="pause"?"Mejoramiento pausado.":"Mejoramiento detenido.");
+  }
+
+  async function regenerateProductImage(){
+    const productId=Number(regenerateProductId);
+    if(!Number.isInteger(productId)||productId<=0)return;
+
+    setImageEnhancementBusy(true);
+    setImageEnhancementMessage("");
+    const response=await fetch(`/api/admin/agents/jorge/image-enhancement/products/${productId}/regenerate`,{method:"POST"});
+    const json=await response.json().catch(()=>({}));
+    setImageEnhancementBusy(false);
+    if(!response.ok){
+      setImageEnhancementMessage(json.message??"No fue posible programar la regeneración.");
+      return;
+    }
+    setImageEnhancement(json.data);
+    setRegenerateProductId("");
+    setImageEnhancementMessage(`Regeneración del producto #${productId} programada.`);
   }
 
   async function refreshUnanswered(){
@@ -555,6 +630,54 @@ export default function AgentChatPage({ params }:{ params:Promise<{id:string}> }
 
           {research?.run.last_error&&<p className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-800">{research.run.last_error}</p>}
           {researchMessage&&<p className="text-xs font-medium text-[var(--brand)]">{researchMessage}</p>}
+        </section>}
+
+        {id==="jorge"&&<section className="space-y-4 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
+          <div className="flex items-center gap-2"><Search size={18} className="text-[var(--brand)]"/><h2 className="font-bold">Mejoramiento de imágenes del catálogo</h2></div>
+          <p className="text-sm leading-6 text-[var(--muted)]">Jorge usa Gemini API directamente, sin Chrome ni extensión. Cada imagen nueva pasa a ser principal y la anterior se conserva en la galería.</p>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded-xl bg-[var(--app-bg)] p-3"><span className="block text-xs text-[var(--muted)]">Estado</span><strong className="mt-1 block capitalize">{imageEnhancement?.run.status??"cargando"}</strong></div>
+            <div className="rounded-xl bg-[var(--app-bg)] p-3"><span className="block text-xs text-[var(--muted)]">Progreso</span><strong className="mt-1 block">{imageEnhancement?.run.processed_items??0} / {imageEnhancement?.run.total_items??0}</strong></div>
+            <div className="rounded-xl bg-[var(--app-bg)] p-3"><span className="block text-xs text-[var(--muted)]">Completados</span><strong className="mt-1 block">{imageEnhancement?.completed_items??0}</strong></div>
+            <div className="rounded-xl bg-[var(--app-bg)] p-3"><span className="block text-xs text-[var(--muted)]">Fallidos</span><strong className="mt-1 block">{imageEnhancement?.failed_items??0}</strong></div>
+          </div>
+
+          {imageEnhancement&&imageEnhancement.run.total_items>0&&<div className="h-2 overflow-hidden rounded-full bg-[var(--app-bg)]"><div className="h-full bg-[var(--brand)] transition-all" style={{width:`${Math.min(100,Math.round((imageEnhancement.run.processed_items/imageEnhancement.run.total_items)*100))}%`}}/></div>}
+
+          {imageEnhancement?.run.current_item&&<div className="rounded-xl border border-[var(--border)] p-3 text-sm">
+            <span className="block text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">Producto actual</span>
+            <strong className="mt-1 block">#{imageEnhancement.run.current_item.id} · {imageEnhancement.run.current_item.name}</strong>
+          </div>}
+
+          <div className="grid grid-cols-3 gap-2">
+            <button type="button" disabled={imageEnhancementBusy||imageEnhancement?.run.status==="running"} onClick={()=>void imageEnhancementAction("play")} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[var(--brand)] px-3 text-sm font-semibold text-white disabled:opacity-45"><Play size={16}/>Play</button>
+            <button type="button" disabled={imageEnhancementBusy||imageEnhancement?.run.status!=="running"} onClick={()=>void imageEnhancementAction("pause")} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-[var(--border)] px-3 text-sm font-semibold disabled:opacity-45"><Pause size={16}/>Pausa</button>
+            <button type="button" disabled={imageEnhancementBusy||!["running","paused"].includes(imageEnhancement?.run.status??"")} onClick={()=>void imageEnhancementAction("stop")} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-red-200 px-3 text-sm font-semibold text-red-700 disabled:opacity-45"><Square size={16}/>Stop</button>
+          </div>
+
+          <div className="space-y-2 rounded-xl border border-[var(--border)] p-3">
+            <span className="block text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">Regenerar un producto</span>
+            <div className="flex gap-2">
+              <input value={regenerateProductId} onChange={e=>setRegenerateProductId(e.target.value.replace(/\D/g,""))} inputMode="numeric" placeholder="ID del producto" className="min-h-10 min-w-0 flex-1 rounded-xl border border-[var(--border)] bg-transparent px-3 text-sm"/>
+              <button type="button" disabled={imageEnhancementBusy||!regenerateProductId} onClick={()=>void regenerateProductImage()} className="inline-flex min-h-10 items-center justify-center rounded-xl border border-[var(--brand)] px-3 text-sm font-semibold text-[var(--brand)] disabled:opacity-45">Regenerar</button>
+            </div>
+            <p className="text-xs leading-5 text-[var(--muted)]">La regeneración crea otra imagen, la hace principal y conserva todas las anteriores.</p>
+          </div>
+
+          {imageEnhancement?.recent_results?.length>0&&<div className="space-y-2">
+            <span className="block text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">Últimos resultados</span>
+            {imageEnhancement.recent_results.slice(0,5).map(result=><div key={result.id} className="rounded-xl border border-[var(--border)] p-3 text-xs">
+              <div className="flex items-center justify-between gap-3">
+                <strong className="truncate">#{result.catalog_item_id} · {result.catalog_item?.name??"Producto"}</strong>
+                <span className={result.status==="completed"?"font-semibold text-emerald-700":"font-semibold text-red-700"}>{result.status==="completed"?"OK":"Error"}</span>
+              </div>
+              {result.error&&<p className="mt-1 line-clamp-2 text-red-700">{result.error}</p>}
+            </div>)}
+          </div>}
+
+          {imageEnhancement?.run.last_error&&<p className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-800">{imageEnhancement.run.last_error}</p>}
+          {imageEnhancementMessage&&<p className="text-xs font-medium text-[var(--brand)]">{imageEnhancementMessage}</p>}
         </section>}
 
         {id!=="lucia"&&<form onSubmit={saveSettings} className="space-y-4 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">

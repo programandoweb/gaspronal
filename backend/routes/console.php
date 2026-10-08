@@ -10,3 +10,7 @@ Artisan::command('gaspronal:status', function (): void {
 Schedule::command('agent:jorge:research-next')
     ->everyMinute()
     ->withoutOverlapping(10);
+
+Schedule::command('agent:jorge:enhance-next')
+    ->everyMinute()
+    ->withoutOverlapping(10);

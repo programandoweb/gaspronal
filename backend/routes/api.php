@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\V1\InternalAgentCommercialController;
 use App\Http\Controllers\Api\V1\CommercialQuoteController;
 use App\Http\Controllers\Api\V1\CommercialAppointmentController;
 use App\Http\Controllers\Api\V1\JorgeResearchController;
+use App\Http\Controllers\Api\V1\JorgeImageEnhancementController;
 use App\Http\Controllers\Api\V1\CommunicationProviderController;
 use App\Http\Controllers\Api\V1\CommunicationConversationController;
 use App\Http\Controllers\Api\V1\AiProviderController;
@@ -124,6 +125,11 @@ Route::prefix('v1')->group(function (): void {
         Route::post('agents/jorge/research/play', [JorgeResearchController::class, 'play'])->middleware('permission:agents.manage');
         Route::post('agents/jorge/research/pause', [JorgeResearchController::class, 'pause'])->middleware('permission:agents.manage');
         Route::post('agents/jorge/research/stop', [JorgeResearchController::class, 'stop'])->middleware('permission:agents.manage');
+        Route::get('agents/jorge/image-enhancement', [JorgeImageEnhancementController::class, 'show'])->middleware('permission:agents.view');
+        Route::post('agents/jorge/image-enhancement/play', [JorgeImageEnhancementController::class, 'play'])->middleware('permission:agents.manage');
+        Route::post('agents/jorge/image-enhancement/pause', [JorgeImageEnhancementController::class, 'pause'])->middleware('permission:agents.manage');
+        Route::post('agents/jorge/image-enhancement/stop', [JorgeImageEnhancementController::class, 'stop'])->middleware('permission:agents.manage');
+        Route::post('agents/jorge/image-enhancement/products/{catalogItem}/regenerate', [JorgeImageEnhancementController::class, 'regenerate'])->middleware('permission:agents.manage');
 
         Route::get('agents/{agent}/knowledge', [AgentKnowledgeController::class, 'knowledge'])->middleware('permission:agents.view');
         Route::get('agents/{agent}/unanswered-questions', [AgentKnowledgeController::class, 'unanswered'])->middleware('permission:agents.view');
