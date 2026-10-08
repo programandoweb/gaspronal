@@ -103,6 +103,16 @@ async function getManagedHeroes(): Promise<Record<number, FullHeroSlide[]>> {
   }
 }
 
+type ManagedBlock = { block_key: string; content: Record<string, string> };
+async function getManagedBlocks(): Promise<Record<string, Record<string, string>>> {
+  try {
+    const response = await fetch(`${backendUrl}/api/v1/page-blocks/public?page=home`, { cache: "no-store" });
+    if (!response.ok) return {};
+    const json = await response.json();
+    return Object.fromEntries((json.data as ManagedBlock[] ?? []).map(block => [block.block_key, block.content]));
+  } catch { return {}; }
+}
+
 async function getUseCases(): Promise<UseCaseProduct[]> {
   try {
     const response = await fetch(`${backendUrl}/api/v1/catalog/public/use-cases`, {
@@ -163,7 +173,7 @@ const advantages = [
 ];
 
 export default async function HomePage({ searchParams }: { searchParams: Promise<{ option?: string }> }) {
-  const [useCases, managedHeroes] = await Promise.all([getUseCases(), getManagedHeroes()]);
+  const [useCases, managedHeroes, blocks] = await Promise.all([getUseCases(), getManagedHeroes(), getManagedBlocks()]);
   const params = await searchParams;
   const requestedOption = Number(params.option ?? "1");
   const heroOption = Number.isInteger(requestedOption) && requestedOption >= 1 && requestedOption <= 5 ? requestedOption : 1;
@@ -199,9 +209,9 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         <div className="mx-auto max-w-[1440px] px-4 sm:px-6 lg:px-10">
           <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16">
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.2em] text-[var(--accent)]">Qué hacemos</p>
+              <p className="text-xs font-black uppercase tracking-[0.2em] text-[var(--accent)]">{blocks.services?.eyebrow ?? "Qué hacemos"}</p>
               <h2 className="mt-4 text-4xl font-black tracking-[-0.045em] text-[var(--steel)] sm:text-5xl">
-                Una solución completa, no solo un equipo.
+                {blocks.services?.title ?? "Una solución completa, no solo un equipo."}
               </h2>
               <p className="mt-5 max-w-xl text-base leading-7 text-slate-600">
                 Gaspronal integra fabricación, gas, extracción y soporte técnico para resolver necesidades
@@ -231,9 +241,9 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         <div className="mx-auto max-w-[1440px] px-4 sm:px-6 lg:px-10">
           <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.2em] text-[var(--accent)]">Catálogo Gaspronal</p>
+              <p className="text-xs font-black uppercase tracking-[0.2em] text-[var(--accent)]">{blocks.products?.eyebrow ?? "Catálogo Gaspronal"}</p>
               <h2 className="mt-4 max-w-3xl text-4xl font-black tracking-[-0.045em] text-[var(--steel)] sm:text-5xl">
-                Equipamiento pensado para producción real.
+                {blocks.products?.title ?? "Equipamiento pensado para producción real."}
               </h2>
             </div>
 
