@@ -248,11 +248,11 @@ export default function AgentChatPage({ params }:{ params:Promise<{id:string}> }
   },[id]);
 
   useEffect(()=>{
-    if(id!=="jorge")return;
+    if(id!=="leonardo")return;
     let active=true;
 
     async function loadImageEnhancement(){
-      const response=await fetch("/api/admin/agents/jorge/image-enhancement",{cache:"no-store"});
+      const response=await fetch("/api/admin/agents/leonardo/image-enhancement",{cache:"no-store"});
       const json=await response.json().catch(()=>({}));
       if(active&&response.ok)setImageEnhancement(json.data);
     }
@@ -300,7 +300,7 @@ export default function AgentChatPage({ params }:{ params:Promise<{id:string}> }
   async function imageEnhancementAction(action:"play"|"pause"|"stop"){
     setImageEnhancementBusy(true);
     setImageEnhancementMessage("");
-    const response=await fetch(`/api/admin/agents/jorge/image-enhancement/${action}`,{method:"POST"});
+    const response=await fetch(`/api/admin/agents/leonardo/image-enhancement/${action}`,{method:"POST"});
     const json=await response.json().catch(()=>({}));
     setImageEnhancementBusy(false);
     if(!response.ok){
@@ -317,7 +317,7 @@ export default function AgentChatPage({ params }:{ params:Promise<{id:string}> }
 
     setImageEnhancementBusy(true);
     setImageEnhancementMessage("");
-    const response=await fetch(`/api/admin/agents/jorge/image-enhancement/products/${productId}/regenerate`,{method:"POST"});
+    const response=await fetch(`/api/admin/agents/leonardo/image-enhancement/products/${productId}/regenerate`,{method:"POST"});
     const json=await response.json().catch(()=>({}));
     setImageEnhancementBusy(false);
     if(!response.ok){
@@ -604,7 +604,7 @@ export default function AgentChatPage({ params }:{ params:Promise<{id:string}> }
           {unansweredMessage&&<p className="text-xs font-medium text-[var(--brand)]">{unansweredMessage}</p>}
         </section>}
 
-        {id==="jorge"&&<section className="space-y-4 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
+        {id==="leonardo"&&<section className="space-y-4 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
           <div className="flex items-center gap-2"><Search size={18} className="text-[var(--brand)]"/><h2 className="font-bold">Investigación del catálogo</h2></div>
           <p className="text-sm leading-6 text-[var(--muted)]">Jorge recorre uno a uno los productos de la web oficial de Gaspronal, recupera contenido, SEO, metatags e imágenes y los guarda localmente.</p>
 
