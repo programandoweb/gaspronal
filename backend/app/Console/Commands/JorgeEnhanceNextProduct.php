@@ -15,7 +15,7 @@ class JorgeEnhanceNextProduct extends Command
 
     public function handle(JorgeImageEnhancementService $service): int
     {
-        $run = AgentImageEnhancementRun::query()->where('agent_id', 'jorge')->first();
+        $run = AgentImageEnhancementRun::query()->where('agent_id', 'leonardo')->first();
         if (! $run || $run->status !== 'running') {
             return self::SUCCESS;
         }
