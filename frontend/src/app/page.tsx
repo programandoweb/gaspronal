@@ -346,12 +346,12 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                 {blocks.application?.description ?? "La experiencia de Gaspronal conecta diseño, fabricación, instalación y mantenimiento para entregar soluciones integrales relacionadas con gas propano, gas natural y equipos industriales."}
               </p>
               <div className="mt-8 grid gap-3">
-                {advantages.map((item) => (
+                {advantages.map((item, index) => (
                   <div key={item} className="flex items-start gap-3 text-sm font-semibold text-slate-700">
                     <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--brand-soft)] text-[var(--brand)]">
                       <Check size={14} strokeWidth={3} />
                     </span>
-                    {item}
+                    {blocks.application?.[`advantage_${index + 1}`] ?? item}
                   </div>
                 ))}
               </div>
@@ -360,7 +360,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             <div className="flex min-h-[420px] flex-col justify-between bg-[var(--surface-muted)] p-7 sm:p-10 lg:p-14">
               <div>
                 <span className="inline-flex rounded-full bg-white px-4 py-2 text-xs font-black uppercase tracking-[0.15em] text-[var(--brand)] shadow-sm">
-                  Caso de aplicación
+                  {blocks.application?.case_eyebrow ?? "Caso de aplicación"}
                 </span>
                 <h3 className="mt-6 text-3xl font-black tracking-[-0.035em] text-[var(--steel)] sm:text-4xl">
                   {blocks.application?.case_title ?? "Diseño de cocina, fabricación y extracción trabajando como un solo proyecto."}
@@ -370,7 +370,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                 <p className="text-sm leading-6 text-slate-600">
                   {blocks.application?.case_description ?? "El sitio histórico documenta proyectos donde Gaspronal ha integrado diseño de cocina, equipos industriales en acero inoxidable y sistemas de extracción."}
                 </p>
-                <p className="mt-4 text-sm font-black text-[var(--steel)]">Gaspro-notas · Casos de éxito</p>
+                <p className="mt-4 text-sm font-black text-[var(--steel)]">{blocks.application?.case_footer ?? "Gaspro-notas · Casos de éxito"}</p>
               </div>
             </div>
           </div>
