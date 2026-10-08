@@ -170,9 +170,9 @@ export default function HeroesPage() {
       <header className="flex flex-col gap-4 border-b border-[var(--border)] pb-5 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <span className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--brand)]">Contenido / Constructor visual</span>
-          <h1 className="mt-2 text-3xl font-bold">Constructor de heroes</h1>
+          <h1 className="mt-2 text-3xl font-bold">Diseño · Héroes</h1>
           <p className="mt-2 max-w-3xl text-sm text-[var(--muted)]">
-            Administra heroes y carruseles por ubicación. <strong>home.hero</strong> está conectado al home actual; las demás ubicaciones quedan disponibles para reutilizar el mismo constructor en otras páginas.
+            Administra héroes y carruseles por ubicación. <strong>home.hero</strong> está conectado al home actual; las demás ubicaciones quedan disponibles para reutilizar el mismo constructor en otras páginas.
           </p>
         </div>
         {canManage && (
