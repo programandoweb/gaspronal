@@ -363,13 +363,12 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                   Caso de aplicación
                 </span>
                 <h3 className="mt-6 text-3xl font-black tracking-[-0.035em] text-[var(--steel)] sm:text-4xl">
-                  Diseño de cocina, fabricación y extracción trabajando como un solo proyecto.
+                  {blocks.application?.case_title ?? "Diseño de cocina, fabricación y extracción trabajando como un solo proyecto."}
                 </h3>
               </div>
               <div className="mt-10 border-l-4 border-[var(--accent)] pl-5">
                 <p className="text-sm leading-6 text-slate-600">
-                  El sitio histórico documenta proyectos donde Gaspronal ha integrado diseño de cocina,
-                  equipos industriales en acero inoxidable y sistemas de extracción.
+                  {blocks.application?.case_description ?? "El sitio histórico documenta proyectos donde Gaspronal ha integrado diseño de cocina, equipos industriales en acero inoxidable y sistemas de extracción."}
                 </p>
                 <p className="mt-4 text-sm font-black text-[var(--steel)]">Gaspro-notas · Casos de éxito</p>
               </div>
