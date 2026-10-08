@@ -338,14 +338,12 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         <div className="mx-auto max-w-[1440px] px-4 sm:px-6 lg:px-10">
           <div className="grid overflow-hidden rounded-[2.25rem] border border-slate-200 lg:grid-cols-2">
             <div className="p-7 sm:p-10 lg:p-14">
-              <p className="text-xs font-black uppercase tracking-[0.2em] text-[var(--accent)]">Gaspronal</p>
+              <p className="text-xs font-black uppercase tracking-[0.2em] text-[var(--accent)]">{blocks.application?.eyebrow ?? "Gaspronal"}</p>
               <h2 className="mt-4 text-4xl font-black tracking-[-0.045em] text-[var(--steel)] sm:text-5xl">
-                Tecnología aplicada a la operación.
+                {blocks.application?.title ?? "Tecnología aplicada a la operación."}
               </h2>
               <p className="mt-6 text-base leading-7 text-slate-600">
-                La experiencia de Gaspronal conecta diseño, fabricación, instalación y mantenimiento para
-                entregar soluciones integrales relacionadas con gas propano, gas natural y equipos
-                industriales.
+                {blocks.application?.description ?? "La experiencia de Gaspronal conecta diseño, fabricación, instalación y mantenimiento para entregar soluciones integrales relacionadas con gas propano, gas natural y equipos industriales."}
               </p>
               <div className="mt-8 grid gap-3">
                 {advantages.map((item) => (
