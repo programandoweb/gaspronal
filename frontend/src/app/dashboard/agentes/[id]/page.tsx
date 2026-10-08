@@ -61,6 +61,7 @@ type ImageEnhancementState = {
     mode:"auto"|"manual";
     status:"completed"|"failed";
     generated_image?:string|null;
+    source_image?:string|null;
     error?:string|null;
     catalog_item?:{id:number;name:string;reference?:string|null}|null;
   }>;
@@ -632,9 +633,9 @@ export default function AgentChatPage({ params }:{ params:Promise<{id:string}> }
           {researchMessage&&<p className="text-xs font-medium text-[var(--brand)]">{researchMessage}</p>}
         </section>}
 
-        {id==="jorge"&&<section className="space-y-4 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
+        {id==="leonardo"&&<section className="space-y-4 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
           <div className="flex items-center gap-2"><Search size={18} className="text-[var(--brand)]"/><h2 className="font-bold">Mejoramiento de imágenes del catálogo</h2></div>
-          <p className="text-sm leading-6 text-[var(--muted)]">Jorge usa Gemini API directamente, sin Chrome ni extensión. Cada imagen nueva pasa a ser principal y la anterior se conserva en la galería.</p>
+          <p className="text-sm leading-6 text-[var(--muted)]">Leonardo utiliza Gemini API directamente, sin Chrome ni extensión. Cada imagen nueva pasa a ser principal y la anterior se conserva en la galería.</p>
 
           <div className="grid grid-cols-2 gap-3">
             <div className="rounded-xl bg-[var(--app-bg)] p-3"><span className="block text-xs text-[var(--muted)]">Estado</span><strong className="mt-1 block capitalize">{imageEnhancement?.run.status??"cargando"}</strong></div>
@@ -672,6 +673,7 @@ export default function AgentChatPage({ params }:{ params:Promise<{id:string}> }
                 <strong className="truncate">#{result.catalog_item_id} · {result.catalog_item?.name??"Producto"}</strong>
                 <span className={result.status==="completed"?"font-semibold text-emerald-700":"font-semibold text-red-700"}>{result.status==="completed"?"OK":"Error"}</span>
               </div>
+              {result.source_image&&result.generated_image&&<div className="mt-3 grid grid-cols-2 gap-2"><div><p className="mb-1 font-semibold">Antes</p><img src={result.source_image} alt="Fotografía original" className="aspect-square w-full rounded-lg object-contain"/></div><div><p className="mb-1 font-semibold">Después</p><img src={result.generated_image} alt="Fotografía mejorada" className="aspect-square w-full rounded-lg object-contain"/></div></div>}
               {result.error&&<p className="mt-1 line-clamp-2 text-red-700">{result.error}</p>}
             </div>)}
           </div>}
