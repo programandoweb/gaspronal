@@ -37,7 +37,7 @@ const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, exact: true, permission: "dashboard.view" },
   { href: "/dashboard/catalogo", label: "Productos y servicios", icon: Boxes, exact: false, permission: "catalog.view" },
   { href: "/dashboard/gaspro-notas", label: "Gaspro-notas", icon: BookOpen, exact: false, permission: "content.view" },
-  { href: "/dashboard/heroes", label: "Constructor de heroes", icon: PanelsTopLeft, exact: false, permission: "heroes.view" },
+  { href: "/dashboard/heroes", label: "Diseño", icon: PanelsTopLeft, exact: false, permission: "heroes.view" },
   { href: "/dashboard/agentes", label: "Agentes", icon: Bot, exact: false, permission: "agents.view" },
   { href: "/dashboard/ia", label: "Proveedores IA", icon: BrainCircuit, exact: false, permission: "ai.view" },
   { href: "/dashboard/canales", label: "Canales", icon: MessagesSquare, exact: false, permission: "channels.view" },
