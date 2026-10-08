@@ -81,10 +81,10 @@ class JorgeImageEnhancementService
 
     private function readSourceImage(CatalogItem $item): array
     {
-        $sourcePath = collect([$item->og_image, ...($item->gallery ?? [])])
+        $sourcePath = collect([ ...($item->gallery ?? []), $item->og_image ])
             ->filter(fn ($image) => is_string($image) && trim($image) !== '')
             ->map(fn ($image) => trim((string) $image))
-            ->first();
+            ->first(fn ($image) => ! str_contains($image, '/enhanced-'));
 
         if (! $sourcePath) {
             throw new RuntimeException('El producto no tiene una imagen principal válida.');
