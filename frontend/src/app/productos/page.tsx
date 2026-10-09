@@ -172,7 +172,7 @@ export default async function ProductsPage({
             image_url: item.image_url?.startsWith("/api/catalog-media/")
               ? item.image_url
               : item.image_url?.startsWith("/")
-                ? (process.env.PUBLIC_BACKEND_URL ?? "https://backend.gaspronal.programandoweb.net").replace(/\\/$/, "") + item.image_url
+                ? (process.env.PUBLIC_BACKEND_URL ?? "https://backend.gaspronal.programandoweb.net").replace(/\/$/, "") + item.image_url
                 : item.image_url ?? null,
           }))}
           activeCategory={category}
