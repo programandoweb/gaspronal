@@ -111,7 +111,7 @@ class CatalogController extends Controller
                     ->flatMap(function (CatalogItem $product): array {
                         $gallery = is_array($product->gallery) ? $product->gallery : [];
                         return array_filter(array_merge([$product->og_image], $gallery),
-                            fn ($url) => is_string($url) && trim($url) !== '');
+                            fn ($url) => is_string($url) && trim($url) !== '' && ! preg_match('/(?:logo|placeholder|no[-_]?image|sin[-_]?imagen|default[-_]?image|gaspronal[-_]?logo)/i', urldecode($url)));
                     })
                     ->unique()
                     ->values();
