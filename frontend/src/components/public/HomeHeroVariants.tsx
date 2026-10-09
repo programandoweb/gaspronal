@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import Link from "next/link";
 import {
   ArrowRight,
   Settings,
@@ -53,10 +52,8 @@ function HeroBackground({
 }
 
 function FullHeroCarousel({
-  option,
   slides,
 }: {
-  option: number;
   slides: FullHeroSlide[];
 }) {
   const [active, setActive] = useState(0);
@@ -99,7 +96,6 @@ function FullHeroCarousel({
       <div className="absolute right-[-8%] top-[-18%] size-[620px] rounded-full border-[120px] border-white/[0.035]" />
       <div className="absolute bottom-[-28%] left-[18%] size-[520px] rounded-full border-[100px] border-white/[0.03]" />
 
-      <ProposalSelector option={option} />
 
       <AnimatePresence mode="wait" initial={false}>
         <motion.div
@@ -188,34 +184,6 @@ function FullHeroCarousel({
   );
 }
 
-function ProposalSelector({ option }: { option: number }) {
-  return (
-    <div className="absolute left-1/2 top-4 z-20 -translate-x-1/2">
-      <div className="flex items-center gap-1 rounded-full border border-white/20 bg-[var(--steel)]/90 p-1 text-white shadow-xl backdrop-blur">
-        <span className="hidden px-3 text-[10px] font-black uppercase tracking-[0.14em] text-white/55 sm:inline">
-          Propuestas
-        </span>
-        {[1, 2, 3, 4, 5].map((item) => (
-          <Link
-            key={item}
-            href={item === 1 ? "/" : "/?option=" + item}
-            scroll={false}
-            className={
-              "grid size-8 place-items-center rounded-full text-xs font-black transition " +
-              (option === item
-                ? "bg-[var(--accent)] text-white"
-                : "text-white/70 hover:bg-white/10 hover:text-white")
-            }
-            aria-label={"Ver propuesta " + item}
-          >
-            {item}
-          </Link>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 export default function HomeHeroVariants({
   option,
   publicBackendUrl,
@@ -225,7 +193,6 @@ export default function HomeHeroVariants({
   publicBackendUrl: string;
   managedSlides?: Record<number, FullHeroSlide[]>;
 }) {
-  const selector = <ProposalSelector option={option} />;
   const industrialImage =
     publicBackendUrl.replace(/\/$/, "") + "/programandoweb/opengraph/home-opengraph.jpg";
 
@@ -401,18 +368,17 @@ export default function HomeHeroVariants({
   ];
 
   if (option === 2) {
-    return <FullHeroCarousel option={2} slides={managedSlides?.[2]?.length ? managedSlides[2] : option2Slides} />;
+    return <FullHeroCarousel slides={managedSlides?.[2]?.length ? managedSlides[2] : option2Slides} />;
   }
 
   if (option === 3) {
-    return <FullHeroCarousel option={3} slides={managedSlides?.[3]?.length ? managedSlides[3] : option3Slides} />;
+    return <FullHeroCarousel slides={managedSlides?.[3]?.length ? managedSlides[3] : option3Slides} />;
   }
 
   if (option === 4) {
     return (
       <section className="relative overflow-hidden bg-[var(--steel)] text-white">
         <HeroBackground src={heroBackgroundTwo} overlay="bg-[var(--steel)]/80" position="center" />
-        {selector}
         <div className="absolute inset-y-0 right-0 hidden w-[42%] bg-[var(--brand)]/70 lg:block" />
         <div className="absolute -left-24 top-32 size-72 rounded-full border-[70px] border-white/[0.035]" />
 
@@ -458,13 +424,12 @@ export default function HomeHeroVariants({
   }
 
   if (option === 5) {
-    return <FullHeroCarousel option={5} slides={managedSlides?.[5]?.length ? managedSlides[5] : option5Slides} />;
+    return <FullHeroCarousel slides={managedSlides?.[5]?.length ? managedSlides[5] : option5Slides} />;
   }
 
   return (
     <section className="relative overflow-hidden bg-[var(--steel)] text-white">
       <HeroBackground src={heroBackgroundOne} overlay="bg-[var(--steel)]/78" position="center" />
-      {selector}
       <div className="absolute inset-0">
         <div className="absolute right-[-8%] top-[-18%] size-[620px] rounded-full border-[120px] border-white/[0.035]" />
         <div className="absolute bottom-[-28%] left-[18%] size-[520px] rounded-full border-[100px] border-white/[0.03]" />
