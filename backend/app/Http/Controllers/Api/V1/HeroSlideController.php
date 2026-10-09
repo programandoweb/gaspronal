@@ -7,6 +7,7 @@ use App\Models\HeroSlide;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -17,6 +18,7 @@ class HeroSlideController extends Controller
         $section = trim((string) $request->query('section', 'home.hero'));
 
         return response()->json([
+            'active_option' => (int) (DB::table('hero_preferences')->where('section_key', $section)->value('active_option') ?? 1),
             'data' => HeroSlide::query()
                 ->where('section_key', $section)
                 ->where('is_active', true)
@@ -41,8 +43,24 @@ class HeroSlideController extends Controller
                 ->get(),
             'meta' => [
                 'can_manage' => (bool) $request->user()?->can('heroes.manage'),
+                'active_options' => DB::table('hero_preferences')->pluck('active_option', 'section_key'),
             ],
         ]);
+    }
+
+    public function setActiveOption(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'section_key' => ['required', 'string', 'max:120', 'regex:/^[a-z0-9._-]+$/'],
+            'active_option' => ['required', 'integer', 'between:1,5'],
+        ]);
+
+        DB::table('hero_preferences')->updateOrInsert(
+            ['section_key' => $data['section_key']],
+            ['active_option' => $data['active_option'], 'updated_at' => now(), 'created_at' => now()]
+        );
+
+        return response()->json(['data' => $data]);
     }
 
     public function store(Request $request): JsonResponse
