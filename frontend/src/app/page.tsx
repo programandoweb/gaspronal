@@ -286,20 +286,19 @@ export default async function HomePage() {
                 >
                   {background && (
                     <div
-                      className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
+                      className="absolute inset-0 bg-cover bg-center grayscale transition-[filter,transform] duration-700 ease-in-out group-hover:grayscale-0 group-hover:scale-105"
                       style={{ backgroundImage: `url("${background.replace(/"/g, "%22")}")` }}
                       aria-hidden="true"
                     />
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-900/65 to-slate-900/40" aria-hidden="true" />
-                  <div className="relative flex items-start justify-between gap-5">
+                  <div className="relative flex items-start justify-between gap-5 [filter:drop-shadow(0_1px_3px_rgba(0,0,0,0.85))]">
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 text-white backdrop-blur-sm">
                       <Icon size={23} />
                     </div>
                     <ArrowRight size={22} className="text-white/85 transition group-hover:translate-x-1" />
                   </div>
                   <div className="absolute inset-x-5 bottom-5">
-                    <h3 className="mt-2 text-lg font-black leading-tight tracking-[-0.03em]">{category.name}</h3>
+                    <h3 className="mt-2 text-lg font-black leading-tight tracking-[-0.03em] [text-shadow:0_2px_5px_rgba(0,0,0,0.95),0_0_12px_rgba(0,0,0,0.75)]">{category.name}</h3>
                     
                   </div>
                 </Link>
