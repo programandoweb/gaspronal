@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, Box, Search, Tag } from "lucide-react";
+import CategoryCircleCarousel from "@/components/public/CategoryCircleCarousel";
 
 export const metadata: Metadata = {
   title: "Productos industriales",
@@ -17,6 +18,7 @@ type Category = {
   slug: string;
   description?: string | null;
   products_count: number;
+  image_url?: string | null;
 };
 
 type Product = {
@@ -57,7 +59,7 @@ async function getCatalog(category?: string, search?: string, page = 1) {
       next: { revalidate: 300 },
       headers: { Accept: "application/json" },
     }),
-    fetch(`${backendUrl}/api/v1/catalog/public/categories`, {
+    fetch(`${backendUrl}/api/v1/catalog/public/home-category-images`, {
       next: { revalidate: 300 },
       headers: { Accept: "application/json" },
     }),
@@ -163,34 +165,18 @@ export default async function ProductsPage({
       </section>
 
       <section className="mx-auto max-w-[1440px] px-4 py-8 sm:px-6 lg:px-10">
-        <div className="flex gap-2 overflow-x-auto pb-2">
-          <Link
-            href="/productos"
-            className={
-              "whitespace-nowrap rounded-full border px-4 py-2 text-sm font-bold transition " +
-              (!category
-                ? "border-[var(--brand)] bg-[var(--brand)] text-white"
-                : "border-slate-200 bg-white text-slate-700 hover:border-[var(--brand)]")
-            }
-          >
-            Todos
-          </Link>
-          {categories.map((item) => (
-            <Link
-              key={item.id}
-              href={`/productos/categoria/${item.slug}`}
-              className={
-                "inline-flex whitespace-nowrap rounded-full border px-4 py-2 text-sm font-bold transition " +
-                (category === item.slug
-                  ? "border-[var(--brand)] bg-[var(--brand)] text-white"
-                  : "border-slate-200 bg-white text-slate-700 hover:border-[var(--brand)]")
-              }
-            >
-              {item.name}
-              <span className="ml-2 opacity-60">{item.products_count}</span>
-            </Link>
-          ))}
-        </div>
+        <CategoryCircleCarousel
+          categories={categories.map((item) => ({
+            ...item,
+            products_count: item.products_count ?? 0,
+            image_url: item.image_url?.startsWith("/api/catalog-media/")
+              ? item.image_url
+              : item.image_url?.startsWith("/")
+                ? (process.env.PUBLIC_BACKEND_URL ?? "https://backend.gaspronal.programandoweb.net").replace(/\\/$/, "") + item.image_url
+                : item.image_url ?? null,
+          }))}
+          activeCategory={category}
+        />
       </section>
 
       <section className="mx-auto max-w-[1440px] px-4 pb-20 sm:px-6 lg:px-10">
