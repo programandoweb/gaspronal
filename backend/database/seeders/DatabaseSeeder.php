@@ -15,6 +15,7 @@ class DatabaseSeeder extends Seeder
         $this->runOnce(GoogleIndexedGasproNotasSeeder::class);
         $this->runOnce(LegacyProductsSeeder::class);
         $this->runOnce(LegacyServicesSeeder::class);
+        $this->runOnce(GasproCmsServicesSeeder::class);
         $this->runOnce(AiProviderSeeder::class);
         $this->runOnce(GeminiProviderSeeder::class);
         $this->runOnce(AiModelSeeder::class);
