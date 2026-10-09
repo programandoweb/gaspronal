@@ -7,7 +7,7 @@ import { FiArrowLeft, FiBox, FiHash, FiLink2, FiSave, FiTag, FiType, FiActivity,
 
 type Category={id:number;name:string;slug:string};
 type CatalogForm={
-  type:"product"|"service";
+  type:"product";
   name:string;
   reference:string;
   slug:string;
@@ -72,19 +72,12 @@ export default function NewCatalogItemPage(){
 
     <header>
       <span className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--brand)]">Catálogo</span>
-      <h1 className="mt-2 flex items-center gap-3 text-3xl font-bold"><FiBox className="text-[var(--brand)]"/>Nuevo producto o servicio</h1>
+      <h1 className="mt-2 flex items-center gap-3 text-3xl font-bold"><FiBox className="text-[var(--brand)]"/>Nuevo producto</h1>
     </header>
 
     <form onSubmit={submit} className="space-y-6 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 sm:p-6">
       <div className="grid gap-6 xl:grid-cols-2">
         <div className="grid content-start gap-4 md:grid-cols-2">
-          <label className="space-y-2">
-            <span className="flex items-center gap-2 text-sm font-medium"><FiBox className="text-[var(--brand)]"/>Tipo</span>
-            <select value={form.type} onChange={e=>setForm({...form,type:e.target.value as CatalogForm["type"]})} className="min-h-11 w-full rounded-xl border border-[var(--border)] bg-transparent px-3">
-              <option value="product">Producto</option><option value="service">Servicio</option>
-            </select>
-          </label>
-
           <label className="space-y-2">
             <span className="flex items-center gap-2 text-sm font-medium"><FiTag className="text-[var(--brand)]"/>Categoría</span>
             <select value={form.category_id} onChange={e=>setForm({...form,category_id:e.target.value})} className="min-h-11 w-full rounded-xl border border-[var(--border)] bg-transparent px-3">
