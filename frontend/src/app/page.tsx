@@ -114,21 +114,26 @@ async function getManagedBlocks(): Promise<Record<string, Record<string, string>
   } catch { return {}; }
 }
 
-async function getHomeCategoryImages(): Promise<Record<string, string>> {
+type HomeCategory = { id: number; name: string; slug: string; description: string | null; image_url: string | null };
+
+async function getHomeCategories(): Promise<HomeCategory[]> {
   try {
     const response = await fetch(`${backendUrl}/api/v1/catalog/public/home-category-images`, {
       cache: "no-store",
       headers: { Accept: "application/json" },
     });
-    if (!response.ok) return {};
+    if (!response.ok) return [];
     const payload = await response.json();
-    return Object.fromEntries(
-      Object.entries(payload.data ?? {})
-        .filter((entry): entry is [string, string] => typeof entry[1] === "string" && entry[1].length > 0)
-        .map(([key, src]) => [key, src.startsWith("/") ? publicBackendUrl + src : src])
-    );
+    return (Array.isArray(payload.data) ? payload.data : []).map((category: HomeCategory) => ({
+      ...category,
+      image_url: category.image_url?.startsWith("/api/catalog-media/")
+        ? category.image_url
+        : category.image_url?.startsWith("/")
+          ? publicBackendUrl + category.image_url
+          : category.image_url,
+    }));
   } catch {
-    return {};
+    return [];
   }
 }
 
@@ -175,15 +180,6 @@ const services = [
   },
 ];
 
-const categories = [
-  { icon: ChefHat, key: "estufas", name: "Estufas industriales", detail: "Alto rendimiento para operación continua" },
-  { icon: Gauge, key: "freidoras", name: "Freidoras", detail: "Control térmico y recuperación rápida" },
-  { icon: Flame, key: "hornos", name: "Hornos industriales", detail: "Soluciones para producción y cocción" },
-  { icon: Wind, key: "campanas", name: "Campanas extractoras", detail: "Extracción para cocinas profesionales" },
-  { icon: Settings, key: "mixtos", name: "Equipos mixtos", detail: "Múltiples procesos en una sola estación" },
-  { icon: Building2, key: "mesas", name: "Mesas y mesones", detail: "Superficies robustas en acero inoxidable" },
-];
-
 const advantages = [
   "Desarrollo de equipos especiales a medida",
   "Acero inoxidable para aplicaciones de alimentos",
@@ -192,7 +188,7 @@ const advantages = [
 ];
 
 export default async function HomePage() {
-  const [useCases, managedHeroes, blocks, categoryImages] = await Promise.all([getUseCases(), getManagedHeroes(), getManagedBlocks(), getHomeCategoryImages()]);
+  const [useCases, managedHeroes, blocks, categories] = await Promise.all([getUseCases(), getManagedHeroes(), getManagedBlocks(), getHomeCategories()]);
   const heroOption = managedHeroes.activeOption;
   return (
     <main className="min-h-screen overflow-hidden bg-white text-[var(--foreground)]">
@@ -278,14 +274,15 @@ export default async function HomePage() {
             </div>
           </div>
 
-          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {categories.map((category) => {
-              const Icon = category.icon;
-              const background = categoryImages[category.key];
+          <div className="mt-10 grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+            {categories.map((category, index) => {
+              const Icon = [ChefHat, Gauge, Flame, Wind, Settings, Building2][index % 6];
+              const background = category.image_url;
               return (
-                <article
-                  key={category.key}
-                  className="group relative min-h-[260px] overflow-hidden rounded-[2rem] border border-slate-700/20 bg-[var(--brand)] p-7 text-white transition duration-300 hover:-translate-y-1 hover:shadow-xl"
+                <Link
+                  href={`/productos?categoria=${encodeURIComponent(category.slug)}`}
+                  key={category.id}
+                  className="group relative min-h-[215px] overflow-hidden rounded-2xl border border-slate-700/20 bg-[var(--brand)] p-5 text-white transition duration-300 hover:-translate-y-1 hover:shadow-xl"
                 >
                   {background && (
                     <div
@@ -296,27 +293,24 @@ export default async function HomePage() {
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-900/65 to-slate-900/40" aria-hidden="true" />
                   <div className="relative flex items-start justify-between gap-5">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15 text-white backdrop-blur-sm">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 text-white backdrop-blur-sm">
                       <Icon size={23} />
                     </div>
                     <ArrowRight size={22} className="text-white/85 transition group-hover:translate-x-1" />
                   </div>
-                  <div className="absolute inset-x-7 bottom-7">
+                  <div className="absolute inset-x-5 bottom-5">
                     <p className="text-xs font-bold uppercase tracking-[0.14em] text-white/85">
                       Línea de producto
                     </p>
-                    <h3 className="mt-2 text-2xl font-black tracking-[-0.03em]">{category.name}</h3>
-                    <p className="mt-2 text-sm leading-6 text-white/90">{category.detail}</p>
+                    <h3 className="mt-2 text-lg font-black leading-tight tracking-[-0.03em]">{category.name}</h3>
+                    <p className="mt-2 text-sm leading-6 text-white/90">{category.description || `Explora nuestros productos de ${category.name.toLowerCase()}.`}</p>
                   </div>
-                </article>
+                </Link>
               );
             })}
           </div>
 
-          <p className="mt-7 text-sm leading-6 text-slate-500">
-            El catálogo histórico incluye además carros para comidas y bebidas, baño maría, marmitas,
-            fábricas de arepas, asadores, planchas y equipos para panadería.
-          </p>
+          {categories.length === 0 && <p className="mt-7 text-sm text-slate-500">No hay categorías con productos publicados disponibles.</p>}
         </div>
       </section>
 
