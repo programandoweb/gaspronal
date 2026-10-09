@@ -8,12 +8,8 @@ import {
   FiChevronRight,
   FiEdit2,
   FiExternalLink,
-  FiFilter,
-  FiGrid,
-  FiPackage,
   FiPlus,
   FiSearch,
-  FiSettings,
   FiTag,
   FiTrash2,
   FiX,
@@ -48,7 +44,6 @@ const statusLabel:Record<string,string>={
 
 export default function CatalogPage(){
   const [items,setItems]=useState<Item[]>([]);
-  const [filter,setFilter]=useState<"all"|"product"|"service">("all");
   const [search,setSearch]=useState("");
   const [appliedSearch,setAppliedSearch]=useState("");
   const [page,setPage]=useState(1);
@@ -66,8 +61,8 @@ export default function CatalogPage(){
     const params=new URLSearchParams({
       page:String(targetPage),
       per_page:String(perPage),
+      type:"product",
     });
-    if(filter!=="all")params.set("type",filter);
     if(appliedSearch.trim())params.set("search",appliedSearch.trim());
 
     const response=await fetch(`/api/admin/catalog/items?${params.toString()}`,{cache:"no-store"});
@@ -91,7 +86,7 @@ export default function CatalogPage(){
     setPage(Number(json.current_page??targetPage));
   }
 
-  useEffect(()=>{void load(1);},[filter,appliedSearch,perPage]);
+  useEffect(()=>{void load(1);},[appliedSearch,perPage]);
 
   function submitSearch(e:React.FormEvent){
     e.preventDefault();
@@ -137,10 +132,10 @@ export default function CatalogPage(){
         <span className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--brand)]">CRM / CMS</span>
         <h1 className="mt-2 flex items-center gap-3 text-3xl font-bold">
           <FiBox className="text-[var(--brand)]" aria-hidden="true"/>
-          Productos y servicios
+          Productos
         </h1>
         <p className="mt-2 text-sm text-[var(--muted)]">
-          Catálogo administrativo de productos y servicios, conservando las rutas históricas.
+          Administra exclusivamente los productos. Los servicios editoriales se gestionan en Gaspro CMS.
         </p>
       </div>
 
@@ -155,7 +150,7 @@ export default function CatalogPage(){
           href="/dashboard/catalogo/nuevo"
           className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[var(--brand)] px-4 text-sm font-semibold text-white"
         >
-          <FiPlus size={17}/>Nuevo producto o servicio
+          <FiPlus size={17}/>Nuevo producto
         </Link>
       </div>
     </header>
@@ -167,7 +162,7 @@ export default function CatalogPage(){
           <input
             value={search}
             onChange={e=>setSearch(e.target.value)}
-            placeholder="Buscar por referencia, categoría, título, producto o servicio..."
+            placeholder="Buscar productos por referencia, categoría o nombre..."
             className="min-h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] pl-10 pr-10 text-sm outline-none transition focus:border-[var(--brand)]"
           />
           {search&&(
@@ -192,29 +187,6 @@ export default function CatalogPage(){
       </form>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--muted)]">
-            <FiFilter/>Filtrar:
-          </span>
-          {(["all","product","service"] as const).map(value=>{
-            const Icon=value==="all"?FiGrid:value==="product"?FiPackage:FiSettings;
-            const label=value==="all"?"Todos":value==="product"?"Productos":"Servicios";
-
-            return <button
-              key={value}
-              type="button"
-              onClick={()=>setFilter(value)}
-              className={`inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold transition ${
-                filter===value
-                  ?"border-[var(--brand)] bg-[var(--brand)] text-white"
-                  :"border-[var(--border)] bg-[var(--surface)] hover:border-[var(--brand)]"
-              }`}
-            >
-              <Icon size={16}/>
-              {label}
-            </button>;
-          })}
-        </div>
 
         <div className="flex flex-wrap items-center gap-3">
           <label className="inline-flex items-center gap-2 text-sm font-medium text-[var(--muted)]">
@@ -245,7 +217,6 @@ export default function CatalogPage(){
           <thead className="border-b border-[var(--border)] bg-[var(--app-bg)]">
             <tr className="text-xs font-bold uppercase tracking-[0.08em] text-[var(--muted)]">
               <th className="px-5 py-4">Nombre</th>
-              <th className="px-5 py-4">Tipo</th>
               <th className="px-5 py-4">Referencia</th>
               <th className="px-5 py-4">Categoría</th>
               <th className="px-5 py-4">Estado</th>
@@ -256,7 +227,7 @@ export default function CatalogPage(){
           <tbody className="divide-y divide-[var(--border)]">
             {loading&&(
               <tr>
-                <td colSpan={6} className="px-5 py-10 text-center text-sm text-[var(--muted)]">
+                <td colSpan={5} className="px-5 py-10 text-center text-sm text-[var(--muted)]">
                   Cargando catálogo…
                 </td>
               </tr>
@@ -267,11 +238,6 @@ export default function CatalogPage(){
                 <td className="px-5 py-4">
                   <strong className="block text-sm">{item.name}</strong>
                   <span className="mt-1 block max-w-md truncate text-xs text-[var(--muted)]">{item.public_url}</span>
-                </td>
-                <td className="px-5 py-4">
-                  <span className="rounded-full bg-[var(--brand-soft)] px-2.5 py-1 text-xs font-semibold text-[var(--brand)]">
-                    {item.type==="product"?"Producto":"Servicio"}
-                  </span>
                 </td>
                 <td className="px-5 py-4 text-sm">{item.reference||"—"}</td>
                 <td className="px-5 py-4 text-sm">{item.category?.name??"Sin categoría"}</td>
@@ -315,7 +281,7 @@ export default function CatalogPage(){
             {!loading&&items.length===0&&(
               <tr>
                 <td colSpan={6} className="px-5 py-12 text-center text-sm text-[var(--muted)]">
-                  No hay productos o servicios para este filtro.
+                  No hay productos para esta búsqueda.
                 </td>
               </tr>
             )}
