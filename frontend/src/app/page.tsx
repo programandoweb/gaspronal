@@ -310,7 +310,8 @@ export default async function HomePage() {
                   </div>
                 </article>
               );
-            })}          </div>
+            })}
+          </div>
 
           <p className="mt-7 text-sm leading-6 text-slate-500">
             El catálogo histórico incluye además carros para comidas y bebidas, baño maría, marmitas,
