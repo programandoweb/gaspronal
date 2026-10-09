@@ -57,14 +57,14 @@ export const metadata: Metadata = {
   },
 };
 
-async function getManagedHeroes(): Promise<Record<number, FullHeroSlide[]>> {
+async function getManagedHeroes(): Promise<{ slides: Record<number, FullHeroSlide[]>; activeOption: number }> {
   try {
     const response = await fetch(`${backendUrl}/api/v1/heroes/public?section=home.hero`, {
       cache: "no-store",
       headers: { Accept: "application/json" },
     });
 
-    if (!response.ok) return {};
+    if (!response.ok) return { slides: {}, activeOption: 1 };
 
     const payload = await response.json();
     const result: Record<number, FullHeroSlide[]> = {};
@@ -97,9 +97,10 @@ async function getManagedHeroes(): Promise<Record<number, FullHeroSlide[]>> {
       });
     }
 
-    return result;
+    const selected = Number(payload.active_option ?? 1);
+    return { slides: result, activeOption: Number.isInteger(selected) && selected >= 1 && selected <= 5 ? selected : 1 };
   } catch {
-    return {};
+    return { slides: {}, activeOption: 1 };
   }
 }
 
@@ -172,11 +173,9 @@ const advantages = [
   "Asesoría técnica desde la necesidad hasta la operación",
 ];
 
-export default async function HomePage({ searchParams }: { searchParams: Promise<{ option?: string }> }) {
+export default async function HomePage() {
   const [useCases, managedHeroes, blocks] = await Promise.all([getUseCases(), getManagedHeroes(), getManagedBlocks()]);
-  const params = await searchParams;
-  const requestedOption = Number(params.option ?? "1");
-  const heroOption = Number.isInteger(requestedOption) && requestedOption >= 1 && requestedOption <= 5 ? requestedOption : 1;
+  const heroOption = managedHeroes.activeOption;
   return (
     <main className="min-h-screen overflow-hidden bg-white text-[var(--foreground)]">
       <div className="bg-[var(--brand)] text-white">
@@ -187,7 +186,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
 
       <PublicHeader whatsappHref={whatsappHref} />
 
-      <HomeHeroVariants option={heroOption} publicBackendUrl={publicBackendUrl} managedSlides={managedHeroes} />
+      <HomeHeroVariants option={heroOption} publicBackendUrl={publicBackendUrl} managedSlides={managedHeroes.slides} />
 
       <section className="border-b border-slate-200 bg-white">
         <div className="mx-auto grid max-w-[1440px] grid-cols-2 divide-x divide-y divide-slate-200 border-x border-slate-200 sm:grid-cols-4 sm:divide-y-0">
