@@ -11,6 +11,7 @@ type Category={
   description?:string|null;
   is_active?:boolean;
   items_count?:number;
+  image_url?:string|null;
 };
 
 function slugify(v:string){
@@ -22,6 +23,8 @@ export default function EditCategoryPage({params}:{params:Promise<{id:string}>})
   const [loading,setLoading]=useState(true);
   const [saving,setSaving]=useState(false);
   const [message,setMessage]=useState("");
+  const [imageUrl,setImageUrl]=useState<string|null>(null);
+  const [uploading,setUploading]=useState(false);
   const [form,setForm]=useState({name:"",slug:"",description:"",is_active:true,items_count:0});
 
   useEffect(()=>{
@@ -35,6 +38,7 @@ export default function EditCategoryPage({params}:{params:Promise<{id:string}>})
       }
 
       const item:Category=json.data;
+      setImageUrl(item.image_url??null);
       setForm({
         name:item.name,
         slug:item.slug,
@@ -73,6 +77,22 @@ export default function EditCategoryPage({params}:{params:Promise<{id:string}>})
     setMessage("Categoría actualizada correctamente.");
   }
 
+  async function uploadImage(file:File|undefined){
+    if(!file)return;
+    setUploading(true);setMessage("");
+    const formData=new FormData();formData.append("image",file);
+    const response=await fetch(`/api/admin/catalog/categories/${id}/image`,{method:"POST",body:formData});
+    const data=await response.json().catch(()=>({}));setUploading(false);
+    if(!response.ok){setMessage(data.message??"No fue posible subir la imagen.");return;}
+    setImageUrl(data.data?.image_url??null);setMessage("Imagen de categoría actualizada.");
+  }
+  async function removeImage(){
+    if(!confirm("¿Quitar la imagen personalizada y utilizar la selección automática?"))return;
+    const response=await fetch(`/api/admin/catalog/categories/${id}/image`,{method:"DELETE"});
+    if(response.ok){setImageUrl(null);setMessage("Se restauró la imagen automática.");}
+    else setMessage("No fue posible quitar la imagen.");
+  }
+
   if(loading)return <div className="w-full max-w-none py-8 text-sm text-[var(--muted)]">Cargando categoría…</div>;
 
   return <div className="w-full max-w-none space-y-6">
@@ -103,6 +123,8 @@ export default function EditCategoryPage({params}:{params:Promise<{id:string}>})
           <textarea value={form.description} onChange={e=>setForm({...form,description:e.target.value})} rows={6} className="w-full rounded-xl border border-[var(--border)] bg-transparent p-3"/>
         </label>
       </div>
+
+      <section className="space-y-3 rounded-xl border border-[var(--border)] p-4"><h2 className="text-sm font-bold">Imagen circular de la categoría (opcional)</h2><p className="text-xs text-[var(--muted)]">Si no defines una imagen, se seleccionará automáticamente una fotografía de los productos publicados, como hasta ahora.</p><div className="flex flex-wrap items-center gap-4">{imageUrl&&<img src={imageUrl} alt="Imagen actual de la categoría" className="size-24 rounded-full border-2 border-[var(--border)] object-cover"/>}<input aria-label="Cargar imagen de categoría" type="file" accept="image/jpeg,image/png,image/webp" disabled={uploading} onChange={e=>{void uploadImage(e.target.files?.[0]);e.target.value="";}} className="max-w-full text-sm"/>{imageUrl&&<button type="button" onClick={()=>void removeImage()} className="rounded-lg border border-[var(--border)] px-3 py-2 text-sm">Quitar imagen</button>}</div>{uploading&&<p className="text-sm">Subiendo imagen…</p>}</section>
 
       <label className="flex items-center gap-2 text-sm font-medium">
         <input type="checkbox" checked={form.is_active} onChange={e=>setForm({...form,is_active:e.target.checked})}/>

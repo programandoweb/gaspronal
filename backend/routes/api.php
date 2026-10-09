@@ -35,6 +35,7 @@ Route::prefix('v1')->group(function (): void {
     Route::get('catalog/public/items/{slug}', [CatalogController::class, 'publicShow']);
     Route::get('catalog/public/categories', [CatalogController::class, 'publicCategories']);
     Route::get('catalog/public/home-category-images', [CatalogController::class, 'homeCategoryImages']);
+    Route::get('catalog/categories/{catalogCategory}/image/{filename}', [CatalogController::class, 'categoryImage'])->where('filename', '[A-Za-z0-9._-]+');
     Route::get('content/public/posts', [PostController::class, 'publicIndex']);
     Route::get('content/public/posts/{slug}', [PostController::class, 'publicShow']);
     Route::get('content/public/legacy-services/{slug}', [PostController::class, 'publicLegacyService']);
@@ -151,6 +152,8 @@ Route::prefix('v1')->group(function (): void {
         Route::post('catalog/categories', [CatalogController::class, 'storeCategory'])->middleware('permission:catalog.manage');
         Route::put('catalog/categories/{catalogCategory}', [CatalogController::class, 'updateCategory'])->middleware('permission:catalog.manage');
         Route::delete('catalog/categories/{catalogCategory}', [CatalogController::class, 'destroyCategory'])->middleware('permission:catalog.manage');
+        Route::post('catalog/categories/{catalogCategory}/image', [CatalogController::class, 'uploadCategoryImage'])->middleware('permission:catalog.manage');
+        Route::delete('catalog/categories/{catalogCategory}/image', [CatalogController::class, 'deleteCategoryImage'])->middleware('permission:catalog.manage');
 
         Route::get('page-blocks', [PageBlockController::class, 'index'])->middleware('permission:heroes.view');
         Route::post('page-blocks', [PageBlockController::class, 'store'])->middleware('permission:heroes.manage');

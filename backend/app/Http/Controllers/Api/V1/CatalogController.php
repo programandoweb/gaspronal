@@ -107,7 +107,7 @@ class CatalogController extends Controller
                 ->whereNotNull('published_at')
                 ->select(['id', 'category_id', 'og_image', 'gallery'])])
             ->orderBy('name')
-            ->get(['id', 'name', 'slug', 'description']);
+            ->get(['id', 'name', 'slug', 'description', 'image_url']);
 
         return response()->json([
             'data' => $categories->map(function (CatalogCategory $category): array {
@@ -126,7 +126,7 @@ class CatalogController extends Controller
                     'slug' => $category->slug,
                     'products_count' => $category->products_count,
                     'description' => $category->description,
-                    'image_url' => $images->isNotEmpty() ? $images->random() : null,
+                    'image_url' => $category->image_url ?: ($images->isNotEmpty() ? $images->random() : null),
                 ];
             })->values(),
         ]);
@@ -146,7 +146,7 @@ class CatalogController extends Controller
                     ->where('status', 'published')
                     ->whereNotNull('published_at')])
                 ->orderBy('name')
-                ->get(['id', 'name', 'slug', 'description']),
+                ->get(['id', 'name', 'slug', 'description', 'image_url']),
         ]);
     }
 
@@ -359,6 +359,39 @@ class CatalogController extends Controller
         ]);
         $catalogCategory->update($data);
         return response()->json(['data' => $catalogCategory]);
+    }
+
+    public function uploadCategoryImage(Request $request, CatalogCategory $catalogCategory): JsonResponse
+    {
+        $request->validate(['image' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:8192']]);
+        $file = $request->file('image');
+        $filename = Str::uuid().'.'.$file->extension();
+        $file->storeAs('catalog/categories/'.$catalogCategory->id, $filename, 'public');
+        $previous = $catalogCategory->image_url;
+        $catalogCategory->update(['image_url' => '/api/category-media/'.$catalogCategory->id.'/'.$filename]);
+        if ($previous && str_starts_with($previous, '/api/category-media/'.$catalogCategory->id.'/')) {
+            Storage::disk('public')->delete('catalog/categories/'.$catalogCategory->id.'/'.basename($previous));
+        }
+        return response()->json(['data' => $catalogCategory->fresh()]);
+    }
+
+    public function deleteCategoryImage(CatalogCategory $catalogCategory): JsonResponse
+    {
+        $previous = $catalogCategory->image_url;
+        $catalogCategory->update(['image_url' => null]);
+        if ($previous && str_starts_with($previous, '/api/category-media/'.$catalogCategory->id.'/')) {
+            Storage::disk('public')->delete('catalog/categories/'.$catalogCategory->id.'/'.basename($previous));
+        }
+        return response()->json(['data' => $catalogCategory->fresh()]);
+    }
+
+    public function categoryImage(CatalogCategory $catalogCategory, string $filename): StreamedResponse
+    {
+        abort_unless(preg_match('/^[a-zA-Z0-9._-]+$/', $filename), 404);
+        abort_unless($catalogCategory->image_url === '/api/category-media/'.$catalogCategory->id.'/'.$filename, 404);
+        $path = 'catalog/categories/'.$catalogCategory->id.'/'.$filename;
+        abort_unless(Storage::disk('public')->exists($path), 404);
+        return Storage::disk('public')->response($path, $filename, ['Cache-Control' => 'public, max-age=31536000, immutable', 'X-Content-Type-Options' => 'nosniff']);
     }
 
     public function destroyCategory(CatalogCategory $catalogCategory): JsonResponse
