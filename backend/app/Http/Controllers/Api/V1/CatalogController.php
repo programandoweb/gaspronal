@@ -89,6 +89,43 @@ class CatalogController extends Controller
         return response()->json(['data' => $item]);
     }
 
+    public function homeCategoryImages(): JsonResponse
+    {
+        $groups = [
+            'estufas' => ['estufa', 'cocina industrial'],
+            'freidoras' => ['freidora'],
+            'hornos' => ['horno'],
+            'campanas' => ['campana', 'extractor', 'extracción'],
+            'mixtos' => ['mixto', 'multifuncional', 'combinado'],
+            'mesas' => ['mesa', 'mesón', 'meson'],
+        ];
+
+        $images = [];
+        foreach ($groups as $key => $terms) {
+            $candidates = CatalogItem::query()
+                ->where('type', 'product')
+                ->where('status', 'published')
+                ->whereNotNull('published_at')
+                ->where(function ($query) use ($terms): void {
+                    foreach ($terms as $term) {
+                        $query->orWhere('name', 'like', '%'.$term.'%')
+                            ->orWhereHas('category', fn ($category) => $category->where('name', 'like', '%'.$term.'%'));
+                    }
+                })
+                ->where(function ($query): void {
+                    $query->whereNotNull('og_image')->orWhereNotNull('gallery');
+                })
+                ->get(['og_image', 'gallery'])
+                ->map(fn ($item) => $item->og_image ?: collect($item->gallery ?? [])->first())
+                ->filter(fn ($url) => is_string($url) && $url !== '')
+                ->values();
+
+            $images[$key] = $candidates->isNotEmpty() ? $candidates->random() : null;
+        }
+
+        return response()->json(['data' => $images]);
+    }
+
     public function publicCategories(): JsonResponse
     {
         return response()->json([
