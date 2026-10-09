@@ -179,6 +179,7 @@ Route::prefix('v1')->group(function (): void {
         Route::post('content/posts/{post}/gallery', [PostController::class, 'uploadGallery'])->middleware('permission:content.manage');
         Route::put('content/posts/{post}/gallery/primary', [PostController::class, 'setPrimaryGalleryImage'])->middleware('permission:content.manage');
         Route::delete('content/posts/{post}/gallery', [PostController::class, 'destroyGalleryImage'])->middleware('permission:content.manage');
+        Route::get('content/service-topics', [PostController::class, 'serviceTopics'])->middleware('permission:content.view');
         Route::get('content/post-categories', [PostController::class, 'categories'])->middleware('permission:content.view');
         Route::post('content/post-categories', [PostController::class, 'storeCategory'])->middleware('permission:content.manage');
         Route::put('content/post-categories/{postCategory}', [PostController::class, 'updateCategory'])->middleware('permission:content.manage');

@@ -96,7 +96,7 @@ export default function EditGasproNotaPage({ params }:{ params:Promise<{id:strin
 
       const post:Post=postJson.data;
       setCategories(categoriesJson.data??[]);
-      fetch("/api/v1/content/public/service-topics").then(r=>r.json()).then(j=>setServiceTopics(j.data??[])).catch(()=>{});
+      fetch("/api/admin/content/service-topics").then(r=>r.json()).then(j=>setServiceTopics(j.data??[])).catch(()=>{});
       setPublicUrl(post.public_url);
       const normalizedGallery=Array.from(new Set([
         post.featured_image??"",
