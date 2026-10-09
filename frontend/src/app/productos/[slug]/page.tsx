@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, Check, MessageCircle, Tag } from "lucide-react";
+import ProductGallery from "@/components/public/ProductGallery";
 import { notFound } from "next/navigation";
 
 type Product = {
@@ -158,31 +159,7 @@ export default async function ProductDetailPage({
       </section>
 
       <section className="mx-auto grid max-w-[1440px] gap-10 px-4 py-10 sm:px-6 sm:py-14 lg:grid-cols-[1.05fr_0.95fr] lg:px-10">
-        <div>
-          <div className="overflow-hidden rounded-[2rem] border border-slate-200 bg-[var(--brand-soft)]">
-            {gallery[0] ? (
-              <img
-                src={gallery[0]}
-                alt={product.name}
-                className="aspect-[4/3] h-full w-full object-cover"
-              />
-            ) : (
-              <div className="flex aspect-[4/3] items-center justify-center text-[var(--brand)]/30">
-                <Tag size={72} strokeWidth={1.2} />
-              </div>
-            )}
-          </div>
-
-          {gallery.length > 1 ? (
-            <div className="mt-4 grid grid-cols-3 gap-3 sm:grid-cols-4">
-              {gallery.slice(1, 5).map((image) => (
-                <div key={image} className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
-                  <img src={image} alt="" className="aspect-square h-full w-full object-cover" loading="lazy" />
-                </div>
-              ))}
-            </div>
-          ) : null}
-        </div>
+        <ProductGallery images={gallery} productName={product.name} />
 
         <div className="lg:py-4">
           {product.category ? (
