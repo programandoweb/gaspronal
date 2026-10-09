@@ -34,6 +34,7 @@ Route::prefix('v1')->group(function (): void {
     Route::get('catalog/public/use-cases', [CatalogController::class, 'publicUseCases']);
     Route::get('catalog/public/items/{slug}', [CatalogController::class, 'publicShow']);
     Route::get('catalog/public/categories', [CatalogController::class, 'publicCategories']);
+    Route::get('catalog/public/home-category-images', [CatalogController::class, 'homeCategoryImages']);
     Route::get('content/public/posts', [PostController::class, 'publicIndex']);
     Route::get('content/public/posts/{slug}', [PostController::class, 'publicShow']);
     Route::get('page-blocks/public', [PageBlockController::class, 'publicIndex']);
