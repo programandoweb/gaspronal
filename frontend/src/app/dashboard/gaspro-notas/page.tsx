@@ -138,12 +138,12 @@ export default function NotesPage(){
         </p>
       </div>
 
-      <Link
+      <div className="flex flex-wrap gap-2"><Link href="/dashboard/gaspro-notas/categorias" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-[var(--border)] px-4 text-sm font-semibold">Administrar categorías</Link><Link
         href="/dashboard/gaspro-notas/nuevo"
         className="inline-flex min-h-11 items-center gap-2 self-start rounded-xl bg-[var(--brand)] px-4 text-sm font-semibold text-white"
       >
         <FiPlus/>Nueva publicación
-      </Link>
+      </Link></div>
     </header>
 
     <form onSubmit={submitSearch} className="flex flex-col gap-2 lg:flex-row">

@@ -105,17 +105,18 @@ class PostController extends Controller
         $data = $this->publication($request->validated(), $post);
         $oldSlug = $post->slug;
         $newSlug = $data['slug'] ?? $oldSlug;
+        $oldCategory = $post->category?->slug;
+        $newCategory = PostCategory::find($data['category_id'])?->slug;
 
-        DB::transaction(function () use ($post, $data, $oldSlug, $newSlug): void {
+        DB::transaction(function () use ($post, $data, $oldSlug, $newSlug, $oldCategory, $newCategory): void {
             $post->update($data);
 
-            if ($oldSlug === $newSlug) {
+            if ($oldSlug === $newSlug && $oldCategory === $newCategory) {
                 return;
             }
 
-            $prefix = $post->category?->slug === "servicios" ? "/2019/servicios" : "/gaspro-notas";
-            $oldPath = "{$prefix}/{$oldSlug}";
-            $newPath = "{$prefix}/{$newSlug}";
+            $oldPath = ($oldCategory === "servicios" ? "/2019/servicios" : "/gaspro-notas")."/{$oldSlug}";
+            $newPath = ($newCategory === "servicios" ? "/2019/servicios" : "/gaspro-notas")."/{$newSlug}";
 
             SeoRedirect::query()
                 ->where('target_path', $oldPath)
