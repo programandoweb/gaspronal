@@ -114,6 +114,24 @@ async function getManagedBlocks(): Promise<Record<string, Record<string, string>
   } catch { return {}; }
 }
 
+async function getHomeCategoryImages(): Promise<Record<string, string>> {
+  try {
+    const response = await fetch(`${backendUrl}/api/v1/catalog/public/home-category-images`, {
+      cache: "no-store",
+      headers: { Accept: "application/json" },
+    });
+    if (!response.ok) return {};
+    const payload = await response.json();
+    return Object.fromEntries(
+      Object.entries(payload.data ?? {})
+        .filter((entry): entry is [string, string] => typeof entry[1] === "string" && entry[1].length > 0)
+        .map(([key, src]) => [key, src.startsWith("/") ? publicBackendUrl + src : src])
+    );
+  } catch {
+    return {};
+  }
+}
+
 async function getUseCases(): Promise<UseCaseProduct[]> {
   try {
     const response = await fetch(`${backendUrl}/api/v1/catalog/public/use-cases`, {
@@ -158,12 +176,12 @@ const services = [
 ];
 
 const categories = [
-  { icon: ChefHat, name: "Estufas industriales", detail: "Alto rendimiento para operación continua" },
-  { icon: Gauge, name: "Freidoras", detail: "Control térmico y recuperación rápida" },
-  { icon: Flame, name: "Hornos industriales", detail: "Soluciones para producción y cocción" },
-  { icon: Wind, name: "Campanas extractoras", detail: "Extracción para cocinas profesionales" },
-  { icon: Settings, name: "Equipos mixtos", detail: "Múltiples procesos en una sola estación" },
-  { icon: Building2, name: "Mesas y mesones", detail: "Superficies robustas en acero inoxidable" },
+  { icon: ChefHat, key: "estufas", name: "Estufas industriales", detail: "Alto rendimiento para operación continua" },
+  { icon: Gauge, key: "freidoras", name: "Freidoras", detail: "Control térmico y recuperación rápida" },
+  { icon: Flame, key: "hornos", name: "Hornos industriales", detail: "Soluciones para producción y cocción" },
+  { icon: Wind, key: "campanas", name: "Campanas extractoras", detail: "Extracción para cocinas profesionales" },
+  { icon: Settings, key: "mixtos", name: "Equipos mixtos", detail: "Múltiples procesos en una sola estación" },
+  { icon: Building2, key: "mesas", name: "Mesas y mesones", detail: "Superficies robustas en acero inoxidable" },
 ];
 
 const advantages = [
@@ -174,7 +192,7 @@ const advantages = [
 ];
 
 export default async function HomePage() {
-  const [useCases, managedHeroes, blocks] = await Promise.all([getUseCases(), getManagedHeroes(), getManagedBlocks()]);
+  const [useCases, managedHeroes, blocks, categoryImages] = await Promise.all([getUseCases(), getManagedHeroes(), getManagedBlocks(), getHomeCategoryImages()]);
   const heroOption = managedHeroes.activeOption;
   return (
     <main className="min-h-screen overflow-hidden bg-white text-[var(--foreground)]">
@@ -261,41 +279,38 @@ export default async function HomePage() {
           </div>
 
           <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {categories.map((category, index) => {
+            {categories.map((category) => {
               const Icon = category.icon;
+              const background = categoryImages[category.key];
               return (
                 <article
-                  key={category.name}
-                  className={"group relative min-h-[260px] overflow-hidden rounded-[2rem] border p-7 transition duration-300 hover:-translate-y-1 hover:shadow-xl " +
-                    (index === 0
-                      ? "border-[var(--brand)] bg-[var(--brand)] text-white"
-                      : "border-slate-200 bg-white text-[var(--steel)]")}
+                  key={category.key}
+                  className="group relative min-h-[260px] overflow-hidden rounded-[2rem] border border-slate-700/20 bg-[var(--brand)] p-7 text-white transition duration-300 hover:-translate-y-1 hover:shadow-xl"
                 >
-                  <div className="flex items-start justify-between gap-5">
+                  {background && (
                     <div
-                      className={"flex h-12 w-12 items-center justify-center rounded-2xl " +
-                        (index === 0 ? "bg-white/10 text-white" : "bg-[var(--brand-soft)] text-[var(--brand)]")}
-                    >
+                      className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
+                      style={{ backgroundImage: `url("${background.replace(/"/g, "%22")}")` }}
+                      aria-hidden="true"
+                    />
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-900/65 to-slate-900/40" aria-hidden="true" />
+                  <div className="relative flex items-start justify-between gap-5">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15 text-white backdrop-blur-sm">
                       <Icon size={23} />
                     </div>
-                    <ArrowRight
-                      size={22}
-                      className={"transition group-hover:translate-x-1 " + (index === 0 ? "text-white/70" : "text-slate-400")}
-                    />
+                    <ArrowRight size={22} className="text-white/85 transition group-hover:translate-x-1" />
                   </div>
                   <div className="absolute inset-x-7 bottom-7">
-                    <p className={"text-xs font-bold uppercase tracking-[0.14em] " + (index === 0 ? "text-white/60" : "text-slate-400")}>
+                    <p className="text-xs font-bold uppercase tracking-[0.14em] text-white/85">
                       Línea de producto
                     </p>
                     <h3 className="mt-2 text-2xl font-black tracking-[-0.03em]">{category.name}</h3>
-                    <p className={"mt-2 text-sm leading-6 " + (index === 0 ? "text-white/75" : "text-slate-500")}>
-                      {category.detail}
-                    </p>
+                    <p className="mt-2 text-sm leading-6 text-white/90">{category.detail}</p>
                   </div>
                 </article>
               );
-            })}
-          </div>
+            })}          </div>
 
           <p className="mt-7 text-sm leading-6 text-slate-500">
             El catálogo histórico incluye además carros para comidas y bebidas, baño maría, marmitas,
