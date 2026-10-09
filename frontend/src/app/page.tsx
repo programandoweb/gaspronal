@@ -303,7 +303,7 @@ export default async function HomePage() {
                       Línea de producto
                     </p>
                     <h3 className="mt-2 text-lg font-black leading-tight tracking-[-0.03em]">{category.name}</h3>
-                    <p className="mt-2 text-sm leading-6 text-white/90">{category.description || `Explora nuestros productos de ${category.name.toLowerCase()}.`}</p>
+                    
                   </div>
                 </Link>
               );
