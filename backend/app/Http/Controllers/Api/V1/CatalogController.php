@@ -97,6 +97,10 @@ class CatalogController extends Controller
                 ->where('type', 'product')
                 ->where('status', 'published')
                 ->whereNotNull('published_at'))
+            ->withCount(['items as products_count' => fn ($query) => $query
+                ->where('type', 'product')
+                ->where('status', 'published')
+                ->whereNotNull('published_at')])
             ->with(['items' => fn ($query) => $query
                 ->where('type', 'product')
                 ->where('status', 'published')
@@ -120,6 +124,7 @@ class CatalogController extends Controller
                     'id' => $category->id,
                     'name' => $category->name,
                     'slug' => $category->slug,
+                    'products_count' => $category->products_count,
                     'description' => $category->description,
                     'image_url' => $images->isNotEmpty() ? $images->random() : null,
                 ];
