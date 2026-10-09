@@ -14,3 +14,7 @@ Schedule::command('agent:jorge:research-next')
 Schedule::command('agent:leonardo:enhance-next')
     ->everyMinute()
     ->withoutOverlapping(10);
+
+Schedule::command('agent:leonardo:service-image-next')
+    ->everyMinute()
+    ->withoutOverlapping(10);

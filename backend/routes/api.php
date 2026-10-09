@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\V1\InternalAgentKnowledgeController;
 use App\Http\Controllers\Api\V1\InternalContentCreatorController;
 use App\Http\Controllers\Api\V1\CatalogController;
 use App\Http\Controllers\Api\V1\PostController;
+use App\Http\Controllers\Api\V1\LeonardoServiceImageController;
 use App\Http\Controllers\Api\V1\SeoRedirectController;
 use App\Http\Controllers\Api\V1\DeploymentController;
 use App\Http\Controllers\Api\V1\DashboardController;
@@ -169,6 +170,8 @@ Route::prefix('v1')->group(function (): void {
 
         Route::get('content/posts', [PostController::class, 'index'])->middleware('permission:content.view');
         Route::get('content/posts/{post}', [PostController::class, 'show'])->middleware('permission:content.view');
+        Route::get('content/posts/{post}/leonardo/status', [LeonardoServiceImageController::class, 'status'])->middleware('permission:content.view');
+        Route::post('content/posts/{post}/leonardo/generate', [LeonardoServiceImageController::class, 'generate'])->middleware(['permission:content.manage', 'throttle:10,1']);
         Route::post('content/posts', [PostController::class, 'store'])->middleware('permission:content.manage');
         Route::put('content/posts/{post}', [PostController::class, 'update'])->middleware('permission:content.manage');
         Route::delete('content/posts/{post}', [PostController::class, 'destroy'])->middleware('permission:content.manage');

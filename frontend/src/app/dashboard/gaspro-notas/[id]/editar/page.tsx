@@ -49,6 +49,31 @@ export default function EditGasproNotaPage({ params }:{ params:Promise<{id:strin
   const [primaryImage,setPrimaryImage]=useState("");
   const [galleryMessage,setGalleryMessage]=useState("");
   const [uploading,setUploading]=useState(false);
+  const [leonardoJobs,setLeonardoJobs]=useState<Array<{id:number;status:string;variant:number;error?:string|null;generated_image?:string|null}>>([]);
+  const [leonardoPending,setLeonardoPending]=useState(0);
+  const [requestingLeonardo,setRequestingLeonardo]=useState(false);
+  const isService=categories.some(c=>c.slug==="servicios"&&String(c.id)===form.category_id);
+  async function refreshLeonardo(){
+    const response=await fetch(`/api/admin/content/posts/${id}/leonardo/status`,{cache:"no-store"});
+    if(!response.ok)return;
+    const body=await response.json();const data=body.data;
+    setLeonardoJobs(data.jobs??[]);setLeonardoPending(data.pending??0);
+    setGallery(old=>Array.from(new Set([...(data.gallery??[]),...old])));
+    setPrimaryImage(data.featured_image??data.og_image??"");
+  }
+  async function generateLeonardo(){
+    setRequestingLeonardo(true);setGalleryMessage("");
+    const response=await fetch(`/api/admin/content/posts/${id}/leonardo/generate`,{method:"POST"});
+    const data=await response.json().catch(()=>({}));setRequestingLeonardo(false);
+    if(!response.ok){setGalleryMessage(data.message??"No fue posible enviar las imágenes a Leonardo.");return;}
+    setGalleryMessage("Se añadieron 2 imágenes a la cola de Leonardo.");await refreshLeonardo();
+  }
+  useEffect(()=>{
+    if(loading||!isService||activeTab!=="gallery")return;
+    void refreshLeonardo();
+    const timer=setInterval(()=>{void refreshLeonardo();},5000);
+    return()=>clearInterval(timer);
+  },[loading,isService,activeTab,id]);
 
   useEffect(()=>{
     async function load(){
@@ -270,6 +295,7 @@ export default function EditGasproNotaPage({ params }:{ params:Promise<{id:strin
     </form>}
 
     {activeTab==="gallery"&&<section className="space-y-5 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 sm:p-6">
+      {isService&&<div className="rounded-xl border border-[var(--brand)]/30 bg-[var(--brand-soft)] p-4"><div className="flex flex-wrap items-center justify-between gap-4"><div><h3 className="font-bold">Leonardo · Imágenes del servicio</h3><p className="mt-1 text-sm">Genera dos imágenes profesionales con el contenido guardado de esta publicación. Cada nueva solicitud conserva las anteriores.</p><p className="mt-2 text-xs">{leonardoPending} en cola o procesando · {leonardoJobs.filter(j=>j.status==="completed").length} completadas · {leonardoJobs.filter(j=>j.status==="failed").length} fallidas</p></div><button type="button" disabled={requestingLeonardo} onClick={()=>void generateLeonardo()} className="min-h-11 rounded-xl bg-[var(--brand)] px-5 font-semibold text-white disabled:opacity-50">{requestingLeonardo?"Enviando…":"Generar 2 imágenes con Leonardo"}</button></div>{leonardoJobs.filter(j=>j.status==="failed").slice(0,2).map(j=><p key={j.id} className="mt-2 text-xs text-red-700">Trabajo {j.id}: {j.error}</p>)}</div>}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h2 className="flex items-center gap-2 text-lg font-bold"><FiImage className="text-[var(--brand)]"/>Galería de imágenes</h2>
