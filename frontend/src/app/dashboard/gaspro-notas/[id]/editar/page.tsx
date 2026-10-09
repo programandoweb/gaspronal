@@ -44,6 +44,7 @@ export default function EditGasproNotaPage({ params }:{ params:Promise<{id:strin
   });
   const [loading,setLoading]=useState(true);
   const [message,setMessage]=useState("");
+  const [saving,setSaving]=useState(false);
   const [activeTab,setActiveTab]=useState<"form"|"gallery">("form");
   const [gallery,setGallery]=useState<string[]>([]);
   const [primaryImage,setPrimaryImage]=useState("");
@@ -119,7 +120,9 @@ export default function EditGasproNotaPage({ params }:{ params:Promise<{id:strin
   async function save(e:React.FormEvent){
     e.preventDefault();
     setMessage("");
+    setSaving(true);
 
+    try {
     const response=await fetch(`/api/admin/content/posts/${id}`,{
       method:"PUT",
       headers:{"Content-Type":"application/json"},
@@ -141,6 +144,11 @@ export default function EditGasproNotaPage({ params }:{ params:Promise<{id:strin
 
     setPublicUrl(json.data.public_url??publicUrl);
     setMessage("Publicación actualizada correctamente.");
+    } catch {
+      setMessage("No fue posible conectar con el servidor.");
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function uploadGallery(files:FileList|null){
@@ -249,7 +257,7 @@ export default function EditGasproNotaPage({ params }:{ params:Promise<{id:strin
       )}
     </div>
 
-    {activeTab==="form"&&<form onSubmit={save} className="space-y-5 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 sm:p-6">
+    {activeTab==="form"&&<form id="cms-post-form" onSubmit={save} className="space-y-5 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 sm:p-6">
       <div className="grid gap-6 xl:grid-cols-2">
         <div className="grid content-start gap-4 md:grid-cols-2">
           <label className="space-y-2 md:col-span-2">
@@ -290,8 +298,6 @@ export default function EditGasproNotaPage({ params }:{ params:Promise<{id:strin
         </div>
       </div>
 
-      <button className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[var(--brand)] px-5 font-semibold text-white"><FiSave size={17}/>Guardar cambios</button>
-      {message&&<p className="text-sm font-medium text-[var(--brand)]">{message}</p>}
     </form>}
 
     {activeTab==="gallery"&&<section className="space-y-5 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 sm:p-6">
@@ -355,5 +361,10 @@ export default function EditGasproNotaPage({ params }:{ params:Promise<{id:strin
 
       {galleryMessage&&<p className="text-sm font-medium text-[var(--brand)]">{galleryMessage}</p>}
     </section>}
+
+    <div className="flex flex-wrap items-center justify-end gap-4 border-t border-[var(--border)] pt-5">
+      {message&&<p role="status" className="mr-auto text-sm font-medium text-[var(--brand)]">{message}</p>}
+      <button type="button" disabled={saving} onClick={()=>void save({preventDefault:()=>{}} as React.FormEvent)} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[var(--brand)] px-5 font-semibold text-white disabled:opacity-50"><FiSave size={17}/>{saving?"Guardando…":"Guardar cambios"}</button>
+    </div>
   </div>;
 }
