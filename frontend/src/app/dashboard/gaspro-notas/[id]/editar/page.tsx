@@ -11,6 +11,7 @@ type PostForm = {
   excerpt:string;
   content:string;
   category_id:string;
+  service_topic_id:string;
   status:"draft"|"published"|"archived";
   seo_title:string;
   seo_description:string;
@@ -22,6 +23,7 @@ type Post = {
   excerpt?:string|null;
   content?:string|null;
   category_id:number;
+  service_topic_id?:number|null;
   status:"draft"|"published"|"archived";
   seo_title?:string|null;
   seo_description?:string|null;
@@ -38,9 +40,10 @@ function slugify(v:string){
 export default function EditGasproNotaPage({ params }:{ params:Promise<{id:string}> }){
   const { id } = use(params);
   const [categories,setCategories]=useState<Category[]>([]);
+  const [serviceTopics,setServiceTopics]=useState<Array<{id:number;name:string;image_url?:string|null}>>([]);
   const [publicUrl,setPublicUrl]=useState("");
   const [form,setForm]=useState<PostForm>({
-    title:"",slug:"",excerpt:"",content:"",category_id:"",status:"draft",seo_title:"",seo_description:""
+    title:"",slug:"",excerpt:"",content:"",category_id:"",service_topic_id:"",status:"draft",seo_title:"",seo_description:""
   });
   const [loading,setLoading]=useState(true);
   const [message,setMessage]=useState("");
@@ -93,6 +96,7 @@ export default function EditGasproNotaPage({ params }:{ params:Promise<{id:strin
 
       const post:Post=postJson.data;
       setCategories(categoriesJson.data??[]);
+      fetch("/api/v1/content/public/service-topics").then(r=>r.json()).then(j=>setServiceTopics(j.data??[])).catch(()=>{});
       setPublicUrl(post.public_url);
       const normalizedGallery=Array.from(new Set([
         post.featured_image??"",
@@ -108,6 +112,7 @@ export default function EditGasproNotaPage({ params }:{ params:Promise<{id:strin
         excerpt:post.excerpt??"",
         content:post.content??"",
         category_id:String(post.category_id),
+        service_topic_id:String(post.service_topic_id??""),
         status:post.status,
         seo_title:post.seo_title??"",
         seo_description:post.seo_description??""
@@ -129,6 +134,7 @@ export default function EditGasproNotaPage({ params }:{ params:Promise<{id:strin
       body:JSON.stringify({
         ...form,
         category_id:Number(form.category_id),
+        service_topic_id:isService&&form.service_topic_id?Number(form.service_topic_id):null,
         excerpt:form.excerpt||null,
         content:form.content||null,
         seo_title:form.seo_title||null,
@@ -275,6 +281,7 @@ export default function EditGasproNotaPage({ params }:{ params:Promise<{id:strin
             <span className="flex items-center gap-2 text-sm font-medium"><FiTag className="text-[var(--brand)]"/>Categoría</span>
             <select required value={form.category_id} onChange={e=>setForm({...form,category_id:e.target.value})} className="min-h-11 w-full rounded-xl border border-[var(--border)] bg-transparent px-3">{categories.map(category=><option key={category.id} value={category.id}>{category.name}</option>)}</select>
           </label>
+          {isService&&<label className="space-y-2"><span className="text-sm font-medium">Clasificación de servicio</span><select value={form.service_topic_id} onChange={e=>setForm({...form,service_topic_id:e.target.value})} className="min-h-11 w-full rounded-xl border border-[var(--border)] bg-transparent px-3"><option value="">Sin clasificación</option>{serviceTopics.map(t=><option key={t.id} value={t.id}>{t.name}</option>)}</select></label>}
           <label className="space-y-2">
             <span className="flex items-center gap-2 text-sm font-medium"><FiActivity className="text-[var(--brand)]"/>Estado</span>
             <select value={form.status} onChange={e=>setForm({...form,status:e.target.value as PostForm["status"]})} className="min-h-11 w-full rounded-xl border border-[var(--border)] bg-transparent px-3"><option value="draft">Borrador</option><option value="published">Publicado</option><option value="archived">Archivado</option></select>

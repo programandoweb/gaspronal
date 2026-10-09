@@ -37,6 +37,7 @@ Route::prefix('v1')->group(function (): void {
     Route::get('catalog/public/categories', [CatalogController::class, 'publicCategories']);
     Route::get('catalog/public/home-category-images', [CatalogController::class, 'homeCategoryImages']);
     Route::get('catalog/categories/{catalogCategory}/image/{filename}', [CatalogController::class, 'categoryImage'])->where('filename', '[A-Za-z0-9._-]+');
+    Route::get('content/public/service-topics', [PostController::class, 'serviceTopics']);
     Route::get('content/public/posts', [PostController::class, 'publicIndex']);
     Route::get('content/public/posts/{slug}', [PostController::class, 'publicShow']);
     Route::get('content/public/legacy-services/{slug}', [PostController::class, 'publicLegacyService']);

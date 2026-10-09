@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Content\PostRequest;
 use App\Models\Post;
 use App\Models\PostCategory;
+use App\Models\CmsServiceTopic;
 use App\Models\SeoRedirect;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -21,11 +22,12 @@ class PostController extends Controller
     {
         return response()->json(
             Post::query()
-                ->with('category:id,name,slug')
+                ->with(['category:id,name,slug','serviceTopic:id,name,slug,image_url'])
                 ->where('status', 'published')
                 ->whereNotNull('published_at')
                 ->whereHas('category', fn ($query) => $query->where('is_active', true))
                 ->when($request->filled('category_id'), fn ($query) => $query->where('category_id', $request->integer('category_id')))
+                ->when($request->filled('service_topic_id'), fn ($query) => $query->where('service_topic_id', $request->integer('service_topic_id')))
                 ->when($request->filled('search'), function ($query) use ($request): void {
                     $search = trim((string) $request->string('search'));
                     $like = '%'.$search.'%';
@@ -43,7 +45,7 @@ class PostController extends Controller
 
     public function publicLegacyService(string $slug): JsonResponse
     {
-        $post = Post::query()->with('category:id,name,slug')->where('slug', $slug)
+        $post = Post::query()->with(['category:id,name,slug','serviceTopic:id,name,slug,image_url'])->where('slug', $slug)
             ->where('status', 'published')->whereNotNull('published_at')
             ->whereHas('category', fn ($query) => $query->where('slug', 'servicios')->where('is_active', true))
             ->firstOrFail();
@@ -53,7 +55,7 @@ class PostController extends Controller
     public function publicShow(string $slug): JsonResponse
     {
         $post = Post::query()
-            ->with('category:id,name,slug')
+            ->with(['category:id,name,slug','serviceTopic:id,name,slug,image_url'])
             ->where('status', 'published')
             ->whereNotNull('published_at')
             ->where('slug', $slug)
@@ -67,8 +69,9 @@ class PostController extends Controller
     {
         return response()->json(
             Post::query()
-                ->with('category:id,name,slug')
+                ->with(['category:id,name,slug','serviceTopic:id,name,slug,image_url'])
                 ->when($request->filled('category_id'), fn ($query) => $query->where('category_id', $request->integer('category_id')))
+                ->when($request->filled('service_topic_id'), fn ($query) => $query->where('service_topic_id', $request->integer('service_topic_id')))
                 ->when($request->filled('search'), function ($query) use ($request): void {
                     $search = trim((string) $request->string('search'));
                     $like = '%'.$search.'%';
@@ -253,6 +256,11 @@ class PostController extends Controller
                 'X-Content-Type-Options' => 'nosniff',
             ]
         );
+    }
+
+    public function serviceTopics(): JsonResponse
+    {
+        return response()->json(['data'=>CmsServiceTopic::query()->where('is_active',true)->orderBy('id')->get()]);
     }
 
     public function categories(): JsonResponse

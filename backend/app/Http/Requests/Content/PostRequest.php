@@ -7,6 +7,7 @@ class PostRequest extends FormRequest {
  public function rules():array{
   $post=$this->route('post');
   return [
+   'service_topic_id'=>['nullable','integer','exists:cms_service_topics,id'],
    'category_id'=>['required','integer','exists:post_categories,id'],
    'title'=>['required','string','max:220'],
    'slug'=>['required','string','max:240',Rule::unique('posts','slug')->ignore($post?->id)],

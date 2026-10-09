@@ -1,49 +1,30 @@
 <?php
-
 namespace Database\Seeders;
+use App\Models\CmsServiceTopic;
 
-use App\Models\CatalogCategory;
 use Illuminate\Database\Seeder;
+class CategoryIconsBatch02Seeder extends Seeder {
+ public function run():void {
+  $folder='images/uploads/iconos-programandoweb';
+  $items=[
+   ['slug'=>'soldadura-taller','name'=>'Soldadura / taller','file'=>'11-soldadura-taller.png'],
+   ['slug'=>'diseno-plano-tecnico','name'=>'Diseño / plano técnico','file'=>'12-diseno-plano-tecnico.png'],
+   ['slug'=>'cotizacion','name'=>'Cotización','file'=>'13-cotizacion.png'],
+   ['slug'=>'asesoria','name'=>'Asesoría','file'=>'14-asesoria.png'],
+   ['slug'=>'whatsapp-contacto','name'=>'WhatsApp / contacto','file'=>'15-whatsapp-contacto.png'],
+   ['slug'=>'llamada-telefonica','name'=>'Llamada telefónica','file'=>'16-llamada-telefonica.png'],
+   ['slug'=>'correo','name'=>'Correo','file'=>'17-correo.png'],
+   ['slug'=>'agenda-programacion','name'=>'Agenda / programación','file'=>'18-agenda-programacion.png'],
+   ['slug'=>'entrega','name'=>'Entrega','file'=>'19-entrega.png'],
+   ['slug'=>'garantia-respaldo','name'=>'Garantía / respaldo','file'=>'20-garantia-respaldo.png'],
+  ];
 
-/**
- * Tanda 2. Archivo PNG transparente por categoría.
- * Solo se asigna cuando existe una categoría con el slug exacto.
- * No crea categorías nuevas ni altera categorías de Productos no relacionadas.
- * Cargar los PNG antes de ejecutar:
- * backend/public/images/uploads/iconos-programandoweb/
- */
-class CategoryIconsBatch02Seeder extends Seeder
-{
-    public function run(): void
-    {
-        $directory = 'images/uploads/iconos-programandoweb';
-        $icons = [
-            'soldadura-taller' => '11-soldadura-taller.png',
-            'diseno-plano-tecnico' => '12-diseno-plano-tecnico.png',
-            'cotizacion' => '13-cotizacion.png',
-            'asesoria' => '14-asesoria.png',
-            'whatsapp-contacto' => '15-whatsapp-contacto.png',
-            'llamada-telefonica' => '16-llamada-telefonica.png',
-            'correo' => '17-correo.png',
-            'agenda-programacion' => '18-agenda-programacion.png',
-            'entrega' => '19-entrega.png',
-            'garantia-respaldo' => '20-garantia-respaldo.png',
-        ];
-
-        foreach ($icons as $slug => $filename) {
-            if (! is_file(public_path($directory.'/'.$filename))) {
-                $this->command?->warn("Falta archivo: {$filename}");
-                continue;
-            }
-
-            $category = CatalogCategory::query()->where('slug', $slug)->first();
-            if (! $category) {
-                $this->command?->warn("Sin categoría correspondiente a {$slug}; no se modifica ningún registro.");
-                continue;
-            }
-
-            $category->update(['image_url' => '/'.$directory.'/'.$filename]);
-            $this->command?->info("Icono actualizado: {$slug}");
-        }
-    }
+  foreach($items as $item) {
+   $topic=CmsServiceTopic::query()->firstOrCreate(['slug'=>$item['slug']],['name'=>$item['name'],'is_active'=>true]);
+   if (!is_file(public_path($folder.'/'.$item['file']))) {
+    $this->command?->warn('Pendiente: '.$item['file']); continue;
+   }
+   $topic->update(['image_url'=>'/'.$folder.'/'.$item['file']]);
+  }
+ }
 }
