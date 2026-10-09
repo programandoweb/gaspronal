@@ -155,6 +155,7 @@ Route::prefix('v1')->group(function (): void {
         Route::put('page-blocks/{pageBlock}', [PageBlockController::class, 'update'])->middleware('permission:heroes.manage');
         Route::delete('page-blocks/{pageBlock}', [PageBlockController::class, 'destroy'])->middleware('permission:heroes.manage');
 
+        Route::put('heroes/active-option', [HeroSlideController::class, 'setActiveOption'])->middleware('permission:heroes.manage');
         Route::get('heroes', [HeroSlideController::class, 'index'])->middleware('permission:heroes.view');
         Route::post('heroes', [HeroSlideController::class, 'store'])->middleware('permission:heroes.manage');
         Route::put('heroes/{heroSlide}', [HeroSlideController::class, 'update'])->middleware('permission:heroes.manage');
