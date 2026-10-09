@@ -91,39 +91,40 @@ class CatalogController extends Controller
 
     public function homeCategoryImages(): JsonResponse
     {
-        $groups = [
-            'estufas' => ['estufa', 'cocina industrial'],
-            'freidoras' => ['freidora'],
-            'hornos' => ['horno'],
-            'campanas' => ['campana', 'extractor', 'extracción'],
-            'mixtos' => ['mixto', 'multifuncional', 'combinado'],
-            'mesas' => ['mesa', 'mesón', 'meson'],
-        ];
-
-        $images = [];
-        foreach ($groups as $key => $terms) {
-            $candidates = CatalogItem::query()
+        $categories = CatalogCategory::query()
+            ->where('is_active', true)
+            ->whereHas('items', fn ($query) => $query
+                ->where('type', 'product')
+                ->where('status', 'published')
+                ->whereNotNull('published_at'))
+            ->with(['items' => fn ($query) => $query
                 ->where('type', 'product')
                 ->where('status', 'published')
                 ->whereNotNull('published_at')
-                ->where(function ($query) use ($terms): void {
-                    foreach ($terms as $term) {
-                        $query->orWhere('name', 'like', '%'.$term.'%')
-                            ->orWhereHas('category', fn ($category) => $category->where('name', 'like', '%'.$term.'%'));
-                    }
-                })
-                ->where(function ($query): void {
-                    $query->whereNotNull('og_image')->orWhereNotNull('gallery');
-                })
-                ->get(['og_image', 'gallery'])
-                ->map(fn ($item) => $item->og_image ?: collect($item->gallery ?? [])->first())
-                ->filter(fn ($url) => is_string($url) && $url !== '')
-                ->values();
+                ->select(['id', 'category_id', 'og_image', 'gallery'])])
+            ->orderBy('name')
+            ->get(['id', 'name', 'slug', 'description']);
 
-            $images[$key] = $candidates->isNotEmpty() ? $candidates->random() : null;
-        }
+        return response()->json([
+            'data' => $categories->map(function (CatalogCategory $category): array {
+                $images = $category->items
+                    ->flatMap(function (CatalogItem $product): array {
+                        $gallery = is_array($product->gallery) ? $product->gallery : [];
+                        return array_filter(array_merge([$product->og_image], $gallery),
+                            fn ($url) => is_string($url) && trim($url) !== '');
+                    })
+                    ->unique()
+                    ->values();
 
-        return response()->json(['data' => $images]);
+                return [
+                    'id' => $category->id,
+                    'name' => $category->name,
+                    'slug' => $category->slug,
+                    'description' => $category->description,
+                    'image_url' => $images->isNotEmpty() ? $images->random() : null,
+                ];
+            })->values(),
+        ]);
     }
 
     public function publicCategories(): JsonResponse
