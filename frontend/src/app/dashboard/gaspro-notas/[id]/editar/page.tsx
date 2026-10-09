@@ -220,7 +220,10 @@ export default function EditGasproNotaPage({ params }:{ params:Promise<{id:strin
   return <div className="w-full max-w-none space-y-6">
     <div className="flex flex-wrap items-center justify-between gap-3">
       <Link href="/dashboard/gaspro-notas" className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-[var(--border)] px-3 text-sm font-medium"><FiArrowLeft size={16}/>Volver</Link>
-      {publicUrl&&<a href={publicUrl.startsWith("http")?publicUrl:`https://gaspronal.programandoweb.net${publicUrl}`} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-[var(--border)] px-3 text-sm font-medium"><FiExternalLink size={16}/>Ver original</a>}
+      <div className="flex flex-wrap items-center gap-3">
+        {publicUrl&&<a href={publicUrl.startsWith("http")?publicUrl:`https://gaspronal.programandoweb.net${publicUrl}`} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-[var(--border)] px-3 text-sm font-medium"><FiExternalLink size={16}/>Ver original</a>}
+        <button type="button" disabled={saving} onClick={()=>void save({preventDefault:()=>{}} as React.FormEvent)} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[var(--brand)] px-5 font-semibold text-white disabled:opacity-50"><FiSave size={17}/>{saving?"Guardando…":"Guardar cambios"}</button>
+      </div>
     </div>
 
     <header>
@@ -362,9 +365,6 @@ export default function EditGasproNotaPage({ params }:{ params:Promise<{id:strin
       {galleryMessage&&<p className="text-sm font-medium text-[var(--brand)]">{galleryMessage}</p>}
     </section>}
 
-    <div className="flex flex-wrap items-center justify-end gap-4 border-t border-[var(--border)] pt-5">
-      {message&&<p role="status" className="mr-auto text-sm font-medium text-[var(--brand)]">{message}</p>}
-      <button type="button" disabled={saving} onClick={()=>void save({preventDefault:()=>{}} as React.FormEvent)} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[var(--brand)] px-5 font-semibold text-white disabled:opacity-50"><FiSave size={17}/>{saving?"Guardando…":"Guardar cambios"}</button>
-    </div>
+    {message&&<p role="status" className="text-sm font-medium text-[var(--brand)]">{message}</p>}
   </div>;
 }
