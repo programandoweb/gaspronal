@@ -11,7 +11,7 @@ type PublicHeaderProps = {
 };
 
 const navigation = [
-  { label: "Productos", href: "/#productos" },
+  { label: "Productos", href: "/productos" },
   { label: "Servicios", href: "/#servicios" },
   { label: "A medida", href: "/#ingenieria" },
   { label: "Gaspro-notas", href: "/gaspro-notas" },
