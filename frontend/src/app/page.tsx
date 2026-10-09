@@ -299,9 +299,6 @@ export default async function HomePage() {
                     <ArrowRight size={22} className="text-white/85 transition group-hover:translate-x-1" />
                   </div>
                   <div className="absolute inset-x-5 bottom-5">
-                    <p className="text-xs font-bold uppercase tracking-[0.14em] text-white/85">
-                      Línea de producto
-                    </p>
                     <h3 className="mt-2 text-lg font-black leading-tight tracking-[-0.03em]">{category.name}</h3>
                     
                   </div>
