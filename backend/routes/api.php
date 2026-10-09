@@ -151,6 +151,7 @@ Route::prefix('v1')->group(function (): void {
         Route::put('catalog/items/{catalogItem}/gallery/primary', [CatalogController::class, 'setPrimaryGalleryImage'])->middleware('permission:catalog.manage');
         Route::delete('catalog/items/{catalogItem}/gallery', [CatalogController::class, 'destroyGalleryImage'])->middleware('permission:catalog.manage');
         Route::get('catalog/categories', [CatalogController::class, 'categories'])->middleware('permission:catalog.view');
+        Route::get('catalog/categories/export/images', [CatalogController::class, 'exportCategoryImages'])->middleware('permission:catalog.view');
         Route::get('catalog/categories/{catalogCategory}', [CatalogController::class, 'showCategory'])->middleware('permission:catalog.view');
         Route::post('catalog/categories', [CatalogController::class, 'storeCategory'])->middleware('permission:catalog.manage');
         Route::put('catalog/categories/{catalogCategory}', [CatalogController::class, 'updateCategory'])->middleware('permission:catalog.manage');

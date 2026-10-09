@@ -330,6 +330,58 @@ class CatalogController extends Controller
         );
     }
 
+    public function exportCategoryImages(): JsonResponse
+    {
+        $folder = 'images/uploads/iconos-programandoweb';
+        $absolute = public_path($folder);
+        $icons = is_dir($absolute)
+            ? collect(\Illuminate\Support\Facades\File::files($absolute))
+                ->filter(fn ($file) => in_array(strtolower($file->getExtension()), ['png', 'jpg', 'jpeg', 'webp'], true))
+                ->sortBy(fn ($file) => $file->getFilename())
+                ->map(fn ($file) => [
+                    'filename' => $file->getFilename(),
+                    'url' => '/'.$folder.'/'.$file->getFilename(),
+                ])->values()->all()
+            : [];
+
+        $categories = CatalogCategory::query()
+            ->withCount(['items as products_count' => fn ($query) => $query->where('type', 'product')])
+            ->with(['items' => fn ($query) => $query->where('type', 'product')
+                ->where('status', 'published')->whereNotNull('published_at')
+                ->orderBy('id')->select(['id', 'category_id', 'og_image', 'gallery'])])
+            ->orderBy('name')->get();
+
+        $data = $categories->map(function (CatalogCategory $category): array {
+            $candidates = $category->items->flatMap(function (CatalogItem $item): array {
+                return array_merge([$item->og_image], is_array($item->gallery) ? $item->gallery : []);
+            })->filter(fn ($url) => is_string($url) && trim($url) !== ''
+                && !preg_match('/(?:logo|placeholder|no[-_]?image|sin[-_]?imagen|default[-_]?image|gaspronal[-_]?logo)/i', urldecode($url)))
+              ->unique()->values()->take(10)->all();
+
+            return [
+                'id' => $category->id,
+                'name' => $category->name,
+                'slug' => $category->slug,
+                'description' => $category->description,
+                'is_active' => $category->is_active,
+                'products_count' => $category->products_count,
+                'image_url' => $category->image_url,
+                'image_mode' => $category->image_url ? 'custom' : 'automatic_fallback',
+                'fallback_image_candidates' => $candidates,
+            ];
+        })->values();
+
+        return response()->json([
+            'schema_version' => 1,
+            'exported_at' => now()->toIso8601String(),
+            'categories_count' => $data->count(),
+            'categories' => $data,
+            'media_directory' => $folder,
+            'available_icons' => $icons,
+            'available_icons_count' => count($icons),
+        ]);
+    }
+
     public function showCategory(CatalogCategory $catalogCategory): JsonResponse
     {
         return response()->json([

@@ -7,6 +7,7 @@ import {
   FiChevronLeft,
   FiChevronRight,
   FiEdit2,
+  FiDownload,
   FiFolder,
   FiPlus,
   FiSearch,
@@ -42,6 +43,7 @@ export default function CatalogCategoriesPage(){
     current_page:1,last_page:1,per_page:10,total:0,from:null,to:null,
   });
   const [loading,setLoading]=useState(true);
+  const [exporting,setExporting]=useState(false);
   const [message,setMessage]=useState("");
 
   async function load(targetPage=page){
@@ -85,6 +87,32 @@ export default function CatalogCategoriesPage(){
   function clearSearch(){
     setSearch("");
     setAppliedSearch("");
+  }
+
+  async function downloadCategoryJson(){
+    setExporting(true);
+    setMessage("");
+    try {
+      const response=await fetch("/api/admin/catalog/categories/export/images",{cache:"no-store"});
+      if(!response.ok){
+        const body=await response.json().catch(()=>({}));
+        throw new Error(body.message??"No se pudo generar el inventario.");
+      }
+      const data=await response.json();
+      const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json;charset=utf-8"});
+      const url=URL.createObjectURL(blob);
+      const anchor=document.createElement("a");
+      anchor.href=url;
+      anchor.download=`gaspronal-categorias-iconos-${new Date().toISOString().slice(0,10)}.json`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(url);
+    }catch(error){
+      setMessage(error instanceof Error?error.message:"No fue posible descargar el JSON.");
+    }finally{
+      setExporting(false);
+    }
   }
 
   async function remove(item:Category){
@@ -132,12 +160,15 @@ export default function CatalogCategoriesPage(){
         </p>
       </div>
 
+      <div className="flex flex-wrap gap-2 self-start">
+      <button type="button" disabled={exporting} onClick={()=>void downloadCategoryJson()} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 text-sm font-semibold disabled:opacity-50"><FiDownload/>{exporting?"Generando JSON…":"Descargar categorías JSON"}</button>
       <Link
         href="/dashboard/catalogo/categorias/nuevo"
         className="inline-flex min-h-11 items-center gap-2 self-start rounded-xl bg-[var(--brand)] px-4 text-sm font-semibold text-white"
       >
         <FiPlus/>Nueva categoría
       </Link>
+      </div>
     </header>
 
     <form onSubmit={submitSearch} className="flex flex-col gap-2 lg:flex-row">
