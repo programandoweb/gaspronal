@@ -41,6 +41,8 @@ const statusLabel:Record<string,string>={
 export default function NotesPage(){
   const [posts,setPosts]=useState<Post[]>([]);
   const [search,setSearch]=useState("");
+  const [categories,setCategories]=useState<Category[]>([]);
+  const [categoryId,setCategoryId]=useState("");
   const [appliedSearch,setAppliedSearch]=useState("");
   const [page,setPage]=useState(1);
   const [perPage,setPerPage]=useState(10);
@@ -59,6 +61,7 @@ export default function NotesPage(){
       per_page:String(perPage),
     });
     if(appliedSearch.trim())params.set("search",appliedSearch.trim());
+    if(categoryId)params.set("category_id",categoryId);
 
     const response=await fetch(`/api/admin/content/posts?${params.toString()}`,{cache:"no-store"});
     const json=await response.json().catch(()=>({}));
@@ -81,7 +84,8 @@ export default function NotesPage(){
     setPage(Number(json.current_page??targetPage));
   }
 
-  useEffect(()=>{void load(1);},[appliedSearch,perPage]);
+  useEffect(()=>{void fetch("/api/admin/content/post-categories").then(r=>r.json()).then(j=>setCategories(j.data??[])).catch(()=>{});},[]);
+  useEffect(()=>{void load(1);},[appliedSearch,perPage,categoryId]);
 
   function submitSearch(e:React.FormEvent){
     e.preventDefault();
@@ -127,10 +131,10 @@ export default function NotesPage(){
         <span className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--brand)]">Contenido</span>
         <h1 className="mt-2 flex items-center gap-3 text-3xl font-bold">
           <FiBookOpen className="text-[var(--brand)]"/>
-          Gaspro-notas
+          Gaspro CMS
         </h1>
         <p className="mt-2 text-sm text-[var(--muted)]">
-          CMS editorial bajo la taxonomía histórica <strong>/2019/gaspro-notas</strong>.
+          Administra las publicaciones de Gaspro Notas y Servicios conservando sus rutas históricas.
         </p>
       </div>
 
@@ -138,7 +142,7 @@ export default function NotesPage(){
         href="/dashboard/gaspro-notas/nuevo"
         className="inline-flex min-h-11 items-center gap-2 self-start rounded-xl bg-[var(--brand)] px-4 text-sm font-semibold text-white"
       >
-        <FiPlus/>Nueva Gaspro-nota
+        <FiPlus/>Nueva publicación
       </Link>
     </header>
 
@@ -164,6 +168,7 @@ export default function NotesPage(){
         )}
       </div>
 
+      <select value={categoryId} onChange={e=>setCategoryId(e.target.value)} aria-label="Filtrar por categoría" className="min-h-11 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 text-sm"><option value="">Todas las categorías</option>{categories.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select>
       <button
         type="submit"
         className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[var(--brand)] px-5 text-sm font-semibold text-white"
@@ -229,7 +234,7 @@ export default function NotesPage(){
                 <td className="px-5 py-4">
                   <div className="flex justify-end gap-2">
                     <a
-                      href={`https://www.gaspronal.com${post.public_url}`}
+                      href={post.public_url}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="grid size-10 place-items-center rounded-xl border border-[var(--border)] transition hover:border-[var(--brand)] hover:text-[var(--brand)]"

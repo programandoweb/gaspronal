@@ -37,6 +37,7 @@ Route::prefix('v1')->group(function (): void {
     Route::get('catalog/public/home-category-images', [CatalogController::class, 'homeCategoryImages']);
     Route::get('content/public/posts', [PostController::class, 'publicIndex']);
     Route::get('content/public/posts/{slug}', [PostController::class, 'publicShow']);
+    Route::get('content/public/legacy-services/{slug}', [PostController::class, 'publicLegacyService']);
     Route::get('page-blocks/public', [PageBlockController::class, 'publicIndex']);
     Route::get('heroes/public', [HeroSlideController::class, 'publicIndex']);
     Route::get('communications/public/whatsapp-link', [CommunicationProviderController::class, 'publicWhatsappLink']);

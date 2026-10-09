@@ -90,14 +90,14 @@ export default function NewGasproNotaPage(){
       href="/dashboard/gaspro-notas"
       className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-[var(--border)] px-3 text-sm font-medium"
     >
-      <FiArrowLeft/>Volver a Gaspro-notas
+      <FiArrowLeft/>Volver a Gaspro CMS
     </Link>
 
     <header>
       <span className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--brand)]">Contenido</span>
       <h1 className="mt-2 flex items-center gap-3 text-3xl font-bold">
         <FiBookOpen className="text-[var(--brand)]"/>
-        Nueva Gaspro-nota
+        Nueva publicación
       </h1>
     </header>
 

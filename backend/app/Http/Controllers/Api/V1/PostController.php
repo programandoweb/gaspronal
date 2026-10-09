@@ -25,6 +25,7 @@ class PostController extends Controller
                 ->where('status', 'published')
                 ->whereNotNull('published_at')
                 ->whereHas('category', fn ($query) => $query->where('is_active', true))
+                ->when($request->filled('category_id'), fn ($query) => $query->where('category_id', $request->integer('category_id')))
                 ->when($request->filled('search'), function ($query) use ($request): void {
                     $search = trim((string) $request->string('search'));
                     $like = '%'.$search.'%';
@@ -40,6 +41,15 @@ class PostController extends Controller
         );
     }
 
+    public function publicLegacyService(string $slug): JsonResponse
+    {
+        $post = Post::query()->with('category:id,name,slug')->where('slug', $slug)
+            ->where('status', 'published')->whereNotNull('published_at')
+            ->whereHas('category', fn ($query) => $query->where('slug', 'servicios')->where('is_active', true))
+            ->firstOrFail();
+        return response()->json(['data' => $post]);
+    }
+
     public function publicShow(string $slug): JsonResponse
     {
         $post = Post::query()
@@ -47,7 +57,7 @@ class PostController extends Controller
             ->where('status', 'published')
             ->whereNotNull('published_at')
             ->where('slug', $slug)
-            ->whereHas('category', fn ($query) => $query->where('is_active', true))
+            ->whereHas('category', fn ($query) => $query->where('slug', 'gaspro-notas')->where('is_active', true))
             ->firstOrFail();
 
         return response()->json(['data' => $post]);
@@ -58,6 +68,7 @@ class PostController extends Controller
         return response()->json(
             Post::query()
                 ->with('category:id,name,slug')
+                ->when($request->filled('category_id'), fn ($query) => $query->where('category_id', $request->integer('category_id')))
                 ->when($request->filled('search'), function ($query) use ($request): void {
                     $search = trim((string) $request->string('search'));
                     $like = '%'.$search.'%';
@@ -102,8 +113,9 @@ class PostController extends Controller
                 return;
             }
 
-            $oldPath = "/gaspro-notas/{$oldSlug}";
-            $newPath = "/gaspro-notas/{$newSlug}";
+            $prefix = $post->category?->slug === "servicios" ? "/2019/servicios" : "/gaspro-notas";
+            $oldPath = "{$prefix}/{$oldSlug}";
+            $newPath = "{$prefix}/{$newSlug}";
 
             SeoRedirect::query()
                 ->where('target_path', $oldPath)

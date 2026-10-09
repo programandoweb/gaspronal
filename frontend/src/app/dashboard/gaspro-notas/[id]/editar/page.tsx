@@ -187,12 +187,12 @@ export default function EditGasproNotaPage({ params }:{ params:Promise<{id:strin
   return <div className="w-full max-w-none space-y-6">
     <div className="flex flex-wrap items-center justify-between gap-3">
       <Link href="/dashboard/gaspro-notas" className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-[var(--border)] px-3 text-sm font-medium"><FiArrowLeft size={16}/>Volver</Link>
-      {publicUrl&&<a href={`https://www.gaspronal.com${publicUrl}`} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-[var(--border)] px-3 text-sm font-medium"><FiExternalLink size={16}/>Ver original</a>}
+      {publicUrl&&<a href={publicUrl.startsWith("http")?publicUrl:`https://gaspronal.programandoweb.net${publicUrl}`} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-[var(--border)] px-3 text-sm font-medium"><FiExternalLink size={16}/>Ver original</a>}
     </div>
 
     <header>
       <span className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--brand)]">Contenido</span>
-      <h1 className="mt-2 text-3xl font-bold">Editar Gaspro-nota</h1>
+      <h1 className="mt-2 text-3xl font-bold">Editar publicación</h1>
       <p className="mt-2 text-sm text-[var(--muted)]">Edita el contenido manteniendo el slug histórico cuando tenga valor SEO.</p>
     </header>
 
