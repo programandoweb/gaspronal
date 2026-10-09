@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import MultimediaPicker from "@/components/dashboard/MultimediaPicker";
 import { use, useEffect, useState } from "react";
 import { FiArrowLeft, FiFileText, FiLink2, FiSave, FiTag, FiType } from "react-icons/fi";
 
@@ -86,6 +87,12 @@ export default function EditCategoryPage({params}:{params:Promise<{id:string}>})
     if(!response.ok){setMessage(data.message??"No fue posible subir la imagen.");return;}
     setImageUrl(data.data?.image_url??null);setMessage("Imagen de categoría actualizada.");
   }
+  async function selectLibraryImage(url:string){
+    const response=await fetch(`/api/admin/catalog/categories/${id}/image/select`,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({image_url:url})});
+    const data=await response.json().catch(()=>({}));
+    if(!response.ok)throw new Error(data.message??"No fue posible asociar la imagen.");
+    setImageUrl(data.data.image_url);setMessage("Imagen de la biblioteca asociada correctamente.");
+  }
   async function removeImage(){
     if(!confirm("¿Quitar la imagen personalizada y utilizar la selección automática?"))return;
     const response=await fetch(`/api/admin/catalog/categories/${id}/image`,{method:"DELETE"});
@@ -124,7 +131,7 @@ export default function EditCategoryPage({params}:{params:Promise<{id:string}>})
         </label>
       </div>
 
-      <section className="space-y-3 rounded-xl border border-[var(--border)] p-4"><h2 className="text-sm font-bold">Imagen circular de la categoría (opcional)</h2><p className="text-xs text-[var(--muted)]">Si no defines una imagen, se seleccionará automáticamente una fotografía de los productos publicados, como hasta ahora.</p><div className="flex flex-wrap items-center gap-4">{imageUrl&&<img src={imageUrl} alt="Imagen actual de la categoría" className="size-24 rounded-full border-2 border-[var(--border)] object-cover"/>}<input aria-label="Cargar imagen de categoría" type="file" accept="image/jpeg,image/png,image/webp" disabled={uploading} onChange={e=>{void uploadImage(e.target.files?.[0]);e.target.value="";}} className="max-w-full text-sm"/>{imageUrl&&<button type="button" onClick={()=>void removeImage()} className="rounded-lg border border-[var(--border)] px-3 py-2 text-sm">Quitar imagen</button>}</div>{uploading&&<p className="text-sm">Subiendo imagen…</p>}</section>
+      <section className="space-y-3 rounded-xl border border-[var(--border)] p-4"><h2 className="text-sm font-bold">Imagen circular de la categoría (opcional)</h2><p className="text-xs text-[var(--muted)]">Si no defines una imagen, se seleccionará automáticamente una fotografía de los productos publicados, como hasta ahora.</p><div className="flex flex-wrap items-center gap-4">{imageUrl&&<img src={imageUrl} alt="Imagen actual de la categoría" className="size-24 rounded-full border-2 border-[var(--border)] object-cover"/>}<input aria-label="Cargar imagen de categoría" type="file" accept="image/jpeg,image/png,image/webp" disabled={uploading} onChange={e=>{void uploadImage(e.target.files?.[0]);e.target.value="";}} className="max-w-full text-sm"/><MultimediaPicker collection="iconos" value={imageUrl} label="Elegir de biblioteca" onSelect={selectLibraryImage}/>{imageUrl&&<button type="button" onClick={()=>void removeImage()} className="rounded-lg border border-[var(--border)] px-3 py-2 text-sm">Quitar imagen</button>}</div>{uploading&&<p className="text-sm">Subiendo imagen…</p>}</section>
 
       <label className="flex items-center gap-2 text-sm font-medium">
         <input type="checkbox" checked={form.is_active} onChange={e=>setForm({...form,is_active:e.target.checked})}/>

@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\V1\AgentConversationController;
 use App\Http\Controllers\Api\V1\InternalAgentKnowledgeController;
 use App\Http\Controllers\Api\V1\InternalContentCreatorController;
 use App\Http\Controllers\Api\V1\CatalogController;
+use App\Http\Controllers\Api\V1\MultimediaController;
 use App\Http\Controllers\Api\V1\PostController;
 use App\Http\Controllers\Api\V1\LeonardoServiceImageController;
 use App\Http\Controllers\Api\V1\SeoRedirectController;
@@ -154,6 +155,8 @@ Route::prefix('v1')->group(function (): void {
         Route::post('catalog/categories', [CatalogController::class, 'storeCategory'])->middleware('permission:catalog.manage');
         Route::put('catalog/categories/{catalogCategory}', [CatalogController::class, 'updateCategory'])->middleware('permission:catalog.manage');
         Route::delete('catalog/categories/{catalogCategory}', [CatalogController::class, 'destroyCategory'])->middleware('permission:catalog.manage');
+        Route::get('multimedia', [MultimediaController::class, 'index'])->middleware('permission:catalog.view');
+        Route::put('catalog/categories/{catalogCategory}/image/select', [CatalogController::class, 'selectCategoryImage'])->middleware('permission:catalog.manage');
         Route::post('catalog/categories/{catalogCategory}/image', [CatalogController::class, 'uploadCategoryImage'])->middleware('permission:catalog.manage');
         Route::delete('catalog/categories/{catalogCategory}/image', [CatalogController::class, 'deleteCategoryImage'])->middleware('permission:catalog.manage');
 

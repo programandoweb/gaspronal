@@ -375,6 +375,14 @@ class CatalogController extends Controller
         return response()->json(['data' => $catalogCategory->fresh()]);
     }
 
+    public function selectCategoryImage(Request $request, CatalogCategory $catalogCategory): JsonResponse
+    {
+        $data = $request->validate(['image_url' => ['required', 'string', 'max:500']]);
+        abort_unless(MultimediaController::validatedImage($data['image_url']), 422, 'Imagen fuera de la biblioteca o archivo inexistente.');
+        $catalogCategory->update(['image_url' => $data['image_url']]);
+        return response()->json(['data' => $catalogCategory->fresh()]);
+    }
+
     public function deleteCategoryImage(CatalogCategory $catalogCategory): JsonResponse
     {
         $previous = $catalogCategory->image_url;
