@@ -47,6 +47,8 @@ export default function HeroesPage() {
   const [busyId, setBusyId] = useState<number | null>(null);
   const [message, setMessage] = useState("");
   const [canManage, setCanManage] = useState(false);
+  const [activeOptions, setActiveOptions] = useState<Record<string, number>>({});
+  const [savingDefault, setSavingDefault] = useState(false);
 
   async function load() {
     setLoading(true);
@@ -59,6 +61,7 @@ export default function HeroesPage() {
     }
     setSlides(json.data ?? []);
     setCanManage(Boolean(json.meta?.can_manage));
+    setActiveOptions(json.meta?.active_options ?? {});
   }
 
   useEffect(() => {
@@ -104,6 +107,26 @@ export default function HeroesPage() {
     }
     setMessage("Slide guardado correctamente.");
     await load();
+  }
+
+  async function setDefault(option: number) {
+    setSavingDefault(true);
+    setMessage("");
+    try {
+      const response = await fetch("/api/admin/heroes/active-option", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ section_key: activeSection, active_option: option }),
+      });
+      const json = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(json.message ?? "No fue posible establecer la propuesta.");
+      setActiveOptions((current) => ({ ...current, [activeSection]: option }));
+      setMessage(`Propuesta ${option} establecida como predeterminada para ${activeSection}.`);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Error al actualizar la propuesta.");
+    } finally {
+      setSavingDefault(false);
+    }
   }
 
   async function createSlide() {
@@ -254,6 +277,20 @@ export default function HeroesPage() {
           </button>
         ))}
       </div>
+
+      <section className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
+        <div>
+          <p className="text-sm font-semibold">Propuesta publicada: {activeOptions[activeSection] ?? 1}</p>
+          <p className="text-xs text-[var(--muted)]">Selecciona arriba la propuesta y publícala como predeterminada. El home siempre mostrará esta selección.</p>
+        </div>
+        {canManage && (
+          <button type="button" disabled={savingDefault || activeOption === (activeOptions[activeSection] ?? 1)}
+            onClick={() => void setDefault(activeOption)}
+            className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[var(--brand)] px-4 text-sm font-semibold text-white disabled:opacity-50">
+            <FiSave /> {savingDefault ? "Publicando…" : "Establecer propuesta " + activeOption + " como predeterminada"}
+          </button>
+        )}
+      </section>
 
       {message && <p className="rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm">{message}</p>}
 
