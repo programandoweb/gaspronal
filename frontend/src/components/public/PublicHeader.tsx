@@ -1,5 +1,6 @@
 "use client";
 
+import SocialLinks from "./SocialLinks";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Menu, Phone } from "lucide-react";
@@ -28,7 +29,7 @@ export default function PublicHeader({ whatsappHref }: PublicHeaderProps) {
   });
 
   return (
-    <div className="h-[78px]">
+    <div className="h-[122px]">
       <motion.header
         initial={false}
         animate={{
@@ -43,6 +44,7 @@ export default function PublicHeader({ whatsappHref }: PublicHeaderProps) {
         transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
         className={`${scrolled ? "fixed left-0 right-0 top-0" : "relative"} z-50 border-b border-black/5 backdrop-blur-xl`}
       >
+      <div className="border-b border-black/5 px-4"><SocialLinks className="mx-auto max-w-[1440px] justify-end text-[var(--steel)]" /></div>
       <motion.div
         initial={false}
         animate={{ height: scrolled ? 66 : 78 }}
@@ -67,7 +69,7 @@ export default function PublicHeader({ whatsappHref }: PublicHeaderProps) {
           </Link>
         </motion.div>
 
-        <nav className="hidden items-center gap-6 text-sm font-semibold text-[var(--steel)] lg:flex">
+        <nav className="hidden items-center gap-4 text-sm font-semibold text-[var(--steel)] lg:flex">
           {navigation.map((item) => (
             <Link
               key={item.label}

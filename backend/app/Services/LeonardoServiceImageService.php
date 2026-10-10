@@ -34,7 +34,7 @@ class LeonardoServiceImageService
         $filename = 'leonardo-'.Str::uuid().'.'.$extension;
         $diskPath = "posts/{$post->id}/{$filename}";
         $url = "/api/post-media/{$post->id}/{$filename}";
-        Storage::disk('public')->put($diskPath, $image['bytes']);
+        app(ImageWatermarkService::class)->store($diskPath, $image['bytes']);
         if (!Storage::disk('public')->exists($diskPath)) {
             throw new RuntimeException('No fue posible persistir la imagen.');
         }

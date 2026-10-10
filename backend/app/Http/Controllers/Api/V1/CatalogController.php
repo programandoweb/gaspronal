@@ -219,7 +219,7 @@ class CatalogController extends Controller
         foreach ($validated['images'] as $image) {
             $extension = strtolower($image->getClientOriginalExtension() ?: $image->extension() ?: 'jpg');
             $filename = Str::uuid().'.'.$extension;
-            $image->storeAs("catalog/{$catalogItem->id}", $filename, 'public');
+            app(\App\Services\ImageWatermarkService::class)->store("catalog/{$catalogItem->id}".'/'.$filename, file_get_contents($image->getRealPath()));
             $gallery[] = "/api/catalog-media/{$catalogItem->id}/{$filename}";
         }
 
@@ -418,7 +418,7 @@ class CatalogController extends Controller
         $request->validate(['image' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:8192']]);
         $file = $request->file('image');
         $filename = Str::uuid().'.'.$file->extension();
-        $file->storeAs('catalog/categories/'.$catalogCategory->id, $filename, 'public');
+        app(\App\Services\ImageWatermarkService::class)->store('catalog/categories/'.$catalogCategory->id.'/'.$filename, file_get_contents($file->getRealPath()));
         $previous = $catalogCategory->image_url;
         $catalogCategory->update(['image_url' => '/api/category-media/'.$catalogCategory->id.'/'.$filename]);
         if ($previous && str_starts_with($previous, '/api/category-media/'.$catalogCategory->id.'/')) {

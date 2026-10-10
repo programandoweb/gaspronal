@@ -1,3 +1,4 @@
+import SocialLinks from "@/components/public/SocialLinks";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -432,6 +433,7 @@ export default async function HomePage() {
             <p className="mt-5 max-w-xl text-sm leading-6 text-slate-300">
               Soluciones industriales en fabricación de equipos, gas, extracción y servicio técnico.
             </p>
+            <SocialLinks className="mt-5 text-white" />
           </div>
           <div className="grid grid-cols-2 gap-x-10 gap-y-3 text-sm font-semibold text-slate-300">
             <a className="hover:text-white" href="#productos">Productos</a>

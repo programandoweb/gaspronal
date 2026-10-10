@@ -261,7 +261,12 @@ class JorgeProductResearchService
             $target = $directory.'/'.$filename;
 
             imageinterlace($image, true);
-            imagejpeg($image, $target, 88);
+            ob_start();
+            imagejpeg($image, null, 88);
+            $bytes = ob_get_clean();
+            if (file_put_contents($target, app(ImageWatermarkService::class)->apply($bytes)) === false) {
+                throw new RuntimeException('No fue posible guardar la imagen investigada.');
+            }
             imagedestroy($image);
 
             $saved[] = "/images/uploads/agente/{$productId}/{$filename}";

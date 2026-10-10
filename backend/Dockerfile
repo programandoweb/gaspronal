@@ -18,10 +18,11 @@ RUN apk add --no-cache \
     icu-dev \
     libjpeg-turbo-dev \
     libpng-dev \
+    libwebp-dev \
     libxml2-dev \
     libzip-dev \
     oniguruma-dev \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
     && docker-php-ext-install -j$(nproc) \
         bcmath \
         dom \

@@ -157,7 +157,7 @@ class PostController extends Controller
         foreach ($validated['images'] as $image) {
             $extension = strtolower($image->getClientOriginalExtension() ?: $image->extension() ?: 'jpg');
             $filename = Str::uuid().'.'.$extension;
-            $image->storeAs("posts/{$post->id}", $filename, 'public');
+            app(\App\Services\ImageWatermarkService::class)->store("posts/{$post->id}".'/'.$filename, file_get_contents($image->getRealPath()));
             $gallery[] = "/api/post-media/{$post->id}/{$filename}";
         }
 

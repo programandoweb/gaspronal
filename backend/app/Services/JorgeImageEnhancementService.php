@@ -42,7 +42,7 @@ class JorgeImageEnhancementService
         $storagePath = "catalog/{$item->id}/{$filename}";
         $publicPath = "/api/catalog-media/{$item->id}/{$filename}";
 
-        Storage::disk('public')->put($storagePath, $generated['bytes']);
+        app(ImageWatermarkService::class)->store($storagePath, $generated['bytes']);
         if (! Storage::disk('public')->exists($storagePath)) {
             throw new RuntimeException('La imagen generada no pudo persistirse en el almacenamiento público.');
         }

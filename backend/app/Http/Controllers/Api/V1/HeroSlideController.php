@@ -94,7 +94,7 @@ class HeroSlideController extends Controller
         $file = $validated['image'];
         $extension = strtolower($file->getClientOriginalExtension() ?: $file->extension() ?: 'jpg');
         $filename = Str::uuid().'.'.$extension;
-        $file->storeAs("heroes/{$heroSlide->id}", $filename, 'public');
+        app(\App\Services\ImageWatermarkService::class)->store("heroes/{$heroSlide->id}".'/'.$filename, file_get_contents($file->getRealPath()));
 
         $heroSlide->update([
             'image_url' => "/api/v1/heroes/media/{$heroSlide->id}/{$filename}",
