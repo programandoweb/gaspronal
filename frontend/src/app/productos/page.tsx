@@ -60,7 +60,7 @@ async function getCatalog(category?: string, search?: string, page = 1) {
       headers: { Accept: "application/json" },
     }),
     fetch(`${backendUrl}/api/v1/catalog/public/home-category-images`, {
-      next: { revalidate: 300 },
+      cache: "no-store",
       headers: { Accept: "application/json" },
     }),
   ]);
@@ -169,7 +169,7 @@ export default async function ProductsPage({
           categories={categories.map((item) => ({
             ...item,
             products_count: item.products_count ?? 0,
-            image_url: item.image_url?.startsWith("/api/catalog-media/")
+            image_url: item.image_url?.startsWith("/api/catalog-media/") || item.image_url?.startsWith("/api/category-media/")
               ? item.image_url
               : item.image_url?.startsWith("/")
                 ? (process.env.PUBLIC_BACKEND_URL ?? "https://backend.gaspronal.programandoweb.net").replace(/\/$/, "") + item.image_url
