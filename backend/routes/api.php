@@ -128,6 +128,7 @@ Route::prefix('v1')->group(function (): void {
 
         Route::get('agents/lucia/content-run', [InternalContentCreatorController::class, 'latestRun'])->middleware('permission:agents.view');
         Route::get('agents/jorge/research', [JorgeResearchController::class, 'show'])->middleware('permission:agents.view');
+        Route::post('catalog/items/reset-original-images', [JorgeResearchController::class, 'resetProductImages'])->middleware('permission:catalog.manage');
         Route::post('agents/jorge/research/play', [JorgeResearchController::class, 'play'])->middleware('permission:agents.manage');
         Route::post('agents/jorge/research/pause', [JorgeResearchController::class, 'pause'])->middleware('permission:agents.manage');
         Route::post('agents/jorge/research/stop', [JorgeResearchController::class, 'stop'])->middleware('permission:agents.manage');
