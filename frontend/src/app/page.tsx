@@ -128,7 +128,7 @@ async function getHomeCategories(): Promise<HomeCategory[]> {
     const payload = await response.json();
     return (Array.isArray(payload.data) ? payload.data : []).map((category: HomeCategory) => ({
       ...category,
-      image_url: category.image_url?.startsWith("/api/catalog-media/")
+      image_url: category.image_url?.startsWith("/api/catalog-media/") || category.image_url?.startsWith("/api/category-media/")
         ? category.image_url
         : category.image_url?.startsWith("/")
           ? publicBackendUrl + category.image_url
@@ -276,7 +276,7 @@ export default async function HomePage() {
             </div>
           </div>
 
-          <div className="mt-10 grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+          <div className="mt-10 grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
             {categories.map((category, index) => (
               <HomeCategoryCard
                 key={category.id}
