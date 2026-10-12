@@ -117,8 +117,8 @@ export default function CatalogPage(){
     }
     setResetOpen(false);
     setResetConfirmation("");
-    setMessage("Se reinició la investigación de Jorge a 0 / "+data.total_items+". La recuperación comenzará en el siguiente ciclo programado.");
     await load(1);
+    setMessage("Se reinició la investigación de Jorge a 0 / "+data.total_items+". La recuperación comenzará en el siguiente ciclo programado.");
   }
 
 
