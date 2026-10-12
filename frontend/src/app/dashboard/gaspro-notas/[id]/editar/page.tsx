@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import MultimediaPicker from "@/components/dashboard/MultimediaPicker";
 import { FiArrowLeft, FiExternalLink, FiSave, FiType, FiLink2, FiTag, FiActivity, FiSearch, FiFileText, FiImage, FiUploadCloud, FiStar, FiTrash2 } from "react-icons/fi";
 import { use, useEffect, useState } from "react";
 
@@ -182,6 +183,19 @@ export default function EditGasproNotaPage({ params }:{ params:Promise<{id:strin
     setGalleryMessage("Galería actualizada correctamente.");
   }
 
+  async function selectLibraryImage(url:string){
+    const response=await fetch(`/api/admin/content/posts/${id}/gallery/library`,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({image_url:url}),
+    });
+    const json=await response.json().catch(()=>({}));
+    if(!response.ok)throw new Error(json.message??"No fue posible añadir la imagen de biblioteca.");
+    setGallery(json.data?.gallery??[]);
+    setPrimaryImage(json.data?.featured_image??json.data?.og_image??"");
+    setGalleryMessage("Imagen de la biblioteca añadida a la galería.");
+  }
+
   async function makePrimary(image:string){
     setGalleryMessage("");
     const response=await fetch(`/api/admin/content/posts/${id}/gallery/primary`,{
@@ -318,6 +332,8 @@ export default function EditGasproNotaPage({ params }:{ params:Promise<{id:strin
           <p className="mt-1 text-sm text-[var(--muted)]">Aquí aparecen también las 5 imágenes generadas por Lucía. Puedes subir más imágenes y elegir la principal/OG.</p>
         </div>
 
+        <div className="flex flex-wrap items-center gap-2">
+          <MultimediaPicker collection="galeria" label="Elegir de biblioteca" onSelect={selectLibraryImage} />
         <label className={`inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-xl bg-[var(--brand)] px-4 font-semibold text-white ${uploading?"pointer-events-none opacity-60":""}`}>
           <FiUploadCloud size={18}/>
           {uploading?"Subiendo…":"Subir imágenes"}
@@ -330,6 +346,7 @@ export default function EditGasproNotaPage({ params }:{ params:Promise<{id:strin
             onChange={e=>{void uploadGallery(e.target.files);e.currentTarget.value="";}}
           />
         </label>
+        </div>
       </div>
 
       {gallery.length===0?(
