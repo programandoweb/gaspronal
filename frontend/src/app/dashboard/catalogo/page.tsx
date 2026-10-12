@@ -53,6 +53,11 @@ export default function CatalogPage(){
   });
   const [loading,setLoading]=useState(true);
   const [message,setMessage]=useState("");
+  const [isRoot,setIsRoot]=useState(false);
+  const [resetOpen,setResetOpen]=useState(false);
+  const [resetConfirmation,setResetConfirmation]=useState("");
+  const [resetting,setResetting]=useState(false);
+
 
   async function load(targetPage=page){
     setLoading(true);
@@ -87,6 +92,35 @@ export default function CatalogPage(){
   }
 
   useEffect(()=>{void load(1);},[appliedSearch,perPage]);
+  useEffect(()=>{
+    let mounted=true;
+    fetch("/api/admin/auth/me",{cache:"no-store"})
+      .then(async response=>response.ok?response.json():null)
+      .then(payload=>{if(mounted)setIsRoot(Array.isArray(payload?.data?.roles)&&payload.data.roles.includes("root"));})
+      .catch(()=>{if(mounted)setIsRoot(false);});
+    return()=>{mounted=false;};
+  },[]);
+
+  async function resetAllProductImages(){
+    if(resetConfirmation!=="BORRAR FOTOS"||resetting)return;
+    setResetting(true);
+    const response=await fetch("/api/admin/catalog/items/reset-original-images",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({confirmation:resetConfirmation}),
+    }).catch(()=>null);
+    const data=await response?.json().catch(()=>({}));
+    setResetting(false);
+    if(!response?.ok){
+      setMessage(data?.message??"No fue posible reiniciar las imágenes.");
+      return;
+    }
+    setResetOpen(false);
+    setResetConfirmation("");
+    setMessage("Se reinició la investigación de Jorge a 0 / "+data.total_items+". La recuperación comenzará en el siguiente ciclo programado.");
+    await load(1);
+  }
+
 
   function submitSearch(e:React.FormEvent){
     e.preventDefault();
@@ -127,6 +161,19 @@ export default function CatalogPage(){
   );
 
   return <div className="w-full max-w-none space-y-6">
+    {resetOpen&&<div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-950/60 p-4" onMouseDown={e=>{if(e.target===e.currentTarget&&!resetting)setResetOpen(false);}}>
+      <section role="dialog" aria-modal="true" aria-labelledby="reset-product-images-title" className="w-full max-w-lg rounded-2xl bg-white p-6 text-slate-900 shadow-2xl">
+        <h2 id="reset-product-images-title" className="text-xl font-bold text-red-700">Borrar todas las fotos de productos</h2>
+        <p className="mt-3 text-sm leading-6">Esta operación quitará todas las imágenes principales y galerías de los productos, reiniciará el progreso de Jorge a 0 y reanudará la búsqueda de fotografías originales en la web oficial. No modifica nombres, precios ni especificaciones.</p>
+        <label className="mt-5 block text-sm font-semibold" htmlFor="catalog-reset-confirm">Escribe BORRAR FOTOS para confirmar</label>
+        <input id="catalog-reset-confirm" value={resetConfirmation} onChange={e=>setResetConfirmation(e.target.value)} autoComplete="off" className="mt-2 min-h-11 w-full rounded-xl border border-slate-300 px-3 text-sm focus:border-red-600 focus:outline-none"/>
+        <div className="mt-6 flex flex-wrap justify-end gap-3">
+          <button type="button" onClick={()=>setResetOpen(false)} disabled={resetting} className="min-h-11 rounded-xl border border-slate-300 px-5 text-sm font-semibold">Cancelar</button>
+          <button type="button" onClick={()=>void resetAllProductImages()} disabled={resetConfirmation!=="BORRAR FOTOS"||resetting} className="min-h-11 rounded-xl bg-red-700 px-5 text-sm font-semibold text-white disabled:opacity-50">{resetting?"Procesando…":"Confirmar limpieza"}</button>
+        </div>
+      </section>
+    </div>}
+
     <header className="flex flex-col gap-4 border-b border-[var(--border)] pb-5 lg:flex-row lg:items-start lg:justify-between">
       <div>
         <span className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--brand)]">CRM / CMS</span>
@@ -140,6 +187,8 @@ export default function CatalogPage(){
       </div>
 
       <div className="flex flex-wrap gap-2 lg:justify-end">
+        {isRoot&&<button type="button" onClick={()=>{setResetOpen(true);setResetConfirmation("");}} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-red-300 bg-white px-4 text-sm font-semibold text-red-700 hover:bg-red-50"><FiTrash2 size={17}/>Borrar todas las fotos</button>}
+
         <Link
           href="/dashboard/catalogo/categorias"
           className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 text-sm font-semibold"
