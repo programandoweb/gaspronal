@@ -16,7 +16,7 @@ const navigation = [
   { label: "Servicios", href: "/#servicios" },
   { label: "A medida", href: "/#ingenieria" },
   { label: "Gaspro-notas", href: "/gaspro-notas" },
-  { label: "Gaspronal", href: "/#nosotros" },
+  { label: "Somos Gaspronal", href: "/somos-gaspronal" },
   { label: "Contacto", href: "/#contacto" },
 ];
 
