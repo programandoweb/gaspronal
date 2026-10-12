@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Source_Sans_3 } from "next/font/google";
 import PublicWhatsAppButton from "@/components/public/PublicWhatsAppButton";
+import ClaudioWebChat from "@/components/public/ClaudioWebChat";
 import "./globals.css";
 
 const sourceSans = Source_Sans_3({
@@ -53,6 +54,7 @@ export default function RootLayout({
     <html lang="es">
       <body className={sourceSans.variable}>
         {children}
+        <ClaudioWebChat />
         <PublicWhatsAppButton />
       </body>
     </html>

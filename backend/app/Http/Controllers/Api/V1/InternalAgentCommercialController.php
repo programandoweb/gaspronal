@@ -28,8 +28,13 @@ class InternalAgentCommercialController extends Controller
 
         $arguments = $payload['arguments'] ?? [];
 
+        $webChannel = ($arguments['agent_channel'] ?? null) === 'web';
+        if ($webChannel && in_array($payload['tool'], ['create_quote', 'create_appointment', 'handoff_to_human', 'register_customer'], true)) {
+            $this->requireWebConsent($arguments);
+        }
+
         return match ($payload['tool']) {
-            'catalog_search' => $this->catalogSearch($arguments),
+            'catalog_search' => $this->catalogSearch($arguments, $webChannel),
             'create_quote' => $this->createQuote($arguments),
             'create_appointment' => $this->createAppointment($arguments),
             'handoff_to_human' => $this->handoff($arguments),
@@ -38,7 +43,7 @@ class InternalAgentCommercialController extends Controller
         };
     }
 
-    private function catalogSearch(array $arguments): JsonResponse
+    private function catalogSearch(array $arguments, bool $webChannel = false): JsonResponse
     {
         $query = trim((string) ($arguments['query'] ?? ''));
 
@@ -50,7 +55,9 @@ class InternalAgentCommercialController extends Controller
                 ->orWhere('reference', 'like', "%{$query}%")
                 ->orWhere('short_description', 'like', "%{$query}%")))
             ->limit(20)
-            ->get(['id', 'name', 'reference', 'short_description', 'commercial_price', 'price_currency', 'price_unit']);
+            ->get($webChannel
+                ? ['id', 'name', 'reference', 'short_description']
+                : ['id', 'name', 'reference', 'short_description', 'commercial_price', 'price_currency', 'price_unit']);
 
         return response()->json(['data' => $items]);
     }
@@ -182,7 +189,7 @@ class InternalAgentCommercialController extends Controller
             CommunicationConversation::query()
                 ->whereKey($arguments['communication_conversation_id'])
                 ->where('agent_id', 'claudio')
-                ->where('channel', 'whatsapp')
+                ->whereIn('channel', ['whatsapp', 'web'])
                 ->update([
                     'user_id' => $user->id,
                     'contact_name' => $user->name,
@@ -227,7 +234,7 @@ class InternalAgentCommercialController extends Controller
             CommunicationConversation::query()
                 ->whereKey($arguments['communication_conversation_id'])
                 ->where('agent_id', 'claudio')
-                ->where('channel', 'whatsapp')
+                ->whereIn('channel', ['whatsapp', 'web'])
                 ->update([
                     'status' => 'waiting_human',
                     'human_takeover_at' => now(),
@@ -241,5 +248,17 @@ class InternalAgentCommercialController extends Controller
     {
         $secret = trim((string) config('agents.shared_secret'));
         abort_if($secret === '' || ! hash_equals($secret, (string) $request->header('X-Agent-Shared-Secret', '')), 401, 'No autorizado.');
+    }
+
+    private function requireWebConsent(array $arguments): void
+    {
+        $conversationId = (int) ($arguments['communication_conversation_id'] ?? 0);
+        $allowed = $conversationId > 0 && CommunicationConversation::query()
+            ->whereKey($conversationId)
+            ->where('agent_id', 'claudio')
+            ->where('channel', 'web')
+            ->whereNotNull('data_processing_consent_at')
+            ->exists();
+        abort_unless($allowed, 422, 'Antes de registrar datos o gestionar una solicitud comercial debe existir consentimiento explícito de tratamiento de datos.');
     }
 }

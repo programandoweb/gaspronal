@@ -22,6 +22,7 @@ use App\Http\Controllers\Api\V1\JorgeResearchController;
 use App\Http\Controllers\Api\V1\JorgeImageEnhancementController;
 use App\Http\Controllers\Api\V1\CommunicationProviderController;
 use App\Http\Controllers\Api\V1\CommunicationConversationController;
+use App\Http\Controllers\Api\V1\ClaudioWebConversationController;
 use App\Http\Controllers\Api\V1\AiProviderController;
 use App\Http\Controllers\Api\V1\UserAccessController;
 use App\Http\Controllers\Api\V1\HeroSlideController;
@@ -63,6 +64,13 @@ Route::prefix('v1')->group(function (): void {
     Route::post('internal/communications/conversations/{communicationConversation}/outbound', [CommunicationConversationController::class, 'internalRecordOutbound']);
     Route::get('internal/communications/conversations/{communicationConversation}/state', [CommunicationConversationController::class, 'internalState']);
     Route::patch('internal/communications/conversations/{communicationConversation}/status', [CommunicationConversationController::class, 'internalStatus']);
+
+    Route::prefix('public/claudio-web')->middleware('throttle:20,1')->group(function (): void {
+        Route::post('sessions', [ClaudioWebConversationController::class, 'create']);
+        Route::get('sessions/current', [ClaudioWebConversationController::class, 'current']);
+        Route::post('messages', [ClaudioWebConversationController::class, 'message'])->middleware('throttle:8,1');
+        Route::post('consent', [ClaudioWebConversationController::class, 'consent']);
+    });
 
     Route::prefix('auth')->group(function (): void {
         Route::post('login', [AuthController::class, 'login'])->middleware('throttle:login');
@@ -119,6 +127,12 @@ Route::prefix('v1')->group(function (): void {
         Route::post('agents/claudio/whatsapp-conversations/{communicationConversation}/resume', [CommunicationConversationController::class, 'resume'])->middleware('permission:agents.manage');
         Route::post('agents/claudio/whatsapp-conversations/{communicationConversation}/close', [CommunicationConversationController::class, 'close'])->middleware('permission:agents.manage');
         Route::post('agents/claudio/whatsapp-conversations/{communicationConversation}/messages', [CommunicationConversationController::class, 'reply'])->middleware('permission:agents.manage');
+        Route::get('agents/claudio/web-conversations', [ClaudioWebConversationController::class, 'index'])->middleware('permission:agents.view');
+        Route::get('agents/claudio/web-conversations/{conversation}', [ClaudioWebConversationController::class, 'show'])->middleware('permission:agents.view');
+        Route::post('agents/claudio/web-conversations/{conversation}/takeover', [ClaudioWebConversationController::class, 'takeover'])->middleware('permission:agents.manage');
+        Route::post('agents/claudio/web-conversations/{conversation}/resume', [ClaudioWebConversationController::class, 'resume'])->middleware('permission:agents.manage');
+        Route::post('agents/claudio/web-conversations/{conversation}/close', [ClaudioWebConversationController::class, 'close'])->middleware('permission:agents.manage');
+        Route::post('agents/claudio/web-conversations/{conversation}/messages', [ClaudioWebConversationController::class, 'reply'])->middleware('permission:agents.manage');
 
         Route::get('commercial/quotes', [CommercialQuoteController::class, 'index'])->middleware('permission:commercial.quotes.view');
         Route::get('commercial/quotes/{commercialQuote}', [CommercialQuoteController::class, 'show'])->middleware('permission:commercial.quotes.view');

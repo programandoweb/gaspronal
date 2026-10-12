@@ -33,6 +33,8 @@ class AgentSettingController extends Controller
                 'has_api_key' => filled($setting?->api_key),
                 'primary_ai_model_id' => $setting?->primary_ai_model_id,
                 'fallback_ai_model_id' => $setting?->fallback_ai_model_id,
+                'web_channel_enabled' => $agent === 'claudio' ? (bool) ($setting?->web_channel_enabled ?? false) : false,
+                'web_welcome_message' => $agent === 'claudio' ? $setting?->web_welcome_message : null,
                 'primary_ai_model' => $this->serializeAiModel($setting?->primaryAiModel),
                 'fallback_ai_model' => $this->serializeAiModel($setting?->fallbackAiModel),
             ],
@@ -49,6 +51,8 @@ class AgentSettingController extends Controller
             'api_key' => ['sometimes', 'nullable', 'string', 'max:500'],
             'primary_ai_model_id' => ['sometimes', 'nullable', 'integer', 'exists:ai_models,id'],
             'fallback_ai_model_id' => ['sometimes', 'nullable', 'integer', 'different:primary_ai_model_id', 'exists:ai_models,id'],
+            'web_channel_enabled' => ['sometimes', 'boolean'],
+            'web_welcome_message' => ['sometimes', 'nullable', 'string', 'max:2000'],
         ]);
 
         $setting = AgentSetting::query()->firstOrNew(['agent_id' => $agent]);
@@ -65,6 +69,13 @@ class AgentSettingController extends Controller
 
         if (array_key_exists('fallback_ai_model_id', $data)) {
             $setting->fallback_ai_model_id = $data['fallback_ai_model_id'];
+        }
+
+        if ($agent === 'claudio' && array_key_exists('web_channel_enabled', $data)) {
+            $setting->web_channel_enabled = $data['web_channel_enabled'];
+        }
+        if ($agent === 'claudio' && array_key_exists('web_welcome_message', $data)) {
+            $setting->web_welcome_message = filled($data['web_welcome_message']) ? trim((string) $data['web_welcome_message']) : null;
         }
 
         $setting->save();

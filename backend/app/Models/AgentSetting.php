@@ -13,6 +13,8 @@ class AgentSetting extends Model
         'model',
         'primary_ai_model_id',
         'fallback_ai_model_id',
+        'web_channel_enabled',
+        'web_welcome_message',
     ];
 
     protected $hidden = [
@@ -23,6 +25,7 @@ class AgentSetting extends Model
     {
         return [
             'api_key' => 'encrypted',
+            'web_channel_enabled' => 'boolean',
         ];
     }
 

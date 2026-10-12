@@ -10,8 +10,9 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 class CommunicationConversation extends Model
 {
     protected $fillable = [
-        'provider_id', 'user_id', 'channel', 'agent_id', 'external_thread_id',
-        'contact_phone', 'contact_name', 'status', 'human_takeover_at', 'last_message_at',
+        'provider_id', 'user_id', 'channel', 'agent_id', 'external_thread_id', 'web_token_hash',
+        'contact_phone', 'contact_name', 'initial_path', 'status', 'human_takeover_at',
+        'data_processing_consent_at', 'data_processing_policy_version', 'last_message_at', 'expires_at',
     ];
 
     protected function casts(): array
@@ -19,6 +20,8 @@ class CommunicationConversation extends Model
         return [
             'human_takeover_at' => 'datetime',
             'last_message_at' => 'datetime',
+            'data_processing_consent_at' => 'datetime',
+            'expires_at' => 'datetime',
         ];
     }
 

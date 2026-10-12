@@ -15,12 +15,13 @@ export type AgentConversationMessage = {
 };
 
 export type AgentExecutionContext = {
-  channel?: "dashboard" | "whatsapp";
+  channel?: "dashboard" | "whatsapp" | "web";
   communicationConversationId?: number;
   customerPhone?: string;
   customerName?: string;
   customerEmail?: string;
   hasDataProcessingConsent?: boolean;
+  webConversationId?: number;
 };
 
 export type AgentMessageInput = {

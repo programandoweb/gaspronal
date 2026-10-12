@@ -3,13 +3,11 @@
 import SocialLinks from "./SocialLinks";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Menu, Phone } from "lucide-react";
+import { Menu, MessageCircle, Phone } from "lucide-react";
 import { motion, useMotionValueEvent, useScroll } from "motion/react";
 import { useState } from "react";
 
-type PublicHeaderProps = {
-  whatsappHref: string;
-};
+type PublicHeaderProps = { whatsappHref: string };
 
 const navigation = [
   { label: "Productos", href: "/productos" },
@@ -20,7 +18,7 @@ const navigation = [
   { label: "Contacto", href: "/#contacto" },
 ];
 
-export default function PublicHeader({ whatsappHref }: PublicHeaderProps) {
+export default function PublicHeader({ whatsappHref: _whatsappHref }: PublicHeaderProps) {
   const { scrollY } = useScroll();
   const [scrolled, setScrolled] = useState(false);
 
@@ -94,15 +92,14 @@ export default function PublicHeader({ whatsappHref }: PublicHeaderProps) {
             304 552 7575
           </a>
           <SocialLinks className="text-[var(--steel)]" />
-          <a
-            href={whatsappHref}
-            target="_blank"
-            rel="noreferrer"
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new Event("gaspronal:open-claudio"))}
             className="inline-flex h-11 items-center gap-2 rounded-full bg-[var(--accent)] px-5 text-sm font-bold text-white transition hover:bg-[var(--accent-hover)]"
           >
             Hablar con un asesor
-            <ArrowRight size={17} />
-          </a>
+            <MessageCircle size={17} />
+          </button>
         </motion.div>
 
         <details className="group relative lg:hidden">
@@ -129,14 +126,13 @@ export default function PublicHeader({ whatsappHref }: PublicHeaderProps) {
             </nav>
             <div className="mt-3 flex items-center gap-2">
               <SocialLinks className="shrink-0 text-[var(--steel)]" />
-            <a
-              href={whatsappHref}
-              target="_blank"
-              rel="noreferrer"
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new Event("gaspronal:open-claudio"))}
               className="flex min-h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-[var(--accent)] px-3 text-xs font-bold text-white"
             >
-              WhatsApp <ArrowRight size={17} />
-            </a>
+              Hablar con un asesor <MessageCircle size={17} />
+            </button>
             </div>
           </motion.div>
         </details>
