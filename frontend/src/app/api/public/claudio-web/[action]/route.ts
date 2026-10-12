@@ -11,12 +11,13 @@ const routes: Record<string, { method: "GET" | "POST"; path: string }> = {
 
 async function ensureSession(initialPath?: string) {
   const store = await cookies();
-  let token = store.get(COOKIE)?.value;
-  if (token) return { token, created: false, response: null as NextResponse | null };
+  const existingToken = store.get(COOKIE)?.value;
+  let token: string;
+  if (existingToken) return { token: existingToken, created: false, response: null as NextResponse | null };
   const response = await backendFetch("/public/claudio-web/sessions", { method: "POST", body: JSON.stringify({ initial_path: initialPath }) });
   const json = await response.json().catch(() => ({}));
   if (!response.ok || !json.data?.token) return { token: "", created: false, response: NextResponse.json(json, { status: response.status }) };
-  token = json.data.token;
+  token = String(json.data.token);
   const next = NextResponse.json({ data: json.data.conversation }, { status: 201 });
   next.cookies.set(COOKIE, token, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: 60 * 60 * 24 * 30 });
   return { token, created: true, response: next };
