@@ -29,7 +29,7 @@ export default function PublicHeader({ whatsappHref }: PublicHeaderProps) {
   });
 
   return (
-    <div className="h-[122px]">
+    <div className="h-[78px]">
       <motion.header
         initial={false}
         animate={{
@@ -44,7 +44,6 @@ export default function PublicHeader({ whatsappHref }: PublicHeaderProps) {
         transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
         className={`${scrolled ? "fixed left-0 right-0 top-0" : "relative"} z-50 border-b border-black/5 backdrop-blur-xl`}
       >
-      <div className="border-b border-black/5 px-4"><SocialLinks className="mx-auto max-w-[1440px] justify-end text-[var(--steel)]" /></div>
       <motion.div
         initial={false}
         animate={{ height: scrolled ? 66 : 78 }}
@@ -85,7 +84,7 @@ export default function PublicHeader({ whatsappHref }: PublicHeaderProps) {
           initial={false}
           animate={{ opacity: 1, scale: scrolled ? 0.96 : 1 }}
           transition={{ duration: 0.24 }}
-          className="hidden items-center gap-3 lg:flex"
+          className="hidden items-center gap-2 lg:flex"
         >
           <a
             href="tel:+573045527575"
@@ -94,6 +93,7 @@ export default function PublicHeader({ whatsappHref }: PublicHeaderProps) {
             <Phone size={17} />
             304 552 7575
           </a>
+          <SocialLinks className="text-[var(--steel)]" />
           <a
             href={whatsappHref}
             target="_blank"
@@ -127,14 +127,17 @@ export default function PublicHeader({ whatsappHref }: PublicHeaderProps) {
                 </Link>
               ))}
             </nav>
+            <div className="mt-3 flex items-center gap-2">
+              <SocialLinks className="shrink-0 text-[var(--steel)]" />
             <a
               href={whatsappHref}
               target="_blank"
               rel="noreferrer"
-              className="mt-3 flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-[var(--accent)] px-4 text-sm font-bold text-white"
+              className="flex min-h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-[var(--accent)] px-3 text-xs font-bold text-white"
             >
-              Solicitar asesoría <ArrowRight size={17} />
+              WhatsApp <ArrowRight size={17} />
             </a>
+            </div>
           </motion.div>
         </details>
       </motion.div>
