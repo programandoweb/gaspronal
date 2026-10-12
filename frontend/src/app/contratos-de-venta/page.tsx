@@ -3,11 +3,29 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, CalendarClock, ClipboardCheck, ClipboardList, FilePenLine, FileText, Handshake, Landmark, PackageCheck, ShieldCheck, Truck, Wallet } from "lucide-react";
 
+const pageUrl = "https://gaspronal.programandoweb.net/contratos-de-venta";
+const ogImage = pageUrl + "/opengraph-image";
+
 export const metadata: Metadata = {
-  title: "Condiciones contractuales de venta y fabricación | Gaspronal",
-  description: "Condiciones generales de venta, fabricación, plazo de entrega de 30 días calendario, recepción y garantías de Gaspronal Industrias y Servicios S.A.S.",
-  alternates: { canonical: "/contratos-de-venta" },
+  title: "Contratos de venta y fabricación: entregas en 30 días | Gaspronal",
+  description: "Consulta las condiciones contractuales de Gaspronal: fabricación de equipos industriales, plazo de entrega de 30 días calendario, pagos, recepción y garantías.",
+  alternates: { canonical: pageUrl },
   robots: { index: true, follow: true },
+  openGraph: {
+    type: "article",
+    locale: "es_CO",
+    siteName: "Gaspronal",
+    url: pageUrl,
+    title: "Contratos de venta y fabricación | Gaspronal",
+    description: "Condiciones de venta, fabricación y entrega de equipos industriales en 30 días calendario, con información sobre pagos y garantías.",
+    images: [{ url: ogImage, width: 1200, height: 630, alt: "Documento de contrato comercial Gaspronal: entrega de 30 días calendario", type: "image/png" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Contratos de venta y fabricación | Gaspronal",
+    description: "Conoce las condiciones de venta, entrega de 30 días calendario y garantías de Gaspronal.",
+    images: [ogImage],
+  },
 };
 
 const clauses = [
@@ -64,8 +82,19 @@ const clauses = [
 ];
 
 export default function ContratosDeVentaPage() {
+  const structuredData = JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: "Contratos de venta y fabricación | Gaspronal",
+    url: pageUrl,
+    inLanguage: "es-CO",
+    description: "Condiciones de fabricación, pago, entrega en 30 días calendario, recepción y garantías.",
+    publisher: { "@type": "Organization", name: "Gaspronal Industrias y Servicios S.A.S.", url: "https://gaspronal.programandoweb.net/" },
+    primaryImageOfPage: { "@type": "ImageObject", url: ogImage, width: 1200, height: 630 },
+  }).replace(/</g, "\\u003c");
   return (
     <main className="min-h-screen bg-[var(--surface-muted)] text-[var(--foreground)]">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: structuredData }} />
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex min-h-[84px] max-w-[1180px] items-center justify-between gap-5 px-4 sm:px-6 lg:px-10">
           <Link href="/" aria-label="Ir al inicio de Gaspronal">
@@ -82,6 +111,18 @@ export default function ContratosDeVentaPage() {
           <p className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.18em] text-[var(--brand)]"><FileText size={17} /> Información contractual</p>
           <h1 className="mt-4 text-3xl font-black tracking-tight text-[var(--steel)] sm:text-5xl">Condiciones contractuales de venta y fabricación</h1>
           <p className="mt-5 text-base leading-7 text-slate-600">Gaspronal Industrias y Servicios S.A.S. · Colombia</p>
+          <figure className="mt-8 overflow-hidden rounded-2xl border border-slate-200 bg-[var(--steel)] shadow-sm">
+            <Image
+              src="/contratos-de-venta/opengraph-image"
+              alt="Ilustración de contrato de venta y fabricación Gaspronal con compromiso de entrega de 30 días calendario"
+              width={1200}
+              height={630}
+              priority
+              unoptimized
+              className="h-auto w-full"
+            />
+            <figcaption className="px-5 py-3 text-xs text-slate-200">Condiciones contractuales de venta, fabricación y entrega de Gaspronal.</figcaption>
+          </figure>
           <div className="mt-8 rounded-2xl border border-[var(--brand)]/25 bg-white p-6">
             <div className="flex items-center gap-3"><span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-[var(--brand-soft)] text-[var(--brand)]"><CalendarClock size={24} aria-hidden="true" /></span><p className="text-sm font-black uppercase tracking-widest text-[var(--brand)]">Compromiso de entrega</p></div>
             <p className="mt-2 text-3xl font-black text-[var(--steel)]">30 días calendario</p>
