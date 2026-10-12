@@ -418,7 +418,6 @@ export default async function HomePage() {
               </article>
             </div>
           </div>
-        </div>
           <div className="mt-10 overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
             <iframe
               title="Ubicación de Gaspronal en Medellín, Colombia"
