@@ -440,6 +440,7 @@ export default async function HomePage() {
             <a className="hover:text-white" href="#servicios">Servicios</a>
             <a className="hover:text-white" href="#ingenieria">A medida</a>
             <Link className="hover:text-white" href="/gaspro-notas">Gaspro-notas</Link>
+            <Link className="hover:text-white" href="/contratos-de-venta">Contratos de venta</Link>
             <a className="hover:text-white" href="#contacto">Contacto</a>
           </div>
         </div>
