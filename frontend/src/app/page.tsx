@@ -467,8 +467,14 @@ export default async function HomePage() {
           </div>
         </div>
         <div className="border-t border-white/10">
-          <div className="mx-auto flex max-w-[1440px] flex-col gap-2 px-4 py-5 text-xs text-slate-400 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-10">
+          <div className="mx-auto flex max-w-[1440px] flex-col gap-2 px-4 py-5 text-xs text-slate-400 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:px-6 lg:px-10">
             <span>© {new Date().getFullYear()} Gaspronal Industrias y Servicios S.A.S.</span>
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+              <span>Desarrollado por</span>
+              <a href="https://www.programandoweb.net/jorge-mendez" target="_blank" rel="noopener noreferrer" className="font-semibold text-white transition hover:text-[var(--accent)] hover:underline">Jorge Méndez</a>
+              <span aria-hidden="true">|</span>
+              <a href="https://www.programandoweb.net/" target="_blank" rel="noopener noreferrer" className="font-semibold text-white transition hover:text-[var(--accent)] hover:underline">Programandoweb.net</a>
+            </div>
             <span>Medellín · Colombia</span>
           </div>
         </div>
