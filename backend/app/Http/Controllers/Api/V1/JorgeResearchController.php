@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\AgentResearchRun;
 use App\Models\CatalogItem;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class JorgeResearchController extends Controller
 {
@@ -75,4 +77,54 @@ class JorgeResearchController extends Controller
 
         return $this->show();
     }
+    /**
+     * Reinicia solo las imágenes del catálogo y la investigación de Jorge.
+     * No toca categorías, servicios, fichas técnicas ni SEO.
+     */
+    public function resetProductImages(Request $request): JsonResponse
+    {
+        abort_unless($request->user()?->hasRole('root'), 403, 'Operación exclusiva para root.');
+
+        $validated = $request->validate([
+            'confirmation' => ['required', 'in:BORRAR FOTOS'],
+        ]);
+
+        $total = DB::transaction(function (): int {
+            $run = AgentResearchRun::query()->firstOrCreate(['agent_id' => 'jorge']);
+            $run->update(['status' => 'stopped', 'current_catalog_item_id' => null]);
+
+            $total = CatalogItem::query()->where('type', 'product')->count();
+            CatalogItem::query()->where('type', 'product')->update([
+                'gallery' => null,
+                'og_image' => null,
+                'legacy_research_status' => 'pending',
+                'legacy_research_error' => null,
+                'legacy_researched_at' => null,
+            ]);
+
+            $run->update([
+                'status' => 'running',
+                'total_items' => $total,
+                'processed_items' => 0,
+                'successful_items' => 0,
+                'failed_items' => 0,
+                'current_catalog_item_id' => null,
+                'last_error' => null,
+                'started_at' => now(),
+                'finished_at' => null,
+                'last_heartbeat_at' => now(),
+            ]);
+
+            return $total;
+        });
+
+        return response()->json([
+            'ok' => true,
+            'message' => 'Galerías desvinculadas y Jorge reiniciado. La tarea programada recuperará las fotografías originales.',
+            'processed_items' => 0,
+            'total_items' => $total,
+            'instruction' => 'Recorrer los productos pendientes por ID y recuperar exclusivamente imágenes originales de sus fichas en https://www.gaspronal.com/2019/productos. No inventar imágenes ni utilizar IA generativa.',
+        ]);
+    }
+
 }
