@@ -12,6 +12,7 @@ class MultimediaController extends Controller
 {
     private const COLLECTIONS = [
         'iconos' => 'images/uploads/iconos-programandoweb',
+        'galeria' => 'images/uploads',
     ];
 
     public function index(Request $request): JsonResponse
@@ -24,13 +25,14 @@ class MultimediaController extends Controller
         $folder = public_path(self::COLLECTIONS[$collection]);
         $search = mb_strtolower(trim($validated['search'] ?? ''));
 
-        $items = is_dir($folder) ? collect(File::files($folder))
+        $files = is_dir($folder) ? ($collection === 'galeria' ? File::allFiles($folder) : File::files($folder)) : [];
+        $items = collect($files)
             ->filter(fn ($file) => in_array(strtolower($file->getExtension()), ['jpg','jpeg','png','webp'], true))
             ->filter(fn ($file) => $search === '' || str_contains(mb_strtolower($file->getFilename()), $search))
             ->sortBy(fn ($file) => $file->getFilename())
             ->values()->map(fn ($file) => [
                 'name' => $file->getFilename(),
-                'url' => '/'.self::COLLECTIONS[$collection].'/'.$file->getFilename(),
+                'url' => '/'.self::COLLECTIONS[$collection].'/'.str_replace(DIRECTORY_SEPARATOR, '/', $file->getRelativePathname()),
                 'collection' => $collection,
             ])->all() : [];
 
@@ -43,7 +45,7 @@ class MultimediaController extends Controller
             $prefix = '/'.$folder.'/';
             if (!str_starts_with($url, $prefix)) continue;
             $name = substr($url, strlen($prefix));
-            if (!preg_match('/^[A-Za-z0-9._-]+\\.(png|jpe?g|webp)$/i', $name)) return false;
+            if (!preg_match('#^(?:[A-Za-z0-9._-]+/)*[A-Za-z0-9._-]+\\.(?:png|jpe?g|webp)$#i', $name)) return false;
             return is_file(public_path($folder.'/'.$name));
         }
         return false;
