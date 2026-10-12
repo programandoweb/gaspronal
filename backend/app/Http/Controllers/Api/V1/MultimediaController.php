@@ -34,7 +34,7 @@ class MultimediaController extends Controller
                 'name' => $file->getFilename(),
                 'url' => '/'.self::COLLECTIONS[$collection].'/'.str_replace(DIRECTORY_SEPARATOR, '/', $file->getRelativePathname()),
                 'collection' => $collection,
-            ])->all() : [];
+            ])->all();
 
         return response()->json(['data' => $items]);
     }
