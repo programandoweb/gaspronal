@@ -35,6 +35,9 @@ class JorgeProductResearchService
         $meta = $this->extractMeta($xpath, $sourceUrl);
         $images = $this->extractImages($xpath, $sourceUrl, $item);
         $gallery = $this->downloadImages($images, $item->id);
+        if ($gallery === []) {
+            throw new RuntimeException("No se encontraron fotografías originales válidas en la ficha oficial del producto.");
+        }
         $meta['source_images'] = $images;
 
         $seoTitle = $meta['title'] ?? $title;
@@ -67,6 +70,12 @@ class JorgeProductResearchService
 
     public function findSourceUrl(CatalogItem $item): string
     {
+        $stored = $item->legacy_source_url;
+        if (is_string($stored) && str_starts_with($stored, self::PRODUCTS.'/') && $this->isOfficialHost($stored)) {
+            $response = Http::timeout(12)->get($stored);
+            if ($response->successful()) return $stored;
+        }
+
         $direct = self::PRODUCTS.'/'.trim($item->slug, '/');
         foreach ([$direct, $direct.'-'] as $candidate) {
             $response = Http::timeout(12)->withHeaders(['User-Agent' => 'GaspronalMigrationBot/1.0'])->get($candidate);
