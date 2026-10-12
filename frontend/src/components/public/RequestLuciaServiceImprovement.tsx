@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { Bot, LoaderCircle, Sparkles } from "lucide-react";
 
 export default function RequestLuciaServiceImprovement({ slug }: { slug: string }) {
@@ -40,17 +39,16 @@ export default function RequestLuciaServiceImprovement({ slug }: { slug: string 
     }
   }
 
-  if (!permitted) return null;
+  if (!permitted || slug !== "instalacion-reparacion-y-mantenimiento-de-equipos-a-gas-domesticos-e-industriales") return null;
   return (
     <aside className="mt-7 rounded-2xl border border-blue-200 bg-blue-50 p-5 sm:p-6" aria-label="Herramientas editoriales autorizadas">
       <div className="flex items-center gap-2 text-sm font-bold text-[var(--brand)]"><Bot size={19} /> Herramienta editorial · Lucía</div>
-      <p className="mt-2 text-sm leading-6 text-slate-700">Solicita a Lucía investigar y proponer mejoras para este servicio y nuevas imágenes para su galería. La publicación requiere revisión administrativa.</p>
+      <p className="mt-2 text-sm leading-6 text-slate-700">Solicita a Lucía mejoras exclusivamente para esta ficha y propuestas de imágenes para su galería. La publicación requiere revisión administrativa.</p>
       <div className="mt-4 flex flex-wrap items-center gap-3">
         <button type="button" onClick={() => void requestImprovement()} disabled={busy || requested} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[var(--brand)] px-5 font-bold text-white disabled:opacity-60">
           {busy ? <LoaderCircle size={18} className="animate-spin" /> : <Sparkles size={18} />}
           {busy ? "Enviando…" : requested ? "Solicitud enviada" : "Solicitar mejora a Lucía"}
         </button>
-        <Link href="/dashboard/agentes/lucia" className="inline-flex min-h-11 items-center text-sm font-semibold text-[var(--brand)] underline underline-offset-4">Ir a Lucía</Link>
       </div>
       {message && <p role="status" className="mt-3 text-sm text-slate-700">{message}</p>}
     </aside>
