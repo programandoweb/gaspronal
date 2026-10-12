@@ -3,6 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { notFound, permanentRedirect } from "next/navigation";
 import PublicHeader from "@/components/public/PublicHeader";
+import RequestLuciaServiceImprovement from "@/components/public/RequestLuciaServiceImprovement";
 
 const api = process.env.LARAVEL_API_URL ?? "http://127.0.0.1:8000";
 const site = "https://gaspronal.programandoweb.net";
@@ -43,6 +44,7 @@ export default async function LegacyServicePage({params}:{params:Promise<{slug:s
     <article className="mx-auto max-w-5xl px-5 py-14">
       <nav className="mb-8 text-sm text-slate-500"><Link href="/">Inicio</Link> / Servicios</nav>
       <h1 className="text-4xl font-black tracking-tight sm:text-5xl">{post.title}</h1>
+      <RequestLuciaServiceImprovement slug={post.slug} />
       {post.excerpt&&<p className="mt-6 text-lg leading-8 text-slate-600">{post.excerpt}</p>}
       {gallery[0]&&<Image src={gallery[0]} alt={post.title} width={1400} height={800} className="mt-10 h-auto w-full rounded-2xl object-cover"/>}
       {post.content&&<div className="mt-10 whitespace-pre-wrap text-base leading-8">{post.content}</div>}
