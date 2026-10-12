@@ -181,6 +181,35 @@ class PostController extends Controller
         ]);
     }
 
+    public function addLibraryGalleryImage(Request $request, Post $post): JsonResponse
+    {
+        $validated = $request->validate(['image_url' => ['required', 'string', 'max:1000']]);
+        $url = $validated['image_url'];
+        abort_unless(str_starts_with($url, '/images/uploads/') && MultimediaController::validatedImage($url), 422, 'Imagen no disponible en la biblioteca.');
+
+        $source = public_path(ltrim($url, '/'));
+        abort_unless(is_file($source), 422, 'Imagen inexistente.');
+
+        $extension = strtolower(pathinfo($source, PATHINFO_EXTENSION));
+        $filename = 'library-'.Str::uuid().'.'.$extension;
+        $destination = "posts/{$post->id}/{$filename}";
+        Storage::disk('public')->put($destination, File::get($source));
+        $image = "/api/post-media/{$post->id}/{$filename}";
+
+        $gallery = $this->normalizedGallery($post);
+        $gallery[] = $image;
+        $post->gallery = array_values(array_unique($gallery));
+        if (! $post->featured_image) $post->featured_image = $image;
+        if (! $post->og_image) $post->og_image = $image;
+        $post->save();
+
+        return response()->json(['data' => [
+            'gallery' => $post->gallery,
+            'featured_image' => $post->featured_image,
+            'og_image' => $post->og_image,
+        ]]);
+    }
+
     public function setPrimaryGalleryImage(Request $request, Post $post): JsonResponse
     {
         $validated = $request->validate([
