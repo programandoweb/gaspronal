@@ -37,6 +37,7 @@ RUN apk add --no-cache \
 COPY --from=composer /usr/bin/composer /usr/local/bin/composer
 
 COPY docker/php/opcache.ini /usr/local/etc/php/conf.d/99-gaspronal-opcache.ini
+COPY docker/php/uploads.ini /usr/local/etc/php/conf.d/99-gaspronal-uploads.ini
 COPY . /var/www/html
 
 RUN mkdir -p \
