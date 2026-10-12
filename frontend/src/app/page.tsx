@@ -160,24 +160,28 @@ const services = [
   {
     icon: Hammer,
     title: "Fabricación industrial",
+    href: "/2019/servicios/fabricacion-de-equipos-industriales",
     description:
       "Equipos en acero inoxidable diseñados para restaurantes, panaderías, comidas rápidas y procesos de alimentos.",
   },
   {
     icon: Flame,
     title: "Redes de gas",
+    href: "/2019/servicios/instalacion-de-redes-de-gas-propano-y-natural",
     description:
       "Instalación de redes de gas propano y natural para aplicaciones comerciales, industriales y residenciales.",
   },
   {
     icon: Wind,
     title: "Extracción industrial",
+    href: "/2019/servicios/sistemas-de-extraccion-industrial",
     description:
       "Montaje de sistemas de extracción para cocinas y espacios que exigen evacuación eficiente de humos.",
   },
   {
     icon: Wrench,
     title: "Servicio técnico",
+    href: "/2019/servicios/instalacion-reparacion-y-mantenimiento-de-equipos-a-gas-domesticos-e-industriales",
     description:
       "Mantenimiento, reparación e instalación de equipos a gas domésticos e industriales.",
   },
@@ -239,13 +243,13 @@ export default async function HomePage() {
               {services.map((service) => {
                 const Icon = service.icon;
                 return (
-                  <article key={service.title} className="bg-white p-7 sm:p-8">
+                  <Link key={service.title} href={service.href} className="group block bg-white p-7 transition-colors hover:bg-[var(--brand-soft)] focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--brand)]" aria-label={`Ver servicio: ${service.title}`}>
                     <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--brand-soft)] text-[var(--brand)]">
                       <Icon size={23} />
                     </div>
-                    <h3 className="mt-6 text-xl font-black tracking-[-0.02em] text-[var(--steel)]">{service.title}</h3>
+                    <h3 className="mt-6 flex items-center gap-2 text-xl font-black tracking-[-0.02em] text-[var(--steel)] group-hover:text-[var(--brand)]">{service.title}<ArrowRight size={17} className="shrink-0 transition-transform group-hover:translate-x-1" /></h3>
                     <p className="mt-3 text-sm leading-6 text-slate-600">{service.description}</p>
-                  </article>
+                  </Link>
                 );
               })}
             </div>
