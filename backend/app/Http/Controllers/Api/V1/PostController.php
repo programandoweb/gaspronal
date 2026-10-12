@@ -187,14 +187,11 @@ class PostController extends Controller
         $url = $validated['image_url'];
         abort_unless(str_starts_with($url, '/images/uploads/') && MultimediaController::validatedImage($url), 422, 'Imagen no disponible en la biblioteca.');
 
-        $source = public_path(ltrim($url, '/'));
-        abort_unless(is_file($source), 422, 'Imagen inexistente.');
-
-        $extension = strtolower(pathinfo($source, PATHINFO_EXTENSION));
-        $filename = 'library-'.Str::uuid().'.'.$extension;
-        $destination = "posts/{$post->id}/{$filename}";
-        Storage::disk('public')->put($destination, File::get($source));
-        $image = "/api/post-media/{$post->id}/{$filename}";
+        // Los archivos de la biblioteca ya existen en public/images/uploads.
+        // Referenciarlos evita duplicados y errores de permisos al escribir en storage.
+        // El host público permite mostrarlos tanto en el dashboard como en el sitio Next.js.
+        $publicBackend = rtrim((string) env('PUBLIC_BACKEND_URL', 'https://backend.gaspronal.programandoweb.net'), '/');
+        $image = $publicBackend.$url;
 
         $gallery = $this->normalizedGallery($post);
         $gallery[] = $image;
