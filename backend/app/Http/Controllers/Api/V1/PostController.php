@@ -25,7 +25,7 @@ class PostController extends Controller
                 ->with(['category:id,name,slug','serviceTopic:id,name,slug,image_url'])
                 ->where('status', 'published')
                 ->whereNotNull('published_at')
-                ->whereHas('category', fn ($query) => $query->where('is_active', true))
+                ->whereHas('category', fn ($query) => $query->where('slug', 'gaspro-notas')->where('is_active', true))
                 ->when($request->filled('category_id'), fn ($query) => $query->where('category_id', $request->integer('category_id')))
                 ->when($request->filled('service_topic_id'), fn ($query) => $query->where('service_topic_id', $request->integer('service_topic_id')))
                 ->when($request->filled('search'), function ($query) use ($request): void {
