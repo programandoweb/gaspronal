@@ -97,15 +97,15 @@ class ClaudioWebConversationController extends Controller
         abort_unless(in_array($conversation->status, ['waiting_human','human_active'], true), 409, 'Debes tomar control primero.');
         $message = $conversation->messages()->create(['direction' => 'outbound','sender_type' => 'human','content' => trim($data['message']),'status' => 'sent','sent_at' => now()]);
         $conversation->update(['last_message_at' => now(), 'status' => 'human_active', 'human_takeover_at' => $conversation->human_takeover_at ?? now()]);
-        return response()->json(['data' => $this->message($message)], 201);
+        return response()->json(['data' => $this->formatMessage($message)], 201);
     }
 
     private function session(Request $request): CommunicationConversation { $token = (string) $request->header('X-Claudio-Web-Session', ''); abort_if(strlen($token) < 40, 401, 'Sesión inválida.'); return $this->web(CommunicationConversation::query()->where('web_token_hash', hash('sha256', $token))->where('expires_at', '>', now())->firstOrFail()); }
     private function web(CommunicationConversation $conversation): CommunicationConversation { abort_unless($conversation->agent_id === 'claudio' && $conversation->channel === 'web', 404, 'Conversación no encontrada.'); return $conversation; }
     private function setStatus(CommunicationConversation $conversation, string $status): JsonResponse { $conversation=$this->web($conversation); $conversation->update(['status'=>$status,'human_takeover_at'=>$status==='human_active'?now():null]); return response()->json(['data'=>$this->detail($conversation->fresh('messages'))]); }
-    private function summary(CommunicationConversation $c): array { return ['id'=>$c->id,'channel'=>$c->channel,'status'=>$c->status,'contact_name'=>$c->contact_name,'initial_path'=>$c->initial_path,'last_message_at'=>$c->last_message_at?->toIso8601String(),'messages_count'=>$c->messages()->count(),'latest_message'=>$c->latestMessage ? $this->message($c->latestMessage) : null]; }
-    private function detail(CommunicationConversation $c): array { return [...$this->summary($c), 'has_data_processing_consent'=>$c->data_processing_consent_at !== null, 'messages'=>$c->messages->sortBy('id')->values()->map(fn($m)=>$this->message($m))]; }
-    private function message(CommunicationMessage $m): array { return ['id'=>$m->id,'direction'=>$m->direction,'sender_type'=>$m->sender_type,'content'=>$m->content,'sent_at'=>$m->sent_at?->toIso8601String()]; }
+    private function summary(CommunicationConversation $c): array { return ['id'=>$c->id,'channel'=>$c->channel,'status'=>$c->status,'contact_name'=>$c->contact_name,'initial_path'=>$c->initial_path,'last_message_at'=>$c->last_message_at?->toIso8601String(),'messages_count'=>$c->messages()->count(),'latest_message'=>$c->latestMessage ? $this->formatMessage($c->latestMessage) : null]; }
+    private function detail(CommunicationConversation $c): array { return [...$this->summary($c), 'has_data_processing_consent'=>$c->data_processing_consent_at !== null, 'messages'=>$c->messages->sortBy('id')->values()->map(fn($m)=>$this->formatMessage($m))]; }
+    private function formatMessage(CommunicationMessage $m): array { return ['id'=>$m->id,'direction'=>$m->direction,'sender_type'=>$m->sender_type,'content'=>$m->content,'sent_at'=>$m->sent_at?->toIso8601String()]; }
     private function safePath(?string $path): ?string { return $path && str_starts_with($path, '/') ? $path : null; }
     private function enabled(): bool { return (bool) AgentSetting::query()->where('agent_id', 'claudio')->value('web_channel_enabled'); }
     private function welcome(): string { return (string) (AgentSetting::query()->where('agent_id', 'claudio')->value('web_welcome_message') ?: self::WELCOME); }
