@@ -5,6 +5,7 @@ import Link from "next/link";
 import ProductUseCasesCarousel, { type UseCaseProduct } from "@/components/public/ProductUseCasesCarousel";
 import HomeHeroVariants, { type FullHeroSlide } from "@/components/public/HomeHeroVariants";
 import HomeCategoryCard from "@/components/public/HomeCategoryCard";
+import LocationWhatsAppModal from "@/components/public/LocationWhatsAppModal";
 import PublicHeader from "@/components/public/PublicHeader";
 import { GASPRONAL_WHATSAPP_HREF } from "@/lib/public-contact";
 import {
@@ -415,6 +416,24 @@ export default async function HomePage() {
                   Atención de lunes a sábado. Consulta disponibilidad y horario antes de desplazarte.
                 </p>
               </article>
+            </div>
+          </div>
+        </div>
+          <div className="mt-10 overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
+            <iframe
+              title="Ubicación de Gaspronal en Medellín, Colombia"
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.180140682964!2d-75.57148302607125!3d6.239973385551775!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8e4428522e267895:0x83ac138558edcc90!2sGaspronal!5e0!3m2!1sen!2sco!4v1543250094397"
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              allowFullScreen
+              className="h-[300px] w-full border-0 sm:h-[400px]"
+            />
+            <div className="flex flex-col gap-5 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-7">
+              <div>
+                <h3 className="text-lg font-black text-[var(--steel)]">Encuéntranos en Medellín</h3>
+                <p className="mt-1 text-sm text-slate-600">Carrera 45 No. 40-61 · Sector El Palo con Los Huesos</p>
+              </div>
+              <LocationWhatsAppModal />
             </div>
           </div>
         </div>
