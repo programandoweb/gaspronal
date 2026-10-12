@@ -4,7 +4,7 @@ import {useCallback,useEffect,useState} from "react";
 import {FiImage,FiSearch,FiX,FiCheck} from "react-icons/fi";
 
 type Asset={name:string;url:string;collection:string};
-type Props={collection?: "iconos";value?:string|null;onSelect:(url:string)=>Promise<void>|void;label?:string;disabled?:boolean};
+type Props={collection?: "iconos"|"galeria";value?:string|null;onSelect:(url:string)=>Promise<void>|void;label?:string;disabled?:boolean};
 export default function MultimediaPicker({collection="iconos",value,onSelect,label="Seleccionar multimedia",disabled=false}:Props){
  const [open,setOpen]=useState(false);
  const [items,setItems]=useState<Asset[]>([]);
