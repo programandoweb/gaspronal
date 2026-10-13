@@ -409,7 +409,7 @@ export default async function HomePage() {
                   <Link href="/gaspro-notas" className="mt-4 inline-flex items-center gap-2 text-sm font-black text-[var(--steel)] hover:text-[var(--brand)] hover:underline">{blocks.application?.case_footer ?? "Gaspro-notas · Casos de éxito"} <ArrowRight size={15} aria-hidden="true" /></Link>
                 </div>
               </div>
-            )}>
+            )}
           </div>
         </div>
       </section>
