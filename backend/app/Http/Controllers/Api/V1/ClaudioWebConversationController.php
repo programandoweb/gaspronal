@@ -16,6 +16,11 @@ class ClaudioWebConversationController extends Controller
 {
     private const WELCOME = '¡Hola! Soy Claudio, asesor virtual de Gaspronal. Puedo ayudarte con productos, servicios y cotizaciones. ¿En qué puedo ayudarte hoy?';
 
+    public function status(): JsonResponse
+    {
+        return response()->json(['data' => ['enabled' => $this->enabled()]]);
+    }
+
     public function create(Request $request): JsonResponse
     {
         abort_unless($this->enabled(), 503, 'La atención web está temporalmente no disponible.');
@@ -32,6 +37,7 @@ class ClaudioWebConversationController extends Controller
 
     public function current(Request $request): JsonResponse
     {
+        abort_unless($this->enabled(), 503, 'La atención web está temporalmente no disponible.');
         return response()->json(['data' => $this->detail($this->session($request)->load('messages'))]);
     }
 
