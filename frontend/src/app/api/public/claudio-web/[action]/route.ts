@@ -4,6 +4,7 @@ import { backendFetch } from "@/lib/backend";
 
 const COOKIE = "gaspronal_claudio_web_session";
 const routes: Record<string, { method: "GET" | "POST"; path: string }> = {
+  status: { method: "GET", path: "/public/claudio-web/status" },
   current: { method: "GET", path: "/public/claudio-web/sessions/current" },
   message: { method: "POST", path: "/public/claudio-web/messages" },
   consent: { method: "POST", path: "/public/claudio-web/consent" },
@@ -44,6 +45,10 @@ export async function GET(request: NextRequest, context: { params: Promise<{ act
   const { action } = await context.params;
   const route = routes[action];
   if (!route || route.method !== "GET") return NextResponse.json({ message: "Ruta no encontrada." }, { status: 404 });
+  if (action === "status") {
+    const response = await backendFetch(route.path, { cache: "no-store" });
+    return new NextResponse(await response.text(), { status: response.status, headers: { "Content-Type": "application/json", "Cache-Control": "no-store" } });
+  }
   const session = await ensureSession();
   if (session.response && !session.created) return session.response;
   const response = await backendFetch(route.path, { headers: { "X-Claudio-Web-Session": session.token } });
