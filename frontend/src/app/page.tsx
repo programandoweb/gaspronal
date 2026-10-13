@@ -156,6 +156,36 @@ async function getUseCases(): Promise<UseCaseProduct[]> {
   }
 }
 
+
+type LatestGasproNota = {
+  id: number;
+  slug: string;
+  title: string;
+  excerpt?: string | null;
+  featured_image?: string | null;
+  og_image?: string | null;
+  published_at?: string | null;
+};
+
+async function getLatestGasproNota(): Promise<LatestGasproNota | null> {
+  try {
+    const response = await fetch(`${backendUrl}/api/v1/content/public/posts?per_page=1`, {
+      cache: "no-store",
+      headers: { Accept: "application/json" },
+    });
+    if (!response.ok) return null;
+    const payload = await response.json();
+    const item = Array.isArray(payload.data) ? payload.data[0] : null;
+    return item?.slug && item?.title ? item as LatestGasproNota : null;
+  } catch {
+    return null;
+  }
+}
+
+function plainExcerpt(value: string | null | undefined): string {
+  return (value ?? "").replace(/<[^>]*>/g, " ").replace(/\\s+/g, " ").trim().slice(0, 220);
+}
+
 const services = [
   {
     icon: Hammer,
@@ -195,7 +225,7 @@ const advantages = [
 ];
 
 export default async function HomePage() {
-  const [useCases, managedHeroes, blocks, categories] = await Promise.all([getUseCases(), getManagedHeroes(), getManagedBlocks(), getHomeCategories()]);
+  const [useCases, managedHeroes, blocks, categories, latestNota] = await Promise.all([getUseCases(), getManagedHeroes(), getManagedBlocks(), getHomeCategories(), getLatestGasproNota()]);
   const heroOption = managedHeroes.activeOption;
   return (
     <main className="min-h-screen overflow-hidden bg-white text-[var(--foreground)]">
@@ -349,22 +379,37 @@ export default async function HomePage() {
               </div>
             </div>
 
-            <div className="flex min-h-[420px] flex-col justify-between bg-[var(--surface-muted)] p-7 sm:p-10 lg:p-14">
-              <div>
-                <span className="inline-flex rounded-full bg-white px-4 py-2 text-xs font-black uppercase tracking-[0.15em] text-[var(--brand)] shadow-sm">
-                  {blocks.application?.case_eyebrow ?? "Caso de aplicación"}
-                </span>
-                <h3 className="mt-6 text-3xl font-black tracking-[-0.035em] text-[var(--steel)] sm:text-4xl">
-                  {blocks.application?.case_title ?? "Diseño de cocina, fabricación y extracción trabajando como un solo proyecto."}
-                </h3>
+            {latestNota ? (
+              <Link href={`/gaspro-notas/${latestNota.slug}`} className="group flex min-h-[420px] flex-col overflow-hidden bg-[var(--surface-muted)] transition-colors hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--brand)]" aria-label={`Leer Gaspro-Nota: ${latestNota.title}`}>
+                {(latestNota.featured_image || latestNota.og_image) && (
+                  <div className="h-52 w-full overflow-hidden bg-slate-100 sm:h-60">
+                    <img src={latestNota.featured_image || latestNota.og_image || ""} alt={latestNota.title} loading="lazy" className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]" />
+                  </div>
+                )}
+                <div className="flex flex-1 flex-col justify-between p-7 sm:p-10 lg:p-12">
+                  <div>
+                    <span className="inline-flex rounded-full bg-white px-4 py-2 text-xs font-black uppercase tracking-[0.15em] text-[var(--brand)] shadow-sm">Última Gaspro-Nota</span>
+                    {latestNota.published_at && <p className="mt-4 text-xs font-semibold text-slate-500">{new Date(latestNota.published_at).toLocaleDateString("es-CO", { timeZone: "UTC" })}</p>}
+                    <h3 className="mt-5 text-3xl font-black tracking-[-0.035em] text-[var(--steel)] transition-colors group-hover:text-[var(--brand)] sm:text-4xl">{latestNota.title}</h3>
+                  </div>
+                  <div className="mt-8 border-l-4 border-[var(--accent)] pl-5">
+                    {latestNota.excerpt && <p className="line-clamp-3 text-sm leading-6 text-slate-600">{plainExcerpt(latestNota.excerpt)}</p>}
+                    <span className="mt-4 inline-flex items-center gap-2 text-sm font-black text-[var(--brand)]">Leer artículo completo <ArrowRight size={17} aria-hidden="true" /></span>
+                  </div>
+                </div>
+              </Link>
+            ) : (
+              <div className="flex min-h-[420px] flex-col justify-between bg-[var(--surface-muted)] p-7 sm:p-10 lg:p-14">
+                <div>
+                  <span className="inline-flex rounded-full bg-white px-4 py-2 text-xs font-black uppercase tracking-[0.15em] text-[var(--brand)] shadow-sm">{blocks.application?.case_eyebrow ?? "Caso de aplicación"}</span>
+                  <h3 className="mt-6 text-3xl font-black tracking-[-0.035em] text-[var(--steel)] sm:text-4xl">{blocks.application?.case_title ?? "Diseño de cocina, fabricación y extracción trabajando como un solo proyecto."}</h3>
+                </div>
+                <div className="mt-10 border-l-4 border-[var(--accent)] pl-5">
+                  <p className="text-sm leading-6 text-slate-600">{blocks.application?.case_description ?? "El sitio histórico documenta proyectos donde Gaspronal ha integrado diseño de cocina, equipos industriales en acero inoxidable y sistemas de extracción."}</p>
+                  <Link href="/gaspro-notas" className="mt-4 inline-flex items-center gap-2 text-sm font-black text-[var(--steel)] hover:text-[var(--brand)] hover:underline">{blocks.application?.case_footer ?? "Gaspro-notas · Casos de éxito"} <ArrowRight size={15} aria-hidden="true" /></Link>
+                </div>
               </div>
-              <div className="mt-10 border-l-4 border-[var(--accent)] pl-5">
-                <p className="text-sm leading-6 text-slate-600">
-                  {blocks.application?.case_description ?? "El sitio histórico documenta proyectos donde Gaspronal ha integrado diseño de cocina, equipos industriales en acero inoxidable y sistemas de extracción."}
-                </p>
-                <Link href="/gaspro-notas" className="mt-4 inline-flex items-center gap-2 text-sm font-black text-[var(--steel)] underline-offset-4 transition hover:text-[var(--brand)] hover:underline focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-[var(--brand)]">{blocks.application?.case_footer ?? "Gaspro-notas · Casos de éxito"} <ArrowRight size={15} aria-hidden="true" /></Link>
-              </div>
-            </div>
+            )}>
           </div>
         </div>
       </section>
