@@ -112,9 +112,9 @@ function normalizeSpecs(value: Product["specifications"]) {
       ? String(raw) : JSON.stringify(raw);
     // Formularios CANTIDAD/SIZE importados desde el sitio anterior no son especificaciones.
     const combined = `${key} ${original}`;
-    if (/<(?:input|form|select|textarea)\\b/i.test(combined) ||
-        /(?:<\\/?h[1-6]\\b|\\bclass\\s*=|\\bname\\s*=).*\\b(?:CANTIDAD|SIZE)\\b/i.test(combined) ||
-        /\\bCANTIDAD\\b[\\s\\S]*\\bSIZE\\b/i.test(combined)) return [];
+    if (/<(?:input|form|select|textarea)\b/i.test(combined) ||
+        /(?:<\/?h[1-6]\b|\bclass\s*=|\bname\s*=).*\b(?:CANTIDAD|SIZE)\b/i.test(combined) ||
+        /\bCANTIDAD\b[\s\S]*\bSIZE\b/i.test(combined)) return [];
     const label = cleanLegacyDescription(key);
     const text = cleanLegacyDescription(original);
     return label && text ? [[label, text] as [string, string]] : [];
