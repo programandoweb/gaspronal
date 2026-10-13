@@ -362,7 +362,7 @@ export default async function HomePage() {
                 <p className="text-sm leading-6 text-slate-600">
                   {blocks.application?.case_description ?? "El sitio histórico documenta proyectos donde Gaspronal ha integrado diseño de cocina, equipos industriales en acero inoxidable y sistemas de extracción."}
                 </p>
-                <p className="mt-4 text-sm font-black text-[var(--steel)]">{blocks.application?.case_footer ?? "Gaspro-notas · Casos de éxito"}</p>
+                <Link href="/gaspro-notas" className="mt-4 inline-flex items-center gap-2 text-sm font-black text-[var(--steel)] underline-offset-4 transition hover:text-[var(--brand)] hover:underline focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-[var(--brand)]">{blocks.application?.case_footer ?? "Gaspro-notas · Casos de éxito"} <ArrowRight size={15} aria-hidden="true" /></Link>
               </div>
             </div>
           </div>
