@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import Link from "next/link";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { headers } from "next/headers";
 import { notFound, permanentRedirect } from "next/navigation";
 import PublicHeader from "@/components/public/PublicHeader";
@@ -211,6 +213,9 @@ export default async function GasproNotaDetailPage({params}:{params:Promise<{slu
       {gallery.length>1&&<div className="mt-12 grid gap-4 sm:grid-cols-2">
         {gallery.slice(1).map((image,index)=><div key={image} className="overflow-hidden rounded-[1.5rem] bg-slate-100"><Image src={image} alt={`${post.title} - imagen ${index+2}`} width={900} height={675} className="h-full w-full object-cover"/></div>)}
       </div>}
+      <div className="mt-12 border-t border-slate-200 pt-8">
+        <Link href="/gaspro-notas" className="inline-flex min-h-12 items-center gap-3 rounded-full bg-[var(--brand)] px-6 text-sm font-black text-white transition hover:bg-[var(--brand-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)]"><ArrowLeft size={18} aria-hidden="true" /> Ver todas las Gaspro-Notas <ArrowRight size={16} aria-hidden="true" /></Link>
+      </div>
     </article>
   </main>;
 }
