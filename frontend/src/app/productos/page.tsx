@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, Box, Search, Tag } from "lucide-react";
 import CategoryCircleCarousel from "@/components/public/CategoryCircleCarousel";
+import ProductCardImage from "@/components/public/ProductCardImage";
 
 export const metadata: Metadata = {
   title: "Productos industriales",
@@ -192,18 +193,7 @@ export default async function ProductsPage({
                     className="group overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white transition duration-300 hover:-translate-y-1 hover:shadow-xl"
                   >
                     <div className="relative aspect-[4/3] overflow-hidden bg-[var(--brand-soft)]">
-                      {image ? (
-                        <img
-                          src={image}
-                          alt={product.name}
-                          loading="lazy"
-                          className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
-                        />
-                      ) : (
-                        <div className="flex h-full items-center justify-center text-[var(--brand)]/35">
-                          <Box size={58} strokeWidth={1.4} />
-                        </div>
-                      )}
+                      <ProductCardImage src={image} alt={product.name} />
 
                       {product.category ? (
                         <span className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.08em] text-[var(--brand)] shadow-sm">
