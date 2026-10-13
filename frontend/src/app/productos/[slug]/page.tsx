@@ -72,6 +72,25 @@ export async function generateMetadata({
   };
 }
 
+/** Limpia formularios heredados del sitio antiguo sin ejecutar HTML de terceros. */
+function cleanLegacyDescription(value: string | null | undefined): string {
+  if (!value) return "";
+  return value
+    .replace(/<h3\b[^>]*>\s*CANTIDAD\s*:\s*<\/h3>\s*<input\b[^>]*>\s*<h3\b[^>]*>\s*SIZE\s*:\s*<\/h3>\s*(?:<p\b[^>]*>\s*<\/p>)?/gi, "")
+    .replace(/<\s*br\s*\/?\s*>/gi, "\n")
+    .replace(/<\/(?:p|div|h[1-6]|li)>/gi, "\n")
+    .replace(/<[^>]*>/g, "")
+    .replace(/&nbsp;|&#160;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;|&apos;/gi, "'")
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
 function normalizeApplications(value: Product["applications"]) {
   if (Array.isArray(value)) return value.filter(Boolean).map(String);
   if (typeof value === "string") {
@@ -106,6 +125,7 @@ export default async function ProductDetailPage({
   const gallery = Array.from(
     new Set([product.og_image, ...(product.gallery ?? [])].filter(Boolean) as string[]),
   );
+  const description = cleanLegacyDescription(product.description);
   const applications = normalizeApplications(product.applications);
   const specs = normalizeSpecs(product.specifications);
   const whatsappText =
@@ -215,13 +235,13 @@ export default async function ProductDetailPage({
         </div>
       </section>
 
-      {product.description ? (
+      {description ? (
         <section className="border-t border-slate-200 bg-[var(--surface-muted)]">
           <div className="mx-auto max-w-[1440px] px-4 py-14 sm:px-6 lg:px-10">
             <div className="max-w-4xl">
               <p className="text-xs font-black uppercase tracking-[0.16em] text-[var(--accent)]">Descripción</p>
               <div className="mt-5 whitespace-pre-line text-base leading-8 text-slate-700">
-                {product.description}
+                {description}
               </div>
             </div>
           </div>
