@@ -212,15 +212,15 @@ export default async function HomePage() {
       <section className="border-b border-slate-200 bg-white">
         <div className="mx-auto grid max-w-[1440px] grid-cols-2 divide-x divide-y divide-slate-200 border-x border-slate-200 sm:grid-cols-4 sm:divide-y-0">
           {[
-            ["Fabricación", "Equipos industriales"],
-            ["Ingeniería", "Soluciones a medida"],
-            ["Instalación", "Redes y extracción"],
-            ["Soporte", "Mantenimiento técnico"],
-          ].map(([title, text]) => (
-            <div key={title} className="px-5 py-7 sm:px-7">
-              <strong className="block text-sm font-black text-[var(--steel)]">{title}</strong>
+            ["Fabricación", "Equipos industriales", "/2019/servicios/fabricacion-de-equipos-industriales"],
+            ["Ingeniería", "Soluciones a medida", "/2019/servicios/sistemas-de-extraccion-industrial"],
+            ["Instalación", "Redes y extracción", "/2019/servicios/instalacion-de-redes-de-gas-propano-y-natural"],
+            ["Soporte", "Mantenimiento técnico", "/2019/servicios/instalacion-reparacion-y-mantenimiento-de-equipos-a-gas-domesticos-e-industriales"],
+          ].map(([title, text, href]) => (
+            <Link key={title} href={href} className="group block px-5 py-7 transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--brand)] sm:px-7">
+              <strong className="block text-sm font-black text-[var(--steel)] transition-colors group-hover:text-[var(--brand)]">{title}</strong>
               <span className="mt-1 block text-xs leading-5 text-slate-500">{text}</span>
-            </div>
+            </Link>
           ))}
         </div>
       </section>
