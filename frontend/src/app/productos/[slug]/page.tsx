@@ -104,13 +104,21 @@ function normalizeApplications(value: Product["applications"]) {
 
 function normalizeSpecs(value: Product["specifications"]) {
   if (!value) return [] as Array<[string, string]>;
-  if (Array.isArray(value)) {
-    return value.map((item, index) => [`Especificación ${index + 1}`, String(item)] as [string, string]);
-  }
-  return Object.entries(value).map(([key, val]) => [
-    key,
-    typeof val === "string" || typeof val === "number" ? String(val) : JSON.stringify(val),
-  ] as [string, string]);
+  const entries: Array<[string, unknown]> = Array.isArray(value)
+    ? value.map((item, index) => [`Especificación ${index + 1}`, item])
+    : Object.entries(value);
+  return entries.flatMap(([key, raw]) => {
+    const original = typeof raw === "string" || typeof raw === "number"
+      ? String(raw) : JSON.stringify(raw);
+    // Formularios CANTIDAD/SIZE importados desde el sitio anterior no son especificaciones.
+    const combined = `${key} ${original}`;
+    if (/<(?:input|form|select|textarea)\\b/i.test(combined) ||
+        /(?:<\\/?h[1-6]\\b|\\bclass\\s*=|\\bname\\s*=).*\\b(?:CANTIDAD|SIZE)\\b/i.test(combined) ||
+        /\\bCANTIDAD\\b[\\s\\S]*\\bSIZE\\b/i.test(combined)) return [];
+    const label = cleanLegacyDescription(key);
+    const text = cleanLegacyDescription(original);
+    return label && text ? [[label, text] as [string, string]] : [];
+  });
 }
 
 export default async function ProductDetailPage({
