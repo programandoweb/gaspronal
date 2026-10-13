@@ -66,6 +66,7 @@ Route::prefix('v1')->group(function (): void {
     Route::patch('internal/communications/conversations/{communicationConversation}/status', [CommunicationConversationController::class, 'internalStatus']);
 
     Route::prefix('public/claudio-web')->middleware('throttle:20,1')->group(function (): void {
+        Route::get('status', [ClaudioWebConversationController::class, 'status']);
         Route::post('sessions', [ClaudioWebConversationController::class, 'create']);
         Route::get('sessions/current', [ClaudioWebConversationController::class, 'current']);
         Route::post('messages', [ClaudioWebConversationController::class, 'message'])->middleware('throttle:8,1');
