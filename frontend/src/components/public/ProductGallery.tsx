@@ -1,9 +1,15 @@
 "use client";
 
 import {useCallback,useEffect,useState} from "react";
-import {ChevronLeft,ChevronRight,Expand,ImageOff,X} from "lucide-react";
+import {ChevronLeft,ChevronRight,Expand,X} from "lucide-react";
 
 type Props={images:string[];productName:string};
+const LOGO="/programandoweb/brand/logo-gaspronal-horizontal-full-color.png";
+function LogoFallback({large=false}:{large?:boolean}){
+  return <div className="flex h-full w-full items-center justify-center p-8 sm:p-12">
+    <img src={LOGO} alt="Gaspronal · imagen de producto no disponible" className={`h-auto w-full max-w-[320px] object-contain ${large?"max-h-[60vh]":"max-h-full"}`}/>
+  </div>;
+}
 export default function ProductGallery({images,productName}:Props){
   const [selected,setSelected]=useState(0);
   const [expanded,setExpanded]=useState(false);
@@ -23,10 +29,10 @@ export default function ProductGallery({images,productName}:Props){
     return()=>{window.removeEventListener("keydown",onKey);document.body.style.overflow=previous;};
   },[expanded,images.length,next]);
   function picture(src:string,large=false){
-    return failed.includes(src)?<div className="flex h-full w-full flex-col items-center justify-center gap-3 text-slate-400"><ImageOff size={large?56:26}/><span className="text-xs">Imagen no disponible</span></div>:
+    return failed.includes(src)?<LogoFallback large={large}/>:
       <img src={src} alt={`${productName} · fotografía ${selected+1} de ${images.length}`} loading={large?"eager":"lazy"} onError={()=>setFailed(old=>old.includes(src)?old:[...old,src])} className="h-full w-full object-contain"/>;
   }
-  if(!images.length)return <div className="flex aspect-[4/3] items-center justify-center rounded-3xl border border-slate-200 bg-slate-50 text-slate-400"><ImageOff size={64}/></div>;
+  if(!images.length)return <div className="flex aspect-[4/3] items-center justify-center overflow-hidden rounded-[1.75rem] border border-slate-200 bg-slate-50 shadow-sm"><LogoFallback/></div>;
   return <div className="min-w-0">
     <div className="group relative flex aspect-[4/3] items-center justify-center overflow-hidden rounded-[1.75rem] border border-slate-200 bg-gradient-to-br from-slate-50 via-white to-slate-100 shadow-sm">
       <div className="h-full w-full p-3 sm:p-6">{picture(current)}</div>
@@ -36,14 +42,14 @@ export default function ProductGallery({images,productName}:Props){
     </div>
     {images.length>1&&<div className="mt-4 flex items-center gap-3 overflow-x-auto pb-3 [scrollbar-width:thin]" aria-label="Miniaturas del producto">
       {images.map((src,index)=><button type="button" key={src} onClick={()=>setSelected(index)} aria-label={`Ver fotografía ${index+1}`} aria-pressed={selected===index} className={`relative size-20 shrink-0 overflow-hidden rounded-2xl border-2 bg-slate-50 p-1 transition sm:size-24 ${selected===index?"border-[var(--brand)] shadow-md ring-2 ring-[var(--brand)]/20":"border-slate-200 opacity-75 hover:border-slate-400 hover:opacity-100"}`}>
-        {failed.includes(src)?<ImageOff className="m-auto text-slate-300"/>:<img src={src} alt={`Miniatura ${index+1}`} loading="lazy" onError={()=>setFailed(old=>old.includes(src)?old:[...old,src])} className="h-full w-full rounded-xl object-cover"/>}
+        {failed.includes(src)?<img src={LOGO} alt="Gaspronal" className="h-full w-full object-contain p-2"/>:<img src={src} alt={`Miniatura ${index+1}`} loading="lazy" onError={()=>setFailed(old=>old.includes(src)?old:[...old,src])} className="h-full w-full rounded-xl object-cover"/>}
       </button>)}
     </div>}
     <p className="mt-1 text-xs text-slate-500">Selecciona una miniatura para explorar las fotografías. Pulsa ampliar para verlas en detalle.</p>
     {expanded&&<div role="dialog" aria-modal="true" aria-label={`Galería ampliada de ${productName}`} className="fixed inset-0 z-[100] flex flex-col bg-slate-950/95 p-4 text-white sm:p-8">
       <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 pb-4"><div className="min-w-0"><p className="truncate text-sm font-semibold">{productName}</p><p className="text-xs text-slate-400">Fotografía {selected+1} de {images.length}</p></div><button type="button" onClick={()=>setExpanded(false)} autoFocus aria-label="Cerrar galería" className="grid size-12 shrink-0 place-items-center rounded-full bg-white/15 hover:bg-white/25"><X size={24}/></button></div>
       <div className="relative mx-auto flex min-h-0 w-full max-w-6xl flex-1 items-center justify-center"><div className="h-full w-full">{picture(current,true)}</div>{images.length>1&&<><button type="button" onClick={()=>next(-1)} aria-label="Anterior" className="absolute left-0 top-1/2 grid size-12 -translate-y-1/2 place-items-center rounded-full bg-white/15 hover:bg-white/25"><ChevronLeft/></button><button type="button" onClick={()=>next(1)} aria-label="Siguiente" className="absolute right-0 top-1/2 grid size-12 -translate-y-1/2 place-items-center rounded-full bg-white/15 hover:bg-white/25"><ChevronRight/></button></>}</div>
-      {images.length>1&&<div className="mx-auto mt-4 flex max-w-full gap-2 overflow-x-auto py-2">{images.map((src,i)=><button type="button" key={src} aria-label={`Ver imagen ${i+1}`} onClick={()=>setSelected(i)} className={`size-14 shrink-0 overflow-hidden rounded-lg border-2 ${selected===i?"border-white":"border-transparent opacity-60"}`}><img src={src} alt="" className="h-full w-full object-cover"/></button>)}</div>}
+      {images.length>1&&<div className="mx-auto mt-4 flex max-w-full gap-2 overflow-x-auto py-2">{images.map((src,i)=><button type="button" key={src} aria-label={`Ver imagen ${i+1}`} onClick={()=>setSelected(i)} className={`size-14 shrink-0 overflow-hidden rounded-lg border-2 ${selected===i?"border-white":"border-transparent opacity-60"}`}>failed.includes(src)?<img src={LOGO} alt="Gaspronal" className="h-full w-full object-contain p-1"/>:<img src={src} alt="" onError={()=>setFailed(old=>old.includes(src)?old:[...old,src])} className="h-full w-full object-cover"/></button>)}</div>}
     </div>}
   </div>;
 }
