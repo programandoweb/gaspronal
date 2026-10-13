@@ -28,16 +28,32 @@ function RichMessage({ content }: { content: string }) {
 
 export default function ClaudioWebChat() {
   const pathname = usePathname();
-  const [open, setOpen] = useState(false); const [conversation, setConversation] = useState<Conversation | null>(null);
+  const [open, setOpen] = useState(false); const [available, setAvailable] = useState(false); const [conversation, setConversation] = useState<Conversation | null>(null);
   const [draft, setDraft] = useState(""); const [busy, setBusy] = useState(false); const [error, setError] = useState("");
   const input = useRef<HTMLInputElement>(null); const bottom = useRef<HTMLDivElement>(null);
   const isPublic = !pathname.startsWith("/dashboard") && !pathname.startsWith("/login");
   const load = async () => { const r = await fetch("/api/public/claudio-web/current", { cache: "no-store" }); const j = await r.json().catch(() => ({})); if (r.ok) { setConversation(j.data); setError(""); } else setError(j.message ?? "La atención web está temporalmente no disponible."); };
-  useEffect(() => { const openChat = () => { setOpen(true); void load(); }; window.addEventListener("gaspronal:open-claudio", openChat); return () => window.removeEventListener("gaspronal:open-claudio", openChat); }, []);
+  useEffect(() => {
+    if (!isPublic) return;
+    let active = true;
+    const check = async () => {
+      try {
+        const response = await fetch("/api/public/claudio-web/status", { cache: "no-store" });
+        const json = await response.json().catch(() => ({}));
+        if (active) { const enabled = response.ok && json.data?.enabled === true; setAvailable(enabled); if (!enabled) setOpen(false); }
+      } catch { if (active) { setAvailable(false); setOpen(false); } }
+    };
+    void check();
+    const timer = window.setInterval(check, 30000);
+    const onVisible = () => { if (document.visibilityState === "visible") void check(); };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => { active = false; window.clearInterval(timer); document.removeEventListener("visibilitychange", onVisible); };
+  }, [isPublic]);
+  useEffect(() => { const openChat = () => { if (available && isPublic) { setOpen(true); void load(); } }; window.addEventListener("gaspronal:open-claudio", openChat); return () => window.removeEventListener("gaspronal:open-claudio", openChat); }, [available, isPublic]);
   useEffect(() => { if (open) { void load(); setTimeout(() => input.current?.focus(), 80); } }, [open]);
   useEffect(() => { bottom.current?.scrollIntoView({ behavior: "smooth" }); }, [conversation?.messages.length, busy]);
   useEffect(() => { const key = (event: KeyboardEvent) => { if (event.key === "Escape") setOpen(false); }; window.addEventListener("keydown", key); return () => window.removeEventListener("keydown", key); }, []);
-  if (!isPublic) return null;
+  if (!isPublic || !available) return null;
   async function send(event: React.FormEvent) { event.preventDefault(); const message = draft.trim(); if (!message || busy) return; setBusy(true); setError(""); setDraft(""); const r = await fetch("/api/public/claudio-web/message", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message, request_id: crypto.randomUUID() }) }); const j = await r.json().catch(() => ({})); if (r.ok) setConversation(j.data); else { setDraft(message); setError(j.message ?? "No fue posible enviar el mensaje. Intenta de nuevo."); } setBusy(false); }
   return <>
     {!open && <button type="button" onClick={() => setOpen(true)} aria-label="Hablar con Claudio, asesor virtual" className="fixed bottom-5 right-[76px] z-50 inline-flex h-14 max-w-[calc(100vw-96px)] items-center gap-2 rounded-full bg-[var(--brand)] px-3 text-sm font-bold text-white shadow-xl transition hover:scale-[1.02] sm:bottom-6 sm:right-[190px] sm:max-w-none sm:px-5"><MessageCircle size={20}/>Hablar con un asesor</button>}
