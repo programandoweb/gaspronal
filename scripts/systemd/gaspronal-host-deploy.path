@@ -1,0 +1,9 @@
+[Unit]
+Description=Observe queued Gaspronal deployments
+
+[Path]
+PathExists=/var/www/gaspronal.programandoweb.net/backend/bootstrap/cache/host-deployment-request
+Unit=gaspronal-host-deploy.service
+
+[Install]
+WantedBy=multi-user.target
