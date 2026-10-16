@@ -22,10 +22,12 @@ class RunDeployment extends Command
         } catch (Throwable $exception) {
             report($exception);
 
+            $deployment->refresh();
+            $cancelled = $deployment->status === 'cancelling';
             $deployment->update([
-                'status' => 'failed',
+                'status' => $cancelled ? 'cancelled' : 'failed',
                 'finished_at' => now(),
-                'failure_message' => 'No fue posible completar el despliegue.',
+                'failure_message' => $cancelled ? 'Cancelado por un administrador.' : 'No fue posible completar el despliegue.',
                 'output' => mb_substr($exception->getMessage(), 0, 100000),
             ]);
 
