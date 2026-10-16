@@ -23,7 +23,7 @@ class DeploymentService
 
     private function cancellationMarker(): string
     {
-        return dirname((string) config('deployment.script')).'/.deploy-cancel-request';
+        return dirname((string) config('deployment.script')).'/backend/bootstrap/cache/.deploy-cancel-request';
     }
 
     public function requestCancellation(): void
