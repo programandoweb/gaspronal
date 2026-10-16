@@ -6,6 +6,7 @@ import { use, useEffect, useRef, useState } from "react";
 import ClaudioAdminChatDrawer from "@/components/dashboard/ClaudioAdminChatDrawer";
 import ClaudioWhatsAppConversations from "@/components/dashboard/ClaudioWhatsAppConversations";
 import ClaudioWebConversations from "@/components/dashboard/ClaudioWebConversations";
+import AgentWhatsAppConnection from "@/components/dashboard/AgentWhatsAppConnection";
 import { connectAgentSocket, type AgentSocket } from "@/lib/agent-socket";
 
 type Agent = { id:string; name:string; role:string };
@@ -752,6 +753,7 @@ export default function AgentChatPage({ params }:{ params:Promise<{id:string}> }
       </aside>
     </section>}
 
+    <AgentWhatsAppConnection agentId={id}/>
     {id==="claudio"&&claudioTab==="whatsapp"&&<ClaudioWhatsAppConversations/>}
     {id==="claudio"&&claudioTab==="web"&&<ClaudioWebConversations/>}
     {id==="claudio"&&<ClaudioAdminChatDrawer open={claudioChatDrawerOpen} onClose={()=>setClaudioChatDrawerOpen(false)}/>}
