@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, CheckCircle2, Save } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Save, Share2, Mail, MessageCircle, X } from "lucide-react";
 import { use, useEffect, useState } from "react";
 
 type Item={id:number;description:string;quantity:string;unit_price:string;line_total:string};
@@ -17,6 +17,9 @@ export default function ProposalDetailPage({params}:{params:Promise<{id:string}>
  const [loading,setLoading]=useState(true);
  const [saving,setSaving]=useState(false);
  const [message,setMessage]=useState("");
+ const [sharing,setSharing]=useState(false);
+ const [sendingMail,setSendingMail]=useState(false);
+ const [recipient,setRecipient]=useState("");
 
  async function load(){
   const response=await fetch(`/api/admin/commercial/quotes/${id}`,{cache:"no-store"});
@@ -24,6 +27,7 @@ export default function ProposalDetailPage({params}:{params:Promise<{id:string}>
   setLoading(false);
   if(!response.ok){setMessage(json.message??"No fue posible cargar la propuesta.");return;}
   setQuote(json.data);
+  setRecipient(json.data?.lead?.email??"");
  }
  useEffect(()=>{void load();},[id]);
 
@@ -49,6 +53,24 @@ export default function ProposalDetailPage({params}:{params:Promise<{id:string}>
   if(!response.ok){setMessage(json.message??"No fue posible aprobar la propuesta.");return;}
   setQuote(json.data);setMessage("Propuesta aprobada y lista para seguimiento humano.");
  }
+
+ async function sendEmail(){
+  if(!quote||quote.status!=="approved"||!recipient.trim())return;
+  setSendingMail(true);setMessage("");
+  try{
+   const response=await fetch(`/api/admin/commercial/quotes/${id}/send`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:recipient.trim()})});
+   const json=await response.json().catch(()=>({}));
+   if(!response.ok)throw new Error(json.message??"No fue posible enviar el correo.");
+   setMessage("Propuesta enviada correctamente a "+recipient.trim());setSharing(false);
+  }catch(error){setMessage(error instanceof Error?error.message:"Error enviando correo.");}
+  finally{setSendingMail(false);}
+ }
+ const whatsapp=(phone:string)=>{
+  const digits=phone.replace(/\D/g,"");
+  if(digits.length===10&&digits.startsWith("3"))return "57"+digits;
+  if(digits.length===12&&digits.startsWith("57"))return digits;
+  return "";
+ };
 
  if(loading)return <div className="mx-auto w-full max-w-5xl py-8 text-sm text-[var(--muted)]">Cargando propuesta…</div>;
  if(!quote)return <div className="mx-auto w-full max-w-5xl py-8 text-sm text-red-700">{message||"Propuesta no encontrada."}</div>;
@@ -82,6 +104,7 @@ export default function ProposalDetailPage({params}:{params:Promise<{id:string}>
    <label className="block space-y-2"><span className="text-sm font-medium">Notas comerciales</span><textarea disabled={!editable} rows={5} value={quote.notes??""} onChange={e=>setQuote({...quote,notes:e.target.value})} className="w-full rounded-xl border border-[var(--border)] bg-transparent p-3 disabled:opacity-60"/></label>
    <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--border)] pt-4">
     <div><span className="text-sm text-[var(--muted)]">Total revisado</span><strong className="ml-3 text-xl">{new Intl.NumberFormat("es-CO",{style:"currency",currency:quote.currency||"COP",maximumFractionDigits:0}).format(total)}</strong></div>
+    {!editable&&<button type="button" onClick={()=>{setRecipient(quote.lead.email??"");setSharing(true);}} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[var(--brand)] px-4 font-semibold text-white"><Share2 size={17}/>Compartir</button>}
     {editable&&<div className="flex gap-2">
       <button disabled={saving} onClick={save} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-[var(--border)] px-4 font-semibold"><Save size={17}/>Guardar</button>
       <button disabled={saving} onClick={approve} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[var(--brand)] px-4 font-semibold text-white"><CheckCircle2 size={17}/>Aprobar</button>
@@ -89,5 +112,6 @@ export default function ProposalDetailPage({params}:{params:Promise<{id:string}>
    </div>
    {message&&<p className="text-sm font-medium text-[var(--brand)]">{message}</p>}
   </section>
+  {sharing&&quote.status==="approved"&&<div className="fixed inset-0 z-[110] flex justify-end bg-black/40" onMouseDown={event=>{if(event.target===event.currentTarget)setSharing(false);}}><section role="dialog" aria-modal="true" aria-label="Compartir propuesta" className="flex h-full w-full max-w-lg flex-col bg-[var(--surface)] p-6 shadow-xl"><div className="flex items-center justify-between"><h2 className="text-xl font-bold">Compartir propuesta {quote.number}</h2><button aria-label="Cerrar" onClick={()=>setSharing(false)}><X size={22}/></button></div><p className="mt-3 text-sm text-[var(--muted)]">Solo puedes compartir propuestas aprobadas.</p><label className="mt-6 block text-sm font-semibold">Correo del destinatario<input type="email" value={recipient} onChange={e=>setRecipient(e.target.value)} placeholder="cliente@empresa.com" className="mt-2 min-h-11 w-full rounded-xl border border-[var(--border)] bg-transparent px-3"/></label><button type="button" disabled={sendingMail||!recipient.trim()} onClick={()=>void sendEmail()} className="mt-3 inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[var(--brand)] px-4 font-bold text-white disabled:opacity-50"><Mail size={18}/>{sendingMail?"Enviando…":"Enviar por correo"}</button>{whatsapp(quote.lead.whatsapp??"")?<a target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-[var(--border)] px-4 font-semibold" href={`https://wa.me/${whatsapp(quote.lead.whatsapp)}?text=${encodeURIComponent(`Hola ${quote.lead.name}, tu propuesta comercial ${quote.number} de Gaspronal ha sido aprobada. Total: ${quote.currency} ${quote.total}. Contacta con nuestro equipo para recibir el detalle.`)}`}><MessageCircle size={18}/>Abrir WhatsApp</a>:<p className="mt-4 text-sm text-[var(--muted)]">WhatsApp no disponible o número colombiano inválido.</p>}<p className="mt-4 text-xs text-[var(--muted)]">El enlace de WhatsApp abre un mensaje preparado; no adjunta el documento de la propuesta.</p></section></div>}
  </div>;
 }
