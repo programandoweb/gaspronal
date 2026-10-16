@@ -94,6 +94,8 @@ class CommercialQuoteController extends Controller
     public function approve(CommercialQuote $commercialQuote): JsonResponse
     {
         abort_unless($commercialQuote->status === 'pending_approval', 422, 'La propuesta no está pendiente de aprobación.');
+        abort_unless($commercialQuote->items()->exists(), 422, 'La propuesta no tiene ítems.');
+        abort_unless($commercialQuote->items()->where('unit_price', '<=', 0)->doesntExist(), 422, 'Debes establecer precios válidos antes de aprobar la propuesta.');
 
         DB::transaction(function () use ($commercialQuote): void {
             $commercialQuote->update([
