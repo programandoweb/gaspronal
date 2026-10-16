@@ -5,7 +5,7 @@ ROOT="/var/www/gaspronal.programandoweb.net"
 COMPOSE_FILE="$ROOT/docker-compose.yml"
 ENV_FILE="$ROOT/.env.docker"
 LOCK_DIR="/tmp/gaspronal-deploy.lock"
-CANCEL_MARKER="$ROOT/.deploy-cancel-request"
+CANCEL_MARKER="$ROOT/backend/bootstrap/cache/.deploy-cancel-request"
 
 check_cancel() {
   if [[ -f "$CANCEL_MARKER" ]]; then
