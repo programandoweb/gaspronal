@@ -1,0 +1,11 @@
+[Unit]
+Description=Gaspronal host deployment executor
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+User=root
+WorkingDirectory=/var/www/gaspronal.programandoweb.net
+ExecStart=/bin/bash /var/www/gaspronal.programandoweb.net/scripts/host-deploy-worker.sh
+TimeoutStartSec=3600
