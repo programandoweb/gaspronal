@@ -26,6 +26,14 @@ class DeploymentService
         return dirname((string) config('deployment.script')).'/backend/bootstrap/cache/.deploy-cancel-request';
     }
 
+    public function isDeploymentLocked(): bool
+    {
+        // This directory is on the host. It is not necessarily visible inside PHP-FPM.
+        // Fail closed unless the shared lock indicator can be inspected.
+        $lock = dirname((string) config('deployment.script')).'/.deploy-active';
+        return is_file($lock);
+    }
+
     public function requestCancellation(): void
     {
         if (file_put_contents($this->cancellationMarker(), now()->toIso8601String()) === false) {
