@@ -142,6 +142,7 @@ class CommunicationProviderController extends Controller
             'auto_connect' => ['sometimes', 'boolean'],
             'enabled' => ['sometimes', 'boolean'],
             'settings' => ['nullable', 'array'],
+            'settings.agent_id' => ['nullable', 'string', 'max:80', 'regex:/^[a-z0-9_-]+$/i'],
             'credentials' => ['nullable', 'array'],
         ]);
 
@@ -150,6 +151,10 @@ class CommunicationProviderController extends Controller
             || ($channel === 'email' && $driver !== 'smtp')
         ) {
             abort(422, 'La combinación canal/driver no es válida.');
+        }
+
+        if ($driver === 'baileys') {
+            validator($data, ['settings.agent_id' => ['required', 'string', 'regex:/^[a-z0-9_-]+$/i']])->validate();
         }
 
         if ($driver === 'smtp') {
