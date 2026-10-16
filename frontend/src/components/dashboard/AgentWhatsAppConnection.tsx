@@ -18,8 +18,8 @@ export default function AgentWhatsAppConnection({agentId}:{agentId:string}){
    ]);
    const providers=await p.json();const statuses=await r.json();
    if(!p.ok||!r.ok)throw new Error("No fue posible consultar los canales.");
-   const selected=(providers.data??[] as Provider[]).find(x=>x.driver==="baileys"&&String(x.settings?.agent_id??"claudio")===agentId)??null;
-   setProvider(selected);setRuntime(selected?(statuses.data??[] as Runtime[]).find(x=>String(x.id)===String(selected.id))??null:null);
+   const selected=((providers.data ?? []) as Provider[]).find((x: Provider)=>x.driver==="baileys"&&String(x.settings?.agent_id??"claudio")===agentId)??null;
+   setProvider(selected);setRuntime(selected?((statuses.data ?? []) as Runtime[]).find((x: Runtime)=>String(x.id)===String(selected.id))??null:null);
   }catch(e){setError(e instanceof Error?e.message:"Error consultando WhatsApp");}
  },[agentId]);
  useEffect(()=>{void refresh();const timer=setInterval(()=>void refresh(),5000);return()=>clearInterval(timer);},[refresh]);
