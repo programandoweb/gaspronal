@@ -6,6 +6,7 @@ COMPOSE_FILE="$ROOT/docker-compose.yml"
 ENV_FILE="$ROOT/.env.docker"
 LOCK_DIR="/tmp/gaspronal-deploy.lock"
 CANCEL_MARKER="$ROOT/backend/bootstrap/cache/.deploy-cancel-request"
+ACTIVE_MARKER="$ROOT/.deploy-active"
 
 check_cancel() {
   if [[ -f "$CANCEL_MARKER" ]]; then
@@ -15,6 +16,7 @@ check_cancel() {
 }
 
 cleanup() {
+  rm -f "$ACTIVE_MARKER"
   rmdir "$LOCK_DIR" 2>/dev/null || true
 }
 trap cleanup EXIT
@@ -23,6 +25,8 @@ if ! mkdir "$LOCK_DIR" 2>/dev/null; then
   echo "[deploy] Ya existe otro despliegue en ejecución."
   exit 75
 fi
+
+printf "%s\n" "$" > "$ACTIVE_MARKER"
 
 if [[ ! -d "$ROOT/.git" ]]; then
   echo "[deploy] No existe un repositorio Git en $ROOT."
