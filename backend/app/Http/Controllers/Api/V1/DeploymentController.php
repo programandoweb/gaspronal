@@ -26,6 +26,37 @@ class DeploymentController extends Controller
         ]);
     }
 
+    public function cancel(Deployment $deployment, DeploymentService $service): JsonResponse
+    {
+        if (! in_array($deployment->status, ['queued', 'running', 'cancelling'], true)) {
+            return response()->json(['message' => 'Este despliegue ya finalizó.'], 409);
+        }
+
+        if ($deployment->status === 'queued') {
+            $deployment->update([
+                'status' => 'cancelled',
+                'finished_at' => now(),
+                'failure_message' => 'Cancelado por un administrador.',
+            ]);
+        } else {
+            $service->requestCancellation();
+            $deployment->update(['status' => 'cancelling']);
+        }
+
+        return response()->json(['data' => $deployment->fresh()]);
+    }
+
+    public function destroy(Deployment $deployment): JsonResponse
+    {
+        if (in_array($deployment->status, ['queued', 'running', 'cancelling'], true)) {
+            return response()->json(['message' => 'Cancela y espera a que finalice antes de eliminar.'], 409);
+        }
+
+        $deployment->delete();
+
+        return response()->json(['message' => 'Registro eliminado.']);
+    }
+
     public function store(Request $request, DeploymentService $service): JsonResponse
     {
         $data = $request->validate([
@@ -42,7 +73,7 @@ class DeploymentController extends Controller
             return response()->json(['message' => 'El script de autodespliegue no está configurado o no existe.'], 422);
         }
 
-        if (Deployment::query()->whereIn('status', ['queued', 'running'])->exists()) {
+        if (Deployment::query()->whereIn('status', ['queued', 'running', 'cancelling'])->exists()) {
             return response()->json(['message' => 'Ya existe un despliegue en ejecución.'], 409);
         }
 
