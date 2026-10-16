@@ -160,7 +160,7 @@ export default function ClaudioAdminChatDrawer({ open, onClose }: { open: boolea
   if (!open) return null;
 
   return <section role="dialog" aria-modal="true" aria-label="Chats con Claudio" className="fixed inset-0 z-[100] flex bg-[var(--surface)] shadow-2xl">
-    <aside className={`${training ? "hidden" : (sidebarOpen ? "flex" : "hidden")} absolute inset-0 z-10 w-full flex-col bg-white sm:static sm:flex sm:max-w-[360px] sm:shrink-0 sm:border-r sm:border-[var(--border)]`}>
+    <aside className={`${training ? "hidden" : (sidebarOpen ? "flex sm:flex" : "hidden sm:flex")} absolute inset-0 z-10 w-full flex-col bg-white sm:static sm:max-w-[360px] sm:shrink-0 sm:border-r sm:border-[var(--border)]`}>
       <header className="border-b border-[var(--border)] p-5">
         <div className="flex items-center justify-between gap-3"><div className="flex items-center gap-3"><span className="grid size-10 place-items-center rounded-xl bg-[var(--brand-soft)] text-[var(--brand)]"><MessageCircle size={20}/></span><div><h2 className="font-bold">Chats con Claudio</h2><p className="text-xs text-[var(--muted)]">Historial privado del agente</p></div></div><button type="button" onClick={onClose} aria-label="Cerrar drawer" className="inline-flex size-10 items-center justify-center rounded-xl text-[var(--muted)] hover:bg-[var(--app-bg)] lg:hidden"><X size={20}/></button></div>
         <button type="button" onClick={() => void newSession()} disabled={creating} className="mt-5 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-[var(--brand)] px-4 text-sm font-bold text-white disabled:opacity-50"><Plus size={18}/>{creating ? "Creando…" : "Nueva sesión"}</button>
