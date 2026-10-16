@@ -60,23 +60,48 @@ class InternalAgentCommercialController extends Controller
                 'id', 'category_id', 'type', 'name', 'reference', 'slug',
                 'short_description', 'description', 'specifications', 'applications',
             ])
-            ->map(fn (CatalogItem $item): array => [
-                'id' => $item->id,
-                'type' => $item->type,
-                'name' => $item->name,
-                'reference' => $item->reference,
-                'category' => $item->category ? [
-                    'name' => $item->category->name,
-                    'slug' => $item->category->slug,
-                ] : null,
-                'short_description' => $item->short_description,
-                'description' => $item->description,
-                'specifications' => $item->specifications,
-                'applications' => $item->applications,
-                'public_url' => $item->public_url,
-            ]);
+            ->map(function (CatalogItem $item): array {
+                $images = $this->publicImageUrls($item);
+                $frontendUrl = rtrim((string) config('app.frontend_url'), '/');
+
+                return [
+                    'id' => $item->id,
+                    'type' => $item->type,
+                    'name' => $item->name,
+                    'reference' => $item->reference,
+                    'category' => $item->category ? [
+                        'name' => $item->category->name,
+                        'slug' => $item->category->slug,
+                    ] : null,
+                    'short_description' => $item->short_description,
+                    'description' => $item->description,
+                    'specifications' => $item->specifications,
+                    'applications' => $item->applications,
+                    'product_url' => $frontendUrl.($item->type === 'service' ? $item->public_url : '/productos/'.$item->slug),
+                    'legacy_url' => $item->legacy_source_url ?: $item->public_url,
+                    'image_urls' => $images,
+                    'has_images' => $images !== [],
+                ];
+            });
 
         return response()->json(['data' => $items]);
+    }
+
+    /** @return array<int, string> */
+    private function publicImageUrls(CatalogItem $item): array
+    {
+        $backendUrl = rtrim((string) config('app.public_backend_url'), '/');
+
+        return collect([$item->og_image, ...($item->gallery ?? [])])
+            ->filter(fn ($url) => is_string($url) && trim($url) !== '')
+            ->map(function (string $url) use ($backendUrl): string {
+                $url = trim($url);
+
+                return str_starts_with($url, '/') ? $backendUrl.$url : $url;
+            })
+            ->unique()
+            ->values()
+            ->all();
     }
 
     private function createAppointment(array $arguments): JsonResponse

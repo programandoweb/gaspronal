@@ -32,7 +32,7 @@ const CLAUDIO_FUNCTIONS: GeminiFunctionDeclaration[] = [
   },
   {
     name: "catalog_search",
-    description: "Consulta directamente el catálogo publicado de Gaspronal antes de responder sobre un producto o servicio. Devuelve referencia, descripciones, especificaciones, materiales, dimensiones, capacidades y aplicaciones cuando existan en la base de datos. No entrega ni autoriza comunicar precios.",
+    description: "Consulta directamente el catálogo publicado de Gaspronal antes de responder sobre un producto o servicio. Devuelve referencia, descripciones, especificaciones, materiales, dimensiones, capacidades, aplicaciones, enlace público y URLs de galería cuando existan en la base de datos. Comparte fotos sólo cuando image_urls tenga elementos; si has_images es falso, discúlpate porque no hay fotos disponibles actualmente. No entrega ni autoriza comunicar precios.",
     parameters: {
       type: "OBJECT",
       properties: { query: { type: "STRING", description: "Nombre, referencia o necesidad del cliente." } },
