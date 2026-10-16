@@ -249,7 +249,7 @@ class CommunicationConversationController extends Controller
         CommunicationConversation $communicationConversation,
     ): JsonResponse {
         $this->authorizeInternal($request);
-        $conversation = $this->claudioConversation($communicationConversation);
+        $conversation = $this->whatsappConversation($communicationConversation);
 
         $data = $request->validate([
             'external_message_id' => ['nullable', 'string', 'max:191'],
@@ -294,7 +294,7 @@ class CommunicationConversationController extends Controller
         CommunicationConversation $communicationConversation,
     ): JsonResponse {
         $this->authorizeInternal($request);
-        $conversation = $this->claudioConversation($communicationConversation);
+        $conversation = $this->whatsappConversation($communicationConversation);
 
         return response()->json([
             'data' => [
@@ -310,7 +310,7 @@ class CommunicationConversationController extends Controller
         CommunicationConversation $communicationConversation,
     ): JsonResponse {
         $this->authorizeInternal($request);
-        $conversation = $this->claudioConversation($communicationConversation);
+        $conversation = $this->whatsappConversation($communicationConversation);
 
         $data = $request->validate([
             'status' => ['required', Rule::in(self::STATUSES)],
@@ -324,6 +324,12 @@ class CommunicationConversationController extends Controller
         ]);
 
         return response()->json(['data' => $this->summary($conversation->fresh())]);
+    }
+
+    private function whatsappConversation(CommunicationConversation $conversation): CommunicationConversation
+    {
+        abort_unless($conversation->channel === 'whatsapp', 404, 'Conversación no encontrada.');
+        return $conversation;
     }
 
     private function claudioConversation(CommunicationConversation $conversation): CommunicationConversation
