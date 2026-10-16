@@ -154,6 +154,7 @@ class CommunicationProviderController extends Controller
         }
 
         if ($driver === 'baileys') {
+            $data['settings']['agent_id'] = strtolower((string) ($data['settings']['agent_id'] ?? $provider?->settings['agent_id'] ?? 'claudio'));
             validator($data, ['settings.agent_id' => ['required', 'string', 'regex:/^[a-z0-9_-]+$/i']])->validate();
         }
 
