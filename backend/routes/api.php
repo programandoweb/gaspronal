@@ -101,6 +101,8 @@ Route::prefix('v1')->group(function (): void {
         Route::post('agents/{agent}/sessions/{session}/messages', [AgentConversationController::class, 'storeMessage'])->middleware('permission:agents.view');
         Route::put('agents/{agent}/settings', [AgentSettingController::class, 'update'])->middleware('permission:agents.manage');
         Route::post('deployments', [DeploymentController::class, 'store'])->middleware(['permission:deployments.manage', 'throttle:2,1']);
+        Route::post('deployments/{deployment}/cancel', [DeploymentController::class, 'cancel'])->middleware('permission:deployments.manage');
+        Route::delete('deployments/{deployment}', [DeploymentController::class, 'destroy'])->middleware('permission:deployments.manage');
 
         Route::get('ai/providers', [AiProviderController::class, 'providers'])->middleware('permission:ai.view');
         Route::post('ai/providers', [AiProviderController::class, 'storeProvider'])->middleware('permission:ai.manage');
