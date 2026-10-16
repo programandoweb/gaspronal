@@ -12,6 +12,22 @@ class AgentConversationController extends Controller
 {
     private const AGENTS = ['cristina', 'jorge', 'claudio', 'sofia'];
 
+    public function index(Request $request, string $agent): JsonResponse
+    {
+        $agent = $this->agent($agent);
+
+        $sessions = AgentConversationSession::query()
+            ->where('user_id', $request->user()->id)
+            ->where('agent_id', $agent)
+            ->orderByDesc('last_message_at')
+            ->orderByDesc('id')
+            ->limit(min(max($request->integer('per_page', 50), 1), 100))
+            ->get()
+            ->map(fn (AgentConversationSession $session) => $this->summary($session));
+
+        return response()->json(['data' => $sessions]);
+    }
+
     public function latest(Request $request, string $agent): JsonResponse
     {
         $agent = $this->agent($agent);
@@ -39,6 +55,14 @@ class AgentConversationController extends Controller
         ]);
 
         return response()->json(['data' => $this->payload($session)], 201);
+    }
+
+    public function show(Request $request, string $agent, AgentConversationSession $session): JsonResponse
+    {
+        $agent = $this->agent($agent);
+        $this->assertOwned($request, $session, $agent);
+
+        return response()->json(['data' => $this->payload($session)]);
     }
 
     public function storeMessage(
@@ -89,6 +113,17 @@ class AgentConversationController extends Controller
                 'request_id' => $message->request_id,
                 'created_at' => $message->created_at?->toIso8601String(),
             ])->values(),
+        ];
+    }
+
+    private function summary(AgentConversationSession $session): array
+    {
+        return [
+            'id' => $session->id,
+            'agent_id' => $session->agent_id,
+            'title' => $session->title ?: 'Nueva conversación',
+            'last_message_at' => $session->last_message_at?->toIso8601String(),
+            'created_at' => $session->created_at?->toIso8601String(),
         ];
     }
 
