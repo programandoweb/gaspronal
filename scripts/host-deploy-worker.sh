@@ -3,7 +3,7 @@ set -Eeuo pipefail
 ROOT=/var/www/gaspronal.programandoweb.net
 REQUEST="$ROOT/backend/bootstrap/cache/host-deployment-request"
 LOCK=/tmp/gaspronal-deployment-dispatch.lock
-LOG_DIR="$ROOT/backend/storage/logs"
+LOG_DIR="$ROOT/backend/bootstrap/cache"
 mkdir -p "$LOG_DIR"
 exec 9>"$LOCK"
 flock -n 9 || exit 0
@@ -35,7 +35,8 @@ else
 fi
 # backend can briefly restart during deployment, so retry until healthy.
 for attempt in $(seq 1 25); do
-  if compose exec -T backend php artisan deployment:host-status "$ID" "$STATUS" --output-file="/var/www/html/storage/logs/deployment-host-$ID.log" >/dev/null 2>&1; then
+  chmod 644 "$LOG"
+  if compose exec -T backend php artisan deployment:host-status "$ID" "$STATUS" --output-file="/var/www/html/bootstrap/cache/deployment-host-$ID.log" >/dev/null 2>&1; then
     break
   fi
   sleep 3
