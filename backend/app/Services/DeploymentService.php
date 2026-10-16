@@ -43,24 +43,9 @@ class DeploymentService
 
     public function launch(Deployment $deployment): void
     {
-        @unlink($this->cancellationMarker());
-        $php = trim((string) config('deployment.php_binary', 'php'));
-
-        if ($php === '') {
-            throw new RuntimeException('No hay un binario PHP configurado para iniciar el despliegue.');
-        }
-
-        $command = sprintf(
-            'nohup %s %s deployment:run %d >/dev/null 2>&1 &',
-            escapeshellarg($php),
-            escapeshellarg(base_path('artisan')),
-            $deployment->id,
-        );
-
-        $result = Process::path(base_path())->timeout(10)->run($command);
-
-        if ($result->failed()) {
-            throw new RuntimeException('No fue posible iniciar el proceso de despliegue.');
+        $queue = dirname((string) config('deployment.script')).'/backend/bootstrap/cache/host-deployment-request';
+        if (file_put_contents($queue, (string) $deployment->id."\n", LOCK_EX) === false) {
+            throw new RuntimeException('No fue posible solicitar el despliegue al VPS.');
         }
     }
 
