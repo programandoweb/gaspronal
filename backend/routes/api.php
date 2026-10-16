@@ -33,6 +33,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function (): void {
     Route::get('health', HealthController::class);
+    Route::get('public/commercial/quotes/{commercialQuote}/share', [CommercialQuoteController::class, 'publicShare'])->name('commercial.quotes.public-share')->middleware('throttle:30,1');
     Route::get('seo/redirects/resolve', [SeoRedirectController::class, 'resolve']);
     Route::get('catalog/public/items', [CatalogController::class, 'publicIndex']);
     Route::get('catalog/public/use-cases', [CatalogController::class, 'publicUseCases']);
