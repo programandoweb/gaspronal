@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\CatalogItem;
 use App\Models\CommercialAppointment;
 use App\Models\CommercialLead;
+use App\Models\CommercialQuote;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use App\Models\CommunicationConversation;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -26,12 +29,13 @@ class InternalAgentCommercialController extends Controller
         $arguments = $payload['arguments'] ?? [];
 
         $webChannel = ($arguments['agent_channel'] ?? null) === 'web';
-        if ($webChannel && in_array($payload['tool'], ['create_appointment', 'handoff_to_human', 'register_customer'], true)) {
+        if ($webChannel && in_array($payload['tool'], ['create_appointment', 'handoff_to_human', 'register_customer', 'create_quote'], true)) {
             $this->requireWebConsent($arguments);
         }
 
         return match ($payload['tool']) {
             'catalog_search' => $this->catalogSearch($arguments),
+            'create_quote' => $this->createQuote($arguments),
             'create_appointment' => $this->createAppointment($arguments),
             'handoff_to_human' => $this->handoff($arguments),
             'register_customer' => $this->registerCustomer($arguments),
@@ -102,6 +106,55 @@ class InternalAgentCommercialController extends Controller
             ->unique()
             ->values()
             ->all();
+    }
+
+    private function createQuote(array $arguments): JsonResponse
+    {
+        $data = validator($arguments, [
+            'name' => ['required', 'string', 'max:190'],
+            'email' => ['required', 'email', 'max:190'],
+            'whatsapp' => ['required', 'string', 'max:40'],
+            'customer_confirmed' => ['required', 'accepted'],
+            'notes' => ['nullable', 'string', 'max:5000'],
+            'items' => ['required', 'array', 'min:1', 'max:50'],
+            'items.*.description' => ['required', 'string', 'max:500'],
+            'items.*.catalog_item_id' => ['nullable', 'integer', 'exists:catalog_items,id'],
+            'items.*.quantity' => ['required', 'numeric', 'gt:0'],
+            'items.*.unit_price' => ['required', 'numeric', 'min:0'],
+        ])->validate();
+
+        $quote = DB::transaction(function () use ($data): CommercialQuote {
+            $lead = CommercialLead::query()->firstOrCreate(
+                ['email' => mb_strtolower(trim($data['email'])), 'whatsapp' => trim($data['whatsapp'])],
+                ['name' => trim($data['name']), 'source' => 'claudio']
+            );
+            $lead->update(['name' => trim($data['name']), 'status' => 'pending_quote_approval']);
+            $quote = CommercialQuote::create([
+                'lead_id' => $lead->id,
+                'number' => 'CLA-'.now()->format('Ymd').'-'.strtoupper(Str::random(8)),
+                'status' => 'pending_approval',
+                'currency' => 'COP',
+                'subtotal' => 0,
+                'total' => 0,
+                'notes' => $data['notes'] ?? null,
+                'created_by_agent' => 'claudio',
+            ]);
+            $total = 0;
+            foreach ($data['items'] as $item) {
+                $lineTotal = round((float) $item['quantity'] * (float) $item['unit_price'], 2);
+                $total += $lineTotal;
+                $quote->items()->create([
+                    'catalog_item_id' => $item['catalog_item_id'] ?? null,
+                    'description' => $item['description'],
+                    'quantity' => $item['quantity'],
+                    'unit_price' => $item['unit_price'],
+                    'line_total' => $lineTotal,
+                ]);
+            }
+            $quote->update(['subtotal' => $total, 'total' => $total]);
+            return $quote;
+        });
+        return response()->json(['data' => $quote->load(['lead', 'items']), 'message' => 'Propuesta creada y pendiente de aprobación humana.'], 201);
     }
 
     private function createAppointment(array $arguments): JsonResponse
