@@ -3,6 +3,7 @@ import { ConfigService } from "@nestjs/config";
 import type { ChannelProvider } from "./channel.types";
 
 export type InboundConversationResult = {
+  agent_id?: string;
   conversation: {
     id: number;
     provider_id?: number | null;
