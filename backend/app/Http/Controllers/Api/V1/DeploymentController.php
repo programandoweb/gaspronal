@@ -46,6 +46,31 @@ class DeploymentController extends Controller
         return response()->json(['data' => $deployment->fresh()]);
     }
 
+    public function recover(Deployment $deployment, DeploymentService $service): JsonResponse
+    {
+        if (! in_array($deployment->status, ['running', 'cancelling'], true)) {
+            return response()->json(['message' => 'Solo es posible recuperar un despliegue en ejecución.'], 409);
+        }
+
+        $reference = $deployment->started_at ?? $deployment->created_at;
+        $timeout = max(60, (int) config('deployment.timeout', 1800));
+        if ($reference->gt(now()->subSeconds($timeout + 300))) {
+            return response()->json(['message' => 'El despliegue aún está dentro del tiempo de ejecución. Usa Cancelar y espera a que termine.'], 409);
+        }
+
+        if ($service->isDeploymentLocked()) {
+            return response()->json(['message' => 'El script todavía mantiene un bloqueo activo o pendiente. Revisa el servidor antes de reiniciarlo.'], 409);
+        }
+
+        $deployment->update([
+            'status' => 'failed',
+            'finished_at' => now(),
+            'failure_message' => 'Despliegue atascado recuperado manualmente.',
+        ]);
+
+        return response()->json(['message' => 'Despliegue liberado. Ya puedes iniciar uno nuevo.', 'data' => $deployment->fresh()]);
+    }
+
     public function destroy(Deployment $deployment): JsonResponse
     {
         if (in_array($deployment->status, ['queued', 'running', 'cancelling'], true)) {
