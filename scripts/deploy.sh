@@ -5,6 +5,14 @@ ROOT="/var/www/gaspronal.programandoweb.net"
 COMPOSE_FILE="$ROOT/docker-compose.yml"
 ENV_FILE="$ROOT/.env.docker"
 LOCK_DIR="/tmp/gaspronal-deploy.lock"
+CANCEL_MARKER="$ROOT/.deploy-cancel-request"
+
+check_cancel() {
+  if [[ -f "$CANCEL_MARKER" ]]; then
+    echo "[deploy] Cancelación solicitada; deteniendo la secuencia antes del siguiente paso."
+    exit 130
+  fi
+}
 
 cleanup() {
   rmdir "$LOCK_DIR" 2>/dev/null || true
@@ -55,6 +63,7 @@ if ! grep -Eq '^AGENT_SHARED_SECRET=.+$' "$ENV_FILE"; then
 fi
 
 compose() {
+  check_cancel
   docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" "$@"
 }
 
@@ -68,6 +77,7 @@ if [[ -f "$INIT_PRIVATE_REPO_MARKER" ]]; then
   bash /tmp/init-private-repo-v2.sh
 fi
 
+check_cancel
 echo "[deploy] Actualizando rama main..."
 git -c safe.directory="$ROOT" -C "$ROOT" fetch origin main
 BEFORE="$(git -c safe.directory="$ROOT" -C "$ROOT" rev-parse HEAD)"
@@ -75,6 +85,7 @@ git -c safe.directory="$ROOT" -C "$ROOT" reset --hard origin/main
 AFTER="$(git -c safe.directory="$ROOT" -C "$ROOT" rev-parse HEAD)"
 echo "[deploy] Revisión: $BEFORE -> $AFTER"
 
+check_cancel
 echo "[backend] Construyendo imagen PHP..."
 compose build --pull backend
 
@@ -151,6 +162,7 @@ if [[ "$FRONTEND_HEALTH_OK" -ne 1 ]]; then
   exit 1
 fi
 
+check_cancel
 echo "[deploy] Estado de servicios:"
 compose ps
 
