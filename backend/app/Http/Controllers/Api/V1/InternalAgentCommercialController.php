@@ -44,13 +44,37 @@ class InternalAgentCommercialController extends Controller
         $query = trim((string) ($arguments['query'] ?? ''));
 
         $items = CatalogItem::query()
+            ->with('category:id,name,slug')
             ->where('status', 'published')
             ->when($query !== '', fn ($q) => $q->where(fn ($inner) => $inner
                 ->where('name', 'like', "%{$query}%")
                 ->orWhere('reference', 'like', "%{$query}%")
-                ->orWhere('short_description', 'like', "%{$query}%")))
-            ->limit(20)
-            ->get(['id', 'name', 'reference', 'short_description']);
+                ->orWhere('short_description', 'like', "%{$query}%")
+                ->orWhere('description', 'like', "%{$query}%")
+                ->orWhere('applications', 'like', "%{$query}%")
+                ->orWhere('specifications', 'like', "%{$query}%")
+                ->orWhereHas('category', fn ($category) => $category->where('name', 'like', "%{$query}%"))))
+            ->orderBy('name')
+            ->limit(10)
+            ->get([
+                'id', 'category_id', 'type', 'name', 'reference', 'slug',
+                'short_description', 'description', 'specifications', 'applications',
+            ])
+            ->map(fn (CatalogItem $item): array => [
+                'id' => $item->id,
+                'type' => $item->type,
+                'name' => $item->name,
+                'reference' => $item->reference,
+                'category' => $item->category ? [
+                    'name' => $item->category->name,
+                    'slug' => $item->category->slug,
+                ] : null,
+                'short_description' => $item->short_description,
+                'description' => $item->description,
+                'specifications' => $item->specifications,
+                'applications' => $item->applications,
+                'public_url' => $item->public_url,
+            ]);
 
         return response()->json(['data' => $items]);
     }
