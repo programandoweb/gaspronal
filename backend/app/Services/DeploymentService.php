@@ -21,8 +21,21 @@ class DeploymentService
         ];
     }
 
+    private function cancellationMarker(): string
+    {
+        return dirname((string) config('deployment.script')).'/.deploy-cancel-request';
+    }
+
+    public function requestCancellation(): void
+    {
+        if (file_put_contents($this->cancellationMarker(), now()->toIso8601String()) === false) {
+            throw new RuntimeException('No se pudo solicitar la cancelación.');
+        }
+    }
+
     public function launch(Deployment $deployment): void
     {
+        @unlink($this->cancellationMarker());
         $php = trim((string) config('deployment.php_binary', 'php'));
 
         if ($php === '') {
@@ -49,6 +62,11 @@ class DeploymentService
 
         if (! (bool) config('deployment.enabled', false) || $script === '' || ! is_file($script)) {
             throw new RuntimeException('El script de despliegue no está disponible.');
+        }
+
+        $deployment->refresh();
+        if ($deployment->status !== 'queued') {
+            return;
         }
 
         $deployment->update([
@@ -81,12 +99,18 @@ class DeploymentService
 
         $output = trim($result->output().PHP_EOL.$result->errorOutput());
 
+        $deployment->refresh();
+        $cancelled = $deployment->status === 'cancelling'
+            || is_file($this->cancellationMarker())
+            || $result->exitCode() === 130;
+
         $deployment->update([
-            'status' => $result->successful() ? 'succeeded' : 'failed',
+            'status' => $cancelled ? 'cancelled' : ($result->successful() ? 'succeeded' : 'failed'),
             'finished_at' => now(),
             'exit_code' => $result->exitCode(),
             'output' => mb_substr($output, 0, 100000),
-            'failure_message' => $result->successful() ? null : 'El script de despliegue terminó con errores.',
+            'failure_message' => $cancelled ? 'Cancelado por un administrador.' : ($result->successful() ? null : 'El script de despliegue terminó con errores.'),
         ]);
+        @unlink($this->cancellationMarker());
     }
 }
