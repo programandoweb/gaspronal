@@ -388,7 +388,8 @@ export class ChannelsRuntimeService implements OnModuleInit, OnModuleDestroy {
     if (inbound.duplicate || !inbound.should_automate) return;
 
     try {
-      const response = await this.agents.execute("claudio", {
+      const assignedAgentId = String(provider.settings?.agent_id ?? inbound.agent_id ?? "claudio").toLowerCase();
+      const response = await this.agents.execute(assignedAgentId, {
         message: text,
         history: inbound.history,
         context: {
@@ -425,7 +426,7 @@ export class ChannelsRuntimeService implements OnModuleInit, OnModuleDestroy {
         status: "sent",
       });
     } catch (error) {
-      this.logger.warn(`Claudio no pudo responder WhatsApp ${contactPhone}: ${this.errorMessage(error)}`);
+      this.logger.warn(`Agente de WhatsApp no pudo responder ${contactPhone}: ${this.errorMessage(error)}`);
       await this.client.updateConversation(inbound.conversation.id, "waiting_human").catch(() => undefined);
 
       const fallback = "Gracias por escribir a Gaspronal. En este momento no pude completar la atención automática. Dejé tu conversación pendiente para que un asesor pueda continuarla.";
