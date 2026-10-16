@@ -7,6 +7,7 @@ use App\Models\AgentSetting;
 use App\Models\AiModel;
 use App\Models\AiProvider;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -110,6 +111,7 @@ class AgentSettingController extends Controller
                 'api_key' => $setting?->api_key,
                 'primary' => $this->serializeRuntimeModel($setting?->primaryAiModel),
                 'fallback' => $this->serializeRuntimeModel($setting?->fallbackAiModel),
+                'training_instructions' => $agent === 'claudio' ? DB::table('agent_training_rules')->where('agent_id', 'claudio')->where('is_active', true)->orderBy('category')->get(['category', 'content'])->map(fn ($row) => ['category' => $row->category, 'content' => $row->content])->all() : [],
             ],
         ]);
     }

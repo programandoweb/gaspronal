@@ -21,7 +21,7 @@ class AccessControlSeeder extends Seeder
             'catalog.view', 'catalog.manage',
             'content.view', 'content.manage',
             'heroes.view', 'heroes.manage',
-            'agents.view', 'agents.manage',
+            'agents.view', 'agents.manage', 'agents.train', 'agents.training.approve',
             'ai.view', 'ai.manage',
             'channels.view', 'channels.manage',
             'extensions.view', 'extensions.manage',
@@ -45,7 +45,7 @@ class AccessControlSeeder extends Seeder
         $root->syncPermissions($allPermissions);
 
         $adminDefaults = $allPermissions->reject(
-            fn (Permission $permission) => in_array($permission->name, ['heroes.view', 'heroes.manage'], true)
+            fn (Permission $permission) => in_array($permission->name, ['heroes.view', 'heroes.manage', 'agents.train', 'agents.training.approve'], true)
         );
 
         if ($admin->permissions()->count() === 0) {
