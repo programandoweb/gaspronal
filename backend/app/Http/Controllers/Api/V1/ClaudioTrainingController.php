@@ -88,7 +88,7 @@ class ClaudioTrainingController extends Controller
                     DB::table('agent_training_proposals')->insert([
                         'session_id' => $session, 'category' => $parsed['category'],
                         'title' => mb_substr(trim((string) ($parsed['title'] ?? ucfirst($parsed['category']))), 0, 180),
-                        'content' => trim($parsed['content']), 'status' => 'pending',
+                        'content' => trim($parsed['content']), 'operation' => ($parsed['operation'] ?? 'append') === 'replace' ? 'replace' : 'append', 'status' => 'pending',
                         'created_at' => now(), 'updated_at' => now(),
                     ]);
                 }
@@ -115,21 +115,25 @@ class ClaudioTrainingController extends Controller
             abort_unless($ownedSession, 404);
             $rule = DB::table('agent_training_rules')->where('agent_id', 'claudio')->where('category', $pending->category)->lockForUpdate()->first();
             $version = $rule ? $rule->version + 1 : 1;
+            // Las nuevas enseñanzas se acumulan por defecto; reemplazar requiere propuesta explícita y aprobación.
+            $content = $rule && $pending->operation !== 'replace'
+                ? trim($rule->content."\n".$pending->content)
+                : $pending->content;
             if ($rule) {
                 DB::table('agent_training_rules')->where('id', $rule->id)->update([
-                    'title' => $pending->title, 'content' => $pending->content, 'version' => $version, 'is_active' => true, 'updated_at' => now(),
+                    'title' => $pending->title, 'content' => $content, 'version' => $version, 'is_active' => true, 'updated_at' => now(),
                 ]);
                 $ruleId = $rule->id;
             } else {
                 $ruleId = DB::table('agent_training_rules')->insertGetId([
                     'agent_id' => 'claudio', 'category' => $pending->category, 'title' => $pending->title,
-                    'content' => $pending->content, 'version' => 1, 'is_active' => true,
+                    'content' => $content, 'version' => 1, 'is_active' => true,
                     'created_at' => now(), 'updated_at' => now(),
                 ]);
             }
             DB::table('agent_training_versions')->insert([
                 'rule_id' => $ruleId, 'version' => $version, 'title' => $pending->title,
-                'content' => $pending->content, 'proposal_id' => $proposal,
+                'content' => $content, 'proposal_id' => $proposal,
                 'approved_by' => $request->user()->id, 'created_at' => now(), 'updated_at' => now(),
             ]);
             DB::table('agent_training_proposals')->where('id', $proposal)->update([

@@ -180,11 +180,13 @@ export class AgentRuntimeService {
         "Tu única función es proponer reglas de estilo, ventas, comunicación o procedimientos para Gaspronal.",
         "No ejecutas herramientas ni código, no cambias archivos, precios, permisos, privacidad o políticas base.",
         "Si el mensaje no solicita un cambio concreto, pide una aclaración y usa type reply.",
+        "Para una respuesta sin propuesta devuelve un JSON con type reply y message, sin content.",
         "Cuando exista una instrucción clara, usa type proposal, elige una categoría válida:",
         "tone, greetings, sales, objections, service, procedures, products, appointments.",
         "Responde EXCLUSIVAMENTE JSON válido SIN markdown:",
-        '{"type":"proposal|reply","category":"tone","title":"Título corto","content":"Instrucción propuesta completa","message":"Confirmación amable para el entrenador"}',
+        '{"type":"proposal","operation":"append","category":"tone","title":"Título corto","content":"Instrucción propuesta completa","message":"Confirmación amable para el entrenador"}',
         "content debe ser una regla autónoma y positiva, que se pueda reutilizar con los clientes.",
+        "Devuelve operation append por defecto; usa replace solo si el entrenador solicita sustituir explícitamente las reglas anteriores de esa categoría.",
         "No marques nada como aprobado ni afirmes que fue guardado. Solicita que el administrador lo apruebe.",
       ].join("\n");
       const history = (input.history ?? []).slice(-12)

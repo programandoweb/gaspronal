@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 type TrainingSession = { id: number; created_at: string };
 type TrainingMessage = { id: number; role: "user" | "assistant"; content: string; created_at: string };
-type Proposal = { id: number; category: string; title: string; content: string; status: "pending" | "approved" | "rejected" };
+type Proposal = { id: number; category: string; title: string; content: string; operation: "append" | "replace"; status: "pending" | "approved" | "rejected" };
 type Rule = { id: number; category: string; title: string; content: string; version: number };
 type Version = { id: number; version: number; title: string; content: string; created_at: string };
 type TrainingState = { can_approve: boolean; sessions: TrainingSession[]; rules: Rule[] };
@@ -145,7 +145,7 @@ export default function ClaudioTrainingPanel() {
           </div>)}
           {thread?.proposals.map(proposal => <div key={proposal.id} className="mx-auto max-w-2xl rounded-xl border border-emerald-200 bg-white p-4 shadow-sm">
             <div className="mb-2 flex items-center justify-between gap-2"><strong className="text-sm">{proposal.title}</strong><span className="text-xs font-medium text-[var(--muted)]">{proposal.status === "pending" ? "Pendiente de aprobación" : proposal.status === "approved" ? "Aprobada" : "Rechazada"}</span></div>
-            <p className="mb-1 text-[11px] uppercase tracking-wider text-[var(--muted)]">{proposal.category}</p>
+            <p className="mb-1 text-[11px] uppercase tracking-wider text-[var(--muted)]">{proposal.category} · {proposal.operation === "replace" ? "Reemplazar reglas de esta categoría" : "Añadir regla"}</p>
             <p className="whitespace-pre-wrap text-sm leading-6">{proposal.content}</p>
             {proposal.status === "pending" && state?.can_approve && <div className="mt-3 flex gap-2">
               <button type="button" disabled={busy} onClick={() => void review(proposal, "approve")} className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-emerald-700 px-3 text-xs font-semibold text-white disabled:opacity-50"><Check size={16}/> Aprobar y aplicar</button>
@@ -170,7 +170,7 @@ export default function ClaudioTrainingPanel() {
           <button type="button" onClick={() => void toggleVersions(rule)} className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-[var(--brand)]">{expandedRule === rule.id ? <ChevronUp size={14}/> : <ChevronDown size={14}/>} Historial</button>
           {expandedRule === rule.id && <div className="mt-2 space-y-2 border-t border-[var(--border)] pt-2">{versions.map(version => <div key={version.id} className="text-xs">
             <strong>v{version.version}</strong><p className="mt-1 whitespace-pre-wrap text-[var(--muted)]">{version.content}</p>
-            {state.can_approve && version.version !== rule.version && <button type="button" disabled={busy} onClick={() => void restore(rule, version)} className="mt-1 inline-flex items-center gap-1 font-bold text-[var(--brand)] disabled:opacity-50"><RotateCcw size={12}/> Restaurar</button>}
+            {state?.can_approve && version.version !== rule.version && <button type="button" disabled={busy} onClick={() => void restore(rule, version)} className="mt-1 inline-flex items-center gap-1 font-bold text-[var(--brand)] disabled:opacity-50"><RotateCcw size={12}/> Restaurar</button>}
           </div>)}</div>}
         </div>)}
       </aside>
