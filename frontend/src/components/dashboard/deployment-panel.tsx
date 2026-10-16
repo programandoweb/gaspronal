@@ -60,21 +60,21 @@ export function DeploymentPanel({ autoDeploy = false, requestedRef = null }: { a
     return () => window.clearInterval(timer);
   }, [active, load]);
 
-  async function mutateDeployment(item: Deployment, action: "cancel" | "delete") {
+  async function mutateDeployment(item: Deployment, action: "cancel" | "delete" | "recover") {
     const cancel = action === "cancel";
-    const question = cancel
+    const question = action === "recover" ? `¿Recuperar el despliegue #${item.id} si ha superado el tiempo máximo? Después podrás iniciar un nuevo despliegue.` : cancel
       ? `¿Solicitar cancelar el despliegue #${item.id}? La operación actual puede terminar antes de detenerse.`
       : `¿Eliminar únicamente el registro del despliegue #${item.id}? No se eliminarán bases de datos ni archivos.`;
     if (!window.confirm(question)) return;
     setMutating(item.id);
     setMessage(null);
     try {
-      const response = await fetch(`/api/deployments/${item.id}${cancel ? "/cancel" : ""}`, {
-        method: cancel ? "POST" : "DELETE",
+      const response = await fetch(`/api/deployments/${item.id}${action === "recover" ? "/recover" : cancel ? "/cancel" : ""}`, {
+        method: action === "delete" ? "DELETE" : "POST",
       });
       const result = await response.json().catch(() => ({}));
       setMessage(response.ok
-        ? cancel ? "Cancelación solicitada. Se detendrá en el siguiente punto seguro." : "Registro eliminado."
+        ? action === "recover" ? "Despliegue liberado. Ya puedes iniciar otro." : cancel ? "Cancelación solicitada. Se detendrá en el siguiente punto seguro." : "Registro eliminado."
         : result.message ?? "No fue posible completar la operación.");
       await load();
     } catch {
@@ -169,7 +169,7 @@ export function DeploymentPanel({ autoDeploy = false, requestedRef = null }: { a
     <section className="overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-sm">
       <div className="flex items-center gap-2 border-b border-[var(--border)] p-5"><Clock3 size={18} /><h2 className="font-bold">Historial</h2><button onClick={() => void load()} className="ml-auto grid size-9 place-items-center rounded-lg border border-[var(--border)]" aria-label="Actualizar historial"><RefreshCw size={16} /></button></div>
       <div className="divide-y divide-[var(--border)]">
-        {payload?.data.length ? payload.data.map((item) => <div key={item.id} className="grid gap-2 p-4 text-sm sm:grid-cols-[80px_1fr_auto] sm:items-center"><strong>#{item.id}</strong><div className="flex items-center gap-2">{item.status === "succeeded" ? <CheckCircle2 size={16} className="text-emerald-600" /> : item.status === "failed" ? <CircleAlert size={16} className="text-red-600" /> : <Clock3 size={16} className="text-amber-600" />}<Status value={item.status} /></div><div className="flex flex-wrap items-center gap-2 sm:justify-end"><span className="text-xs text-[var(--muted)]">{date(item.created_at)}</span>{(item.status === "queued" || item.status === "running") && <button type="button" onClick={() => void mutateDeployment(item, "cancel")} disabled={mutating !== null} className="inline-flex items-center gap-1 rounded-lg border border-amber-300 px-2.5 py-1.5 text-xs font-semibold text-amber-700 hover:bg-amber-50 disabled:opacity-50"><Square size={13} /> Cancelar</button>}{!["queued", "running", "cancelling"].includes(item.status) && <button type="button" onClick={() => void mutateDeployment(item, "delete")} disabled={mutating !== null} className="inline-flex items-center gap-1 rounded-lg border border-red-200 px-2.5 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:opacity-50"><Trash2 size={13} /> Eliminar</button>}</div></div>) : <p className="p-5 text-sm text-[var(--muted)]">Aún no existen despliegues registrados.</p>}
+        {payload?.data.length ? payload.data.map((item) => <div key={item.id} className="grid gap-2 p-4 text-sm sm:grid-cols-[80px_1fr_auto] sm:items-center"><strong>#{item.id}</strong><div className="flex items-center gap-2">{item.status === "succeeded" ? <CheckCircle2 size={16} className="text-emerald-600" /> : item.status === "failed" ? <CircleAlert size={16} className="text-red-600" /> : <Clock3 size={16} className="text-amber-600" />}<Status value={item.status} /></div><div className="flex flex-wrap items-center gap-2 sm:justify-end"><span className="text-xs text-[var(--muted)]">{date(item.created_at)}</span>{(item.status === "queued" || item.status === "running") && <button type="button" onClick={() => void mutateDeployment(item, "cancel")} disabled={mutating !== null} className="inline-flex items-center gap-1 rounded-lg border border-amber-300 px-2.5 py-1.5 text-xs font-semibold text-amber-700 hover:bg-amber-50 disabled:opacity-50"><Square size={13} /> Cancelar</button>}{(item.status === "running" || item.status === "cancelling") && <button type="button" onClick={() => void mutateDeployment(item, "recover")} disabled={mutating !== null} className="inline-flex items-center gap-1 rounded-lg border border-[var(--border)] px-2.5 py-1.5 text-xs font-semibold hover:bg-[var(--app-bg)] disabled:opacity-50"><RefreshCw size={13} /> Recuperar</button>}{!["queued", "running", "cancelling"].includes(item.status) && <button type="button" onClick={() => void mutateDeployment(item, "delete")} disabled={mutating !== null} className="inline-flex items-center gap-1 rounded-lg border border-red-200 px-2.5 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:opacity-50"><Trash2 size={13} /> Eliminar</button>}</div></div>) : <p className="p-5 text-sm text-[var(--muted)]">Aún no existen despliegues registrados.</p>}
       </div>
     </section>
   </div>;
