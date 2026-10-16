@@ -117,7 +117,7 @@ class InternalAgentCommercialController extends Controller
             'customer_confirmed' => ['required', 'accepted'],
             'notes' => ['nullable', 'string', 'max:5000'],
             'items' => ['required', 'array', 'min:1', 'max:50'],
-            'items.*.description' => ['required', 'string', 'max:500'],
+            'items.*.description' => ['required', 'string', 'max:255'],
             'items.*.catalog_item_id' => ['nullable', 'integer', 'exists:catalog_items,id'],
             'items.*.quantity' => ['required', 'numeric', 'gt:0'],
             'items.*.unit_price' => ['required', 'numeric', 'min:0'],
@@ -141,13 +141,19 @@ class InternalAgentCommercialController extends Controller
             ]);
             $total = 0;
             foreach ($data['items'] as $item) {
-                $lineTotal = round((float) $item['quantity'] * (float) $item['unit_price'], 2);
+                $catalogItem = ! empty($item['catalog_item_id'])
+                    ? CatalogItem::query()->where('status', 'published')->find($item['catalog_item_id'])
+                    : null;
+                $unitPrice = $catalogItem && $catalogItem->commercial_price !== null
+                    ? (float) $catalogItem->commercial_price
+                    : 0.0;
+                $lineTotal = round((float) $item['quantity'] * $unitPrice, 2);
                 $total += $lineTotal;
                 $quote->items()->create([
                     'catalog_item_id' => $item['catalog_item_id'] ?? null,
                     'description' => $item['description'],
                     'quantity' => $item['quantity'],
-                    'unit_price' => $item['unit_price'],
+                    'unit_price' => $unitPrice,
                     'line_total' => $lineTotal,
                 ]);
             }
