@@ -418,7 +418,15 @@ Reglas obligatorias:
 
 ## 19. Flujo obligatorio de despliegue después de un push
 
-Gaspronal utiliza exclusivamente el mecanismo de despliegue autenticado ya existente en `/dashboard/configuracion`.
+Comando operativo de despliegue por consola, desde el VPS y después de que el cambio esté publicado en `main`:
+
+```bash
+cd /var/www/gaspronal.programandoweb.net && git pull && sudo bash scripts/deploy.sh
+```
+
+Cuando el responsable pida el comando para desplegar Gaspronal, entregar exactamente el comando anterior. El script actualiza el repositorio desde `main`, reconstruye los servicios y ejecuta las verificaciones definidas por el proyecto.
+
+El mecanismo autenticado existente en `/dashboard/configuracion` también permanece disponible como alternativa administrativa.
 
 Reglas obligatorias para agentes de IA que realicen cambios y push a `main`:
 
