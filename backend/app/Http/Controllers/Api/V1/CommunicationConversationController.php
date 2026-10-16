@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Models\CommunicationConversation;
 use App\Models\CommunicationMessage;
+use App\Models\CommunicationProvider;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -154,7 +155,10 @@ class CommunicationConversationController extends Controller
             'metadata' => ['nullable', 'array'],
         ]);
 
-        [$conversation, $message] = DB::transaction(function () use ($data): array {
+        $provider = CommunicationProvider::query()->findOrFail($data['provider_id']);
+        abort_unless($provider->driver === 'baileys' && $provider->enabled, 422, 'Proveedor de WhatsApp no disponible.');
+        $agentId = strtolower((string) ($provider->settings['agent_id'] ?? 'claudio'));
+        [$conversation, $message] = DB::transaction(function () use ($data, $agentId): array {
             $conversation = CommunicationConversation::query()->firstOrCreate(
                 [
                     'provider_id' => $data['provider_id'],
@@ -162,7 +166,7 @@ class CommunicationConversationController extends Controller
                 ],
                 [
                     'channel' => 'whatsapp',
-                    'agent_id' => 'claudio',
+                    'agent_id' => $agentId,
                     'contact_phone' => $data['contact_phone'],
                     'contact_name' => $data['contact_name'] ?? null,
                     'status' => 'active',
@@ -225,6 +229,7 @@ class CommunicationConversationController extends Controller
         return response()->json([
             'data' => [
                 'conversation' => $this->summary($conversation),
+                'agent_id' => $conversation->agent_id,
                 'history' => $history,
                 'customer' => $conversation->user ? [
                     'id' => $conversation->user->id,
