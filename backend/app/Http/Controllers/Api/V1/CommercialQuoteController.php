@@ -8,6 +8,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\URL;
 
 class CommercialQuoteController extends Controller
 {
@@ -24,7 +25,12 @@ class CommercialQuoteController extends Controller
 
     public function show(CommercialQuote $commercialQuote): JsonResponse
     {
-        return response()->json(['data' => $commercialQuote->load(['lead', 'items'])]);
+        $commercialQuote->load(['lead', 'items']);
+        $data = $commercialQuote->toArray();
+        if ($commercialQuote->status === 'approved') {
+            $data['share_url'] = $this->shareUrl($commercialQuote);
+        }
+        return response()->json(['data' => $data]);
     }
 
     public function update(Request $request, CommercialQuote $commercialQuote): JsonResponse
@@ -70,6 +76,23 @@ class CommercialQuoteController extends Controller
         return $this->show($commercialQuote->fresh());
     }
 
+    private function shareUrl(CommercialQuote $quote): string
+    {
+        $path = URL::temporarySignedRoute('commercial.quotes.public-share', now()->addDays(30), ['commercialQuote' => $quote->id], absolute: false);
+        return rtrim((string) config('app.public_backend_url'), '/').$path;
+    }
+
+    public function publicShare(Request $request, CommercialQuote $commercialQuote)
+    {
+        abort_unless($request->hasValidSignature(false), 403, 'Enlace de propuesta no válido o vencido.');
+        abort_unless($commercialQuote->status === 'approved', 404);
+        $commercialQuote->load(['lead', 'items']);
+        $safe = fn ($value) => htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        $rows = $commercialQuote->items->map(fn ($item) => '<tr><td>'.$safe($item->description).'</td><td>'.$safe($item->quantity).'</td><td>'.$safe($item->unit_price).'</td><td>'.$safe($item->line_total).'</td></tr>')->implode('');
+        $html = '<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Propuesta Gaspronal</title><style>body{font-family:Arial,sans-serif;max-width:900px;margin:30px auto;padding:16px;color:#182b38}table{width:100%;border-collapse:collapse;margin-top:24px}td,th{border-bottom:1px solid #ddd;text-align:left;padding:12px}h1{color:#075e62}</style></head><body><h1>Gaspronal</h1><h2>Propuesta '.$safe($commercialQuote->number).'</h2><p>Cliente: '.$safe($commercialQuote->lead->name).'</p><table><thead><tr><th>Descripción</th><th>Cantidad</th><th>Precio unitario</th><th>Subtotal</th></tr></thead><tbody>'.$rows.'</tbody></table><h2>Total: '.$safe($commercialQuote->currency).' '.$safe($commercialQuote->total).'</h2><p>'.nl2br($safe($commercialQuote->notes ?? '')).'</p></body></html>';
+        return response($html)->header('Content-Type', 'text/html; charset=UTF-8')->header('X-Robots-Tag', 'noindex, nofollow');
+    }
+
     public function send(Request $request, CommercialQuote $commercialQuote): JsonResponse
     {
         abort_unless($commercialQuote->status === 'approved', 422, 'Solo se pueden compartir propuestas aprobadas.');
@@ -84,6 +107,7 @@ class CommercialQuoteController extends Controller
             "Compartimos nuestra propuesta comercial aprobada:\n\n{$lines}\n\n".
             "Total: {$currency} ".number_format((float) $commercialQuote->total, 2, ',', '.')."\n\n".
             ($commercialQuote->notes ? "Observaciones: {$commercialQuote->notes}\n\n" : '').
+            "Consulta tu propuesta en: ".$this->shareUrl($commercialQuote)."\n\n".
             "Atentamente,\nEquipo comercial Gaspronal";
         Mail::raw($body, function ($message) use ($data, $commercialQuote): void {
             $message->to($data['email'])->subject('Gaspronal - Propuesta '.$commercialQuote->number);
