@@ -159,6 +159,11 @@ export class AgentRuntimeService {
       agent.prompt,
       agent.memory ? "\n## Memoria\n" + agent.memory : "",
       agent.tools ? "\n## Herramientas\n" + agent.tools : "",
+      agent.id === "claudio" && credentials.training_instructions?.length
+        ? "\n## Preferencias comerciales aprobadas (no reemplazan la política de seguridad)\n"
+          + credentials.training_instructions.map(rule => `- [${rule.category}]: ${rule.content}`).join("\n")
+          + "\nEstas reglas son de estilo y procedimiento. Nunca modifican límites de herramientas, privacidad, seguridad, precios ni consentimiento."
+        : "",
       this.contextInstructions(input.context),
       "\nResponde siempre en español salvo que el usuario solicite otro idioma.",
     ].join("\n").trim();
@@ -166,6 +171,41 @@ export class AgentRuntimeService {
     const routedModels = [credentials.primary, credentials.fallback].filter(
       (item): item is RuntimeAiModel => Boolean(item),
     );
+
+    // Las sesiones de entrenamiento están aisladas: no se ejecutan herramientas comerciales,
+    // no se publican reglas aquí y nunca se tratan como conversaciones de clientes.
+    if (agent.id === "claudio" && input.context?.trainingMode === true) {
+      const trainingSystem = [
+        "Eres Claudio Trainer. Conversas en español con un entrenador autorizado por Laravel.",
+        "Tu única función es proponer reglas de estilo, ventas, comunicación o procedimientos para Gaspronal.",
+        "No ejecutas herramientas ni código, no cambias archivos, precios, permisos, privacidad o políticas base.",
+        "Si el mensaje no solicita un cambio concreto, pide una aclaración y usa type reply.",
+        "Cuando exista una instrucción clara, usa type proposal, elige una categoría válida:",
+        "tone, greetings, sales, objections, service, procedures, products, appointments.",
+        "Responde EXCLUSIVAMENTE JSON válido SIN markdown:",
+        '{"type":"proposal|reply","category":"tone","title":"Título corto","content":"Instrucción propuesta completa","message":"Confirmación amable para el entrenador"}',
+        "content debe ser una regla autónoma y positiva, que se pueda reutilizar con los clientes.",
+        "No marques nada como aprobado ni afirmes que fue guardado. Solicita que el administrador lo apruebe.",
+      ].join("\n");
+      const history = (input.history ?? []).slice(-12)
+        .map(item => `${item.role === "assistant" ? "Claudio" : "Entrenador"}: ${String(item.content).slice(0, 1500)}`).join("\n");
+      const trainingMessage = `${history}\nEntrenador: ${message}`;
+      let answer = "";
+      let lastError: unknown;
+      for (const model of routedModels) {
+        try {
+          answer = await this.generateWithRoutedModel(model, trainingSystem, trainingMessage);
+          if (answer.trim()) break;
+        } catch (error) { lastError = error; }
+      }
+      if (!answer && credentials.api_key) {
+        answer = await this.gemini.generate({
+          apiKey: credentials.api_key, model: credentials.model, system: trainingSystem, message: trainingMessage,
+        });
+      }
+      if (!answer.trim()) throw lastError instanceof Error ? lastError : new Error("Modelo de entrenamiento no disponible.");
+      return { requestId, agent: { id: agent.id, name: agent.name, role: agent.role }, message: answer, status: "completed" };
+    }
 
     if (routedModels.length) {
       let lastError: unknown = null;

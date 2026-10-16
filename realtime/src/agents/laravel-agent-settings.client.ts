@@ -23,6 +23,7 @@ type AgentCredentials = {
   api_key: string | null;
   primary: RuntimeAiModel | null;
   fallback: RuntimeAiModel | null;
+  training_instructions?: Array<{ category: string; content: string }>;
 };
 
 @Injectable()

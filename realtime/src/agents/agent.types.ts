@@ -22,6 +22,7 @@ export type AgentExecutionContext = {
   customerEmail?: string;
   hasDataProcessingConsent?: boolean;
   webConversationId?: number;
+  trainingMode?: boolean;
 };
 
 export type AgentMessageInput = {
