@@ -7,6 +7,7 @@ use App\Models\CommercialQuote;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 
 class CommercialQuoteController extends Controller
 {
@@ -67,6 +68,27 @@ class CommercialQuoteController extends Controller
         });
 
         return $this->show($commercialQuote->fresh());
+    }
+
+    public function send(Request $request, CommercialQuote $commercialQuote): JsonResponse
+    {
+        abort_unless($commercialQuote->status === 'approved', 422, 'Solo se pueden compartir propuestas aprobadas.');
+        $data = $request->validate(['email' => ['required', 'email', 'max:190']]);
+        $commercialQuote->load(['lead', 'items']);
+        $currency = $commercialQuote->currency ?: 'COP';
+        $lines = $commercialQuote->items->map(fn ($item) => sprintf('%s | Cantidad: %s | Precio unitario: %s %s',
+            $item->description, $item->quantity, $currency, number_format((float) $item->unit_price, 2, ',', '.')
+        ))->implode("\n");
+        $body = "Gaspronal - Propuesta {$commercialQuote->number}\n\n".
+            "Estimado/a {$commercialQuote->lead->name}:\n\n".
+            "Compartimos nuestra propuesta comercial aprobada:\n\n{$lines}\n\n".
+            "Total: {$currency} ".number_format((float) $commercialQuote->total, 2, ',', '.')."\n\n".
+            ($commercialQuote->notes ? "Observaciones: {$commercialQuote->notes}\n\n" : '').
+            "Atentamente,\nEquipo comercial Gaspronal";
+        Mail::raw($body, function ($message) use ($data, $commercialQuote): void {
+            $message->to($data['email'])->subject('Gaspronal - Propuesta '.$commercialQuote->number);
+        });
+        return response()->json(['message' => 'Propuesta enviada por correo electrónico.']);
     }
 
     public function approve(CommercialQuote $commercialQuote): JsonResponse
