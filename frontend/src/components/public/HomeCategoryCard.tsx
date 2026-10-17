@@ -30,7 +30,7 @@ export default function HomeCategoryCard({
       href={`/productos?categoria=${encodeURIComponent(slug)}`}
       aria-label={`Ver productos de ${name}`}
       data-category-id={id}
-      className="group relative min-h-[215px] overflow-hidden rounded-2xl border border-[var(--brand)] bg-white p-5 transition duration-300 hover:-translate-y-1 hover:shadow-xl"
+      className="group relative block h-[215px] w-full overflow-hidden rounded-2xl border border-[var(--brand)] bg-white p-5 transition duration-300 hover:-translate-y-1 hover:shadow-xl"
     >
       {hasPhoto ? (
         <img
