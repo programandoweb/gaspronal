@@ -53,7 +53,14 @@ export default function ClaudioWhatsAppConversations({ onOpenConversation }:{ on
     {loading&&conversations.length===0&&<p className="p-5 text-sm text-[var(--muted)]">Cargando conversaciones…</p>}
     {!loading&&conversations.length===0&&<div className="p-10 text-center"><FaWhatsapp className="mx-auto text-3xl text-[var(--brand)]"/><p className="mt-3 font-semibold">Aún no hay conversaciones.</p><p className="mt-1 text-sm text-[var(--muted)]">Aparecerán aquí cuando un cliente escriba al WhatsApp conectado.</p></div>}
     <div className="divide-y divide-[var(--border)]">
-      {conversations.map(item=>{const title=item.customer?.name||item.contact_name||item.contact_phone||"Cliente";return <button key={item.id} type="button" onClick={()=>onOpenConversation(item.id)} className="w-full p-4 text-left transition hover:bg-[var(--app-bg)] sm:px-5"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><strong className="block truncate text-sm">{title}</strong><span className="mt-1 block text-xs text-[var(--muted)]">{item.contact_phone}</span></div><span className="shrink-0 text-[11px] text-[var(--muted)]">{dateLabel(item.last_message_at)}</span></div><p className="mt-2 truncate text-sm text-[var(--muted)]">{item.latest_message?.content??"Sin mensajes"}</p><span className="mt-2 inline-flex rounded-full border border-[var(--border)] px-2 py-1 text-[11px] font-semibold">{statusLabels[item.status]}</span></button>;})}
+      {conversations.map(item=>{
+        const title=item.customer?.name||item.contact_name||item.contact_phone||"Cliente";
+        return <button key={item.id} type="button" onClick={()=>onOpenConversation(item.id)} className="grid w-full grid-cols-[minmax(0,.9fr)_minmax(0,1.5fr)_minmax(0,.8fr)] items-center gap-4 px-4 py-3 text-left transition hover:bg-[var(--app-bg)] sm:px-5">
+          <div className="min-w-0"><strong className="block truncate text-sm">{title}</strong><span className="mt-0.5 block truncate text-xs text-[var(--muted)]">{item.contact_phone}</span></div>
+          <p className="line-clamp-2 text-sm leading-5 text-[var(--muted)]">{item.latest_message?.content??"Sin mensajes"}</p>
+          <div className="min-w-0 text-right"><span className="inline-flex max-w-full truncate rounded-full border border-[var(--border)] px-2 py-1 text-[11px] font-semibold">{statusLabels[item.status]}</span><span className="mt-1 block text-[11px] text-[var(--muted)]">{dateLabel(item.last_message_at)}</span></div>
+        </button>;
+      })}
     </div>
     {message&&<p className="border-t border-[var(--border)] px-5 py-3 text-xs font-medium text-[var(--brand)]">{message}</p>}
   </section>;
