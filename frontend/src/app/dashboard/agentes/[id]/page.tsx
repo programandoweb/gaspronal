@@ -20,6 +20,10 @@ type Settings = {
   has_api_key:boolean;
   primary_ai_model_id?:number|null;
   fallback_ai_model_id?:number|null;
+  ai_temperature?:number;
+  tone_profile?:"paisa_amable"|"professional_close"|"formal_consultative"|"direct";
+  response_style?:"brief"|"balanced"|"detailed";
+  tone_instructions?:string|null;
 };
 type AiModelOption = {
   id:number;
@@ -111,6 +115,10 @@ export default function AgentChatPage({ params }:{ params:Promise<{id:string}> }
   const [aiModels,setAiModels]=useState<AiModelOption[]>([]);
   const [primaryAiModelId,setPrimaryAiModelId]=useState("");
   const [fallbackAiModelId,setFallbackAiModelId]=useState("");
+  const [aiTemperature,setAiTemperature]=useState("0.75");
+  const [toneProfile,setToneProfile]=useState<NonNullable<Settings["tone_profile"]>>("paisa_amable");
+  const [responseStyle,setResponseStyle]=useState<NonNullable<Settings["response_style"]>>("balanced");
+  const [toneInstructions,setToneInstructions]=useState("");
   const [saving,setSaving]=useState(false);
   const [settingsMessage,setSettingsMessage]=useState("");
   const [messages,setMessages]=useState<ChatMessage[]>([]);
@@ -158,6 +166,10 @@ export default function AgentChatPage({ params }:{ params:Promise<{id:string}> }
         setSettings(settingsJson.data);
         setPrimaryAiModelId(settingsJson.data.primary_ai_model_id?String(settingsJson.data.primary_ai_model_id):"");
         setFallbackAiModelId(settingsJson.data.fallback_ai_model_id?String(settingsJson.data.fallback_ai_model_id):"");
+        setAiTemperature(String(settingsJson.data.ai_temperature??0.75));
+        setToneProfile(settingsJson.data.tone_profile??"paisa_amable");
+        setResponseStyle(settingsJson.data.response_style??"balanced");
+        setToneInstructions(settingsJson.data.tone_instructions??"");
       }
     }
     void load();
@@ -408,6 +420,10 @@ export default function AgentChatPage({ params }:{ params:Promise<{id:string}> }
     const payload:Record<string,unknown>={
       primary_ai_model_id:primaryAiModelId?Number(primaryAiModelId):null,
       fallback_ai_model_id:fallbackAiModelId?Number(fallbackAiModelId):null,
+      ai_temperature:Number(aiTemperature),
+      tone_profile:toneProfile,
+      response_style:responseStyle,
+      tone_instructions:toneInstructions.trim()||null,
     };
 
     const response=await fetch(`/api/agents/${id}/settings`,{
@@ -424,7 +440,7 @@ export default function AgentChatPage({ params }:{ params:Promise<{id:string}> }
     }
 
     setSettings(json.data);
-    setSettingsMessage("Modelos del agente actualizados.");
+    setSettingsMessage("Configuración de IA actualizada.");
   }
 
   async function send(e:React.FormEvent){
@@ -730,7 +746,7 @@ export default function AgentChatPage({ params }:{ params:Promise<{id:string}> }
             El agente intenta primero el modelo principal. Si falla, utiliza automáticamente el fallback.
           </p>
 
-          <div className={`grid gap-4 ${id==="claudio"?"":"md:grid-cols-2"}`}>
+          <div className="grid gap-4 md:grid-cols-2">
             <label className="block space-y-2">
               <span className="text-sm font-medium">Modelo principal</span>
               <select
@@ -763,11 +779,21 @@ export default function AgentChatPage({ params }:{ params:Promise<{id:string}> }
             </label>
           </div>
 
+          {id==="claudio"&&<>
+            <div className="border-t border-[var(--border)] pt-4"><div className="flex items-center justify-between gap-3"><div><h3 className="font-semibold">Personalidad comercial</h3><p className="mt-1 text-xs text-[var(--muted)]">Define cómo se expresa Claudio; no altera precios, políticas ni aprobaciones.</p></div><span className="rounded-full bg-[var(--brand-soft)] px-2.5 py-1 text-xs font-bold text-[var(--brand)]">Configuración activa</span></div></div>
+            <div className="grid gap-4 md:grid-cols-3">
+              <label className="block space-y-2"><span className="text-sm font-medium">Tono</span><select value={toneProfile} onChange={e=>setToneProfile(e.target.value as NonNullable<Settings["tone_profile"]>)} className="min-h-11 w-full rounded-xl border border-[var(--border)] bg-transparent px-3"><option value="paisa_amable">Paisa amable y cercano</option><option value="professional_close">Profesional cercano</option><option value="formal_consultative">Formal consultivo</option><option value="direct">Directo y concreto</option></select></label>
+              <label className="block space-y-2"><span className="text-sm font-medium">Extensión de respuesta</span><select value={responseStyle} onChange={e=>setResponseStyle(e.target.value as NonNullable<Settings["response_style"]>)} className="min-h-11 w-full rounded-xl border border-[var(--border)] bg-transparent px-3"><option value="brief">Breve</option><option value="balanced">Equilibrada</option><option value="detailed">Detallada</option></select></label>
+              <label className="block space-y-2"><span className="flex items-center justify-between text-sm font-medium">Temperatura <b className="text-[var(--brand)]">{Number(aiTemperature).toFixed(2)}</b></span><input type="range" min="0" max="1.5" step="0.05" value={aiTemperature} onChange={e=>setAiTemperature(e.target.value)} className="mt-3 w-full accent-[var(--brand)]"/><span className="block text-xs text-[var(--muted)]">Más baja: precisa · más alta: conversacional.</span></label>
+            </div>
+            <label className="block space-y-2"><span className="text-sm font-medium">Instrucciones de tono adicionales</span><textarea value={toneInstructions} onChange={e=>setToneInstructions(e.target.value)} rows={3} maxLength={3000} placeholder="Ej.: saluda con calidez, valida la necesidad del cliente y cierra ofreciendo el siguiente paso." className="w-full resize-y rounded-xl border border-[var(--border)] bg-transparent p-3 text-sm outline-none focus:border-[var(--brand)]"/><span className="block text-xs text-[var(--muted)]">Se combina con las reglas aprobadas desde Entrenamiento.</span></label>
+          </>}
+
           <Link href="/dashboard/ia" className="inline-flex text-sm font-semibold text-[var(--brand)] hover:underline">
             Administrar proveedores y modelos
           </Link>
 
-          <button disabled={saving} className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-[var(--brand)] px-4 font-semibold text-white disabled:opacity-50"><Save size={17}/>{saving?"Guardando…":"Guardar modelos"}</button>
+          <button disabled={saving} className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-[var(--brand)] px-4 font-semibold text-white disabled:opacity-50"><Save size={17}/>{saving?"Guardando…":id==="claudio"?"Guardar configuración de IA":"Guardar modelos"}</button>
 
           {settingsMessage&&<p className="text-xs leading-5 text-[var(--muted)]">{settingsMessage}</p>}
         </form>}
