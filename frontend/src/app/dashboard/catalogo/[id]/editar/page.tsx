@@ -60,6 +60,7 @@ export default function EditCatalogItemPage({ params }:{ params:Promise<{id:stri
   const [primaryImage,setPrimaryImage]=useState("");
   const [galleryMessage,setGalleryMessage]=useState("");
   const [uploading,setUploading]=useState(false);
+  const [saving,setSaving]=useState(false);
   const [activeTab,setActiveTab]=useState<"form"|"gallery">("form");
   const [form,setForm]=useState<CatalogForm>({
     type:"product",
@@ -127,10 +128,16 @@ export default function EditCatalogItemPage({ params }:{ params:Promise<{id:stri
     void load();
   },[id]);
 
-  async function save(e:React.FormEvent){
-    e.preventDefault();
+  async function save(){
+    if(saving||uploading)return;
     setMessage("");
+    if(!form.name.trim()||!form.slug.trim()){
+      setMessage("El nombre y el slug son obligatorios.");
+      return;
+    }
+    setSaving(true);
 
+    try {
     const response=await fetch(`/api/admin/catalog/items/${id}`,{
       method:"PUT",
       headers:{"Content-Type":"application/json"},
@@ -157,7 +164,12 @@ export default function EditCatalogItemPage({ params }:{ params:Promise<{id:stri
     }
 
     setPublicUrl(json.data.public_url??publicUrl);
-    setMessage("Producto actualizado correctamente.");
+    setMessage("Cambios guardados correctamente.");
+    } catch {
+      setMessage("No fue posible guardar los cambios. Intenta nuevamente.");
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function uploadGallery(files:FileList|null){
@@ -233,10 +245,17 @@ export default function EditCatalogItemPage({ params }:{ params:Promise<{id:stri
       <Link href="/dashboard/catalogo" className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-[var(--border)] px-3 text-sm font-medium">
         <FiArrowLeft size={16}/>Volver
       </Link>
-      {publicUrl&&<a href={`https://www.gaspronal.com${publicUrl}`} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-[var(--border)] px-3 text-sm font-medium">
-        <FiExternalLink size={16}/>Ver original
-      </a>}
+      <div className="flex flex-wrap items-center gap-2">
+        {publicUrl&&<a href={`https://www.gaspronal.com${publicUrl}`} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-[var(--border)] px-3 text-sm font-medium">
+          <FiExternalLink size={16}/>Ver original
+        </a>}
+        <button type="button" onClick={()=>void save()} disabled={saving||uploading} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-[var(--brand)] px-4 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60">
+          <FiSave size={17}/>{saving?"Guardando…":"Guardar cambios"}
+        </button>
+      </div>
     </div>
+
+    {message&&<p role="status" className="text-sm font-medium text-[var(--brand)]">{message}</p>}
 
     <header>
       <span className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--brand)]">Catálogo</span>
@@ -276,7 +295,7 @@ export default function EditCatalogItemPage({ params }:{ params:Promise<{id:stri
       </button>
     </div>
 
-    {activeTab==="form"&&<form onSubmit={save} className="space-y-5 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 sm:p-6">
+    {activeTab==="form"&&<form onSubmit={e=>{e.preventDefault();void save();}} className="space-y-5 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 sm:p-6">
       <div className="grid gap-6 xl:grid-cols-2">
         <div className="grid content-start gap-4 md:grid-cols-2">
           <label className="space-y-2">
@@ -369,10 +388,6 @@ export default function EditCatalogItemPage({ params }:{ params:Promise<{id:stri
         </div>
       </div>
 
-      <button className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[var(--brand)] px-5 font-semibold text-white">
-        <FiSave size={17}/>Guardar cambios
-      </button>
-      {message&&<p className="text-sm font-medium text-[var(--brand)]">{message}</p>}
     </form>}
 
     {activeTab==="gallery"&&<section className="space-y-5 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 sm:p-6">
