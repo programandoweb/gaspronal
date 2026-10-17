@@ -210,10 +210,6 @@ export default async function ProductDetailPage({
             {product.name}
           </h1>
 
-          {product.short_description ? (
-            <p className="mt-6 text-lg leading-8 text-slate-600">{product.short_description}</p>
-          ) : null}
-
           <a
             href={whatsappHref}
             target="_blank"
@@ -224,6 +220,18 @@ export default async function ProductDetailPage({
             Cotizar este producto
             <ArrowRight size={17} />
           </a>
+
+          {(description || product.short_description) ? (
+            <div className="mt-8 border-t border-slate-200 pt-7">
+              <h2 className="text-lg font-black text-[var(--steel)]">Descripción</h2>
+              {product.short_description ? (
+                <p className="mt-4 text-base leading-8 text-slate-700">{product.short_description}</p>
+              ) : null}
+              {description && description !== product.short_description ? (
+                <div className="mt-4 whitespace-pre-line text-base leading-8 text-slate-700">{description}</div>
+              ) : null}
+            </div>
+          ) : null}
 
           {applications.length > 0 ? (
             <div className="mt-10 border-t border-slate-200 pt-8">
@@ -242,19 +250,6 @@ export default async function ProductDetailPage({
           ) : null}
         </div>
       </section>
-
-      {description ? (
-        <section className="border-t border-slate-200 bg-[var(--surface-muted)]">
-          <div className="mx-auto max-w-[1440px] px-4 py-14 sm:px-6 lg:px-10">
-            <div className="max-w-4xl">
-              <p className="text-xs font-black uppercase tracking-[0.16em] text-[var(--accent)]">Descripción</p>
-              <div className="mt-5 whitespace-pre-line text-base leading-8 text-slate-700">
-                {description}
-              </div>
-            </div>
-          </div>
-        </section>
-      ) : null}
 
       {specs.length > 0 ? (
         <section className="border-t border-slate-200 bg-white">
