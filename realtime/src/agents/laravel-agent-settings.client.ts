@@ -23,6 +23,10 @@ type AgentCredentials = {
   api_key: string | null;
   primary: RuntimeAiModel | null;
   fallback: RuntimeAiModel | null;
+  temperature: number;
+  tone_profile: "paisa_amable" | "professional_close" | "formal_consultative" | "direct";
+  response_style: "brief" | "balanced" | "detailed";
+  tone_instructions?: string | null;
   training_instructions?: Array<{ category: string; content: string }>;
 };
 
