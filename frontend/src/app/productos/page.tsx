@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, Box, Search, Tag } from "lucide-react";
-import CategoryCircleCarousel from "@/components/public/CategoryCircleCarousel";
+import HomeCategoryCard from "@/components/public/HomeCategoryCard";
 import ProductCardImage from "@/components/public/ProductCardImage";
 
 export const metadata: Metadata = {
@@ -166,18 +166,29 @@ export default async function ProductsPage({
       </section>
 
       <section className="mx-auto max-w-[1440px] px-4 py-8 sm:px-6 lg:px-10">
-        <CategoryCircleCarousel
-          categories={categories.map((item) => ({
-            ...item,
-            products_count: item.products_count ?? 0,
-            image_url: item.image_url?.startsWith("/api/catalog-media/") || item.image_url?.startsWith("/api/category-media/")
+        <nav aria-label="Categorías de productos" className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+          {categories.map((item, index) => {
+            const imageUrl = item.image_url?.startsWith("/api/catalog-media/") || item.image_url?.startsWith("/api/category-media/")
               ? item.image_url
               : item.image_url?.startsWith("/")
-                ? (process.env.PUBLIC_BACKEND_URL ?? "https://backend.gaspronal.programandoweb.net").replace(/\/$/, "") + item.image_url
-                : item.image_url ?? null,
-          }))}
-          activeCategory={category}
-        />
+                ? (process.env.PUBLIC_BACKEND_URL ?? "https://backend.gaspronal.programandoweb.net").replace(/\\/$/, "") + item.image_url
+                : item.image_url ?? null;
+            return (
+              <div
+                key={item.id}
+                className={`min-w-0 rounded-2xl ${category === item.slug ? "ring-2 ring-[var(--brand)] ring-offset-2" : ""}`}
+              >
+                <HomeCategoryCard
+                  id={item.id}
+                  name={item.name}
+                  slug={item.slug}
+                  imageUrl={imageUrl}
+                  index={index}
+                />
+              </div>
+            );
+          })}
+        </nav>
       </section>
 
       <section className="mx-auto max-w-[1440px] px-4 pb-20 sm:px-6 lg:px-10">
