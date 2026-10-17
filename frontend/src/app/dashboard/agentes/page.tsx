@@ -20,6 +20,8 @@ import {
 
 type Agent={id:string;name:string;role:string};
 
+const HIDDEN_AGENT_IDS=new Set(["leonardo","sofia","lucia"]);
+
 type AgentMetric={
   id:string;
   interactions_30d:number;
@@ -118,6 +120,21 @@ export default function AgentsPage(){
     [data]
   );
 
+  const visibleAgents=useMemo(
+    ()=>agents.filter(agent=>!HIDDEN_AGENT_IDS.has(agent.id)),
+    [agents]
+  );
+
+  const visibleRecentQuestions=useMemo(
+    ()=> (data?.recent_questions??[]).filter(item=>!HIDDEN_AGENT_IDS.has(item.agent_id)),
+    [data]
+  );
+
+  const visibleRecentKnowledge=useMemo(
+    ()=> (data?.recent_knowledge??[]).filter(item=>!HIDDEN_AGENT_IDS.has(item.agent_id)),
+    [data]
+  );
+
   const activityMax=useMemo(
     ()=>Math.max(1,...(data?.activity_7d??[]).map(item=>item.interactions)),
     [data]
@@ -152,7 +169,7 @@ export default function AgentsPage(){
     },
     {
       label:"Agentes configurados",
-      value:`${data.kpis.configured_agents}/${agents.length}`,
+      value:`${visibleAgents.filter(agent=>metricsMap.get(agent.id)?.model).length}/${visibleAgents.length}`,
       detail:"con API key disponible",
       icon:FiShield,
     },
@@ -281,7 +298,7 @@ export default function AgentsPage(){
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {agents.map(agent=>{
+        {visibleAgents.map(agent=>{
           const metric=metricsMap.get(agent.id);
           return <Link
             key={agent.id}
@@ -339,12 +356,12 @@ export default function AgentsPage(){
         </div>
 
         <div className="divide-y divide-[var(--border)]">
-          {data.recent_questions.length===0&&(
+          {visibleRecentQuestions.length===0&&(
             <p className="px-5 py-10 text-center text-sm text-[var(--muted)]">
               La telemetría empieza a registrar preguntas desde este despliegue.
             </p>
           )}
-          {data.recent_questions.map(item=>(
+          {visibleRecentQuestions.map(item=>(
             <div key={item.id} className="flex items-start justify-between gap-4 px-5 py-4">
               <div className="min-w-0">
                 <strong className="block truncate text-sm">{item.question}</strong>
@@ -419,7 +436,7 @@ export default function AgentsPage(){
             </tr>
           </thead>
           <tbody className="divide-y divide-[var(--border)]">
-            {data.recent_knowledge.map(item=>(
+            {visibleRecentKnowledge.map(item=>(
               <tr key={item.id}>
                 <td className="px-5 py-4">
                   <strong className="block text-sm">{item.title}</strong>
@@ -435,7 +452,7 @@ export default function AgentsPage(){
                 <td className="px-5 py-4 text-sm text-[var(--muted)]">{dateTime(item.updated_at)}</td>
               </tr>
             ))}
-            {data.recent_knowledge.length===0&&(
+            {visibleRecentKnowledge.length===0&&(
               <tr><td colSpan={5} className="px-5 py-10 text-center text-sm text-[var(--muted)]">Aún no hay conocimiento RAG publicado.</td></tr>
             )}
           </tbody>
