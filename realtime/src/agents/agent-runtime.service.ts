@@ -192,6 +192,7 @@ export class AgentRuntimeService {
           + credentials.training_instructions.map(rule => `- [${rule.category}]: ${rule.content}`).join("\n")
           + "\nEstas reglas son de estilo y procedimiento. Nunca modifican límites de herramientas, privacidad, seguridad, precios ni consentimiento."
         : "",
+      agent.id === "claudio" ? this.claudioCommunicationStyle(credentials) : "",
       this.contextInstructions(input.context),
       "\nResponde siempre en español salvo que el usuario solicite otro idioma.",
     ].join("\n").trim();
@@ -224,13 +225,13 @@ export class AgentRuntimeService {
       let lastError: unknown;
       for (const model of routedModels) {
         try {
-          answer = await this.generateWithRoutedModel(model, trainingSystem, trainingMessage);
+          answer = await this.generateWithRoutedModel(model, trainingSystem, trainingMessage, credentials.temperature);
           if (answer.trim()) break;
         } catch (error) { lastError = error; }
       }
       if (!answer && credentials.api_key) {
         answer = await this.gemini.generate({
-          apiKey: credentials.api_key, model: credentials.model, system: trainingSystem, message: trainingMessage,
+          apiKey: credentials.api_key, model: credentials.model, system: trainingSystem, message: trainingMessage, temperature: credentials.temperature,
         });
       }
       if (!answer.trim()) throw lastError instanceof Error ? lastError : new Error("Modelo de entrenamiento no disponible.");
@@ -250,8 +251,9 @@ export class AgentRuntimeService {
                 message,
                 input.history ?? [],
                 input.context,
+                credentials.temperature,
               )
-            : await this.generateWithRoutedModel(routedModel, system, message);
+            : await this.generateWithRoutedModel(routedModel, system, message, credentials.temperature);
 
           return this.finish(requestId, agent, message, answer, startedAt, input.sessionId);
         } catch (error) {
@@ -282,12 +284,14 @@ export class AgentRuntimeService {
           message,
           input.history ?? [],
           input.context,
+          credentials.temperature,
         )
       : await this.gemini.generate({
           apiKey: credentials.api_key,
           model: credentials.model,
           system,
           message,
+          temperature: credentials.temperature,
         });
 
     return this.finish(requestId, agent, message, answer, startedAt, input.sessionId);
@@ -304,6 +308,7 @@ export class AgentRuntimeService {
     message: string,
     history: Array<{ role: "user" | "assistant"; content: string }>,
     context?: AgentExecutionContext,
+    temperature?: number,
   ): Promise<string> {
     const functions = agentId === "claudio" ? CLAUDIO_FUNCTIONS : SOFIA_FUNCTIONS;
 
@@ -321,6 +326,7 @@ export class AgentRuntimeService {
         history,
         functions,
         context,
+        temperature,
       );
     }
 
@@ -339,6 +345,7 @@ export class AgentRuntimeService {
           system,
           messages,
           functions,
+          temperature,
         });
 
         messages.push(turn.message);
@@ -369,6 +376,7 @@ export class AgentRuntimeService {
     message: string,
     history: Array<{ role: "user" | "assistant"; content: string }>,
     context?: AgentExecutionContext,
+    temperature?: number,
   ): Promise<string> {
     const functions = agentId === "claudio" ? CLAUDIO_FUNCTIONS : SOFIA_FUNCTIONS;
 
@@ -381,6 +389,7 @@ export class AgentRuntimeService {
       history,
       functions,
       context,
+      temperature,
     );
   }
 
@@ -393,6 +402,7 @@ export class AgentRuntimeService {
     history: Array<{ role: "user" | "assistant"; content: string }>,
     functions: GeminiFunctionDeclaration[],
     context?: AgentExecutionContext,
+    temperature?: number,
   ): Promise<string> {
     const contents: GeminiContent[] = [
       ...history.slice(-20).map(item => ({
@@ -410,6 +420,7 @@ export class AgentRuntimeService {
         contents,
         functions,
         googleSearch: agentId === "sofia",
+        temperature,
       });
 
       contents.push(turn.content);
@@ -460,6 +471,29 @@ export class AgentRuntimeService {
     return this.knowledge.execute(agentId, name, toolArgs);
   }
 
+  private claudioCommunicationStyle(credentials: Awaited<ReturnType<LaravelAgentSettingsClient["credentials"]>>): string {
+    const tone = {
+      paisa_amable: "Habla con cercanía colombiana, amable y respetuosa: saluda cálidamente, usa expresiones naturales como «con mucho gusto», «claro que sí» y «cuéntame», sin exagerar ni usar jerga forzada.",
+      professional_close: "Mantén un tono profesional, humano y cordial; valida la necesidad antes de orientar el siguiente paso.",
+      formal_consultative: "Usa un tono formal y consultivo, claro y respetuoso, priorizando precisión comercial.",
+      direct: "Responde de manera directa, breve y cordial, sin introducciones largas.",
+    }[credentials.tone_profile] ?? "Mantén un tono profesional, humano y cordial.";
+
+    const detail = {
+      brief: "Responde en máximo dos párrafos breves, salvo que el cliente solicite detalle.",
+      balanced: "Da una respuesta clara, cercana y suficiente; evita listas largas si no hacen falta.",
+      detailed: "Explica con detalle ordenado cuando ayude a la decisión comercial.",
+    }[credentials.response_style] ?? "Da una respuesta clara y suficiente.";
+
+    return [
+      "\n## Estilo de atención de Claudio",
+      tone,
+      detail,
+      "No imites acentos de forma caricaturesca, no uses confianza excesiva ni prometas lo que no está confirmado.",
+      credentials.tone_instructions ? `Instrucciones adicionales aprobadas por administración: ${credentials.tone_instructions}` : "",
+    ].filter(Boolean).join("\n");
+  }
+
   private contextInstructions(context?: AgentExecutionContext): string {
     if (context?.channel === "web") {
       return [
@@ -496,6 +530,7 @@ export class AgentRuntimeService {
     model: RuntimeAiModel,
     system: string,
     message: string,
+    temperature?: number,
   ): Promise<string> {
     if (model.provider.driver === "gemini") {
       if (!model.provider.api_key) {
@@ -507,11 +542,12 @@ export class AgentRuntimeService {
         model: model.model_identifier,
         system,
         message,
+        temperature,
       });
     }
 
     if (model.provider.driver === "openai_compatible") {
-      return this.openAiCompatible.generate({ model, system, message });
+      return this.openAiCompatible.generate({ model, system, message, temperature });
     }
 
     throw new Error(`El driver ${model.provider.driver} todavía no está habilitado para agentes conversacionales.`);
