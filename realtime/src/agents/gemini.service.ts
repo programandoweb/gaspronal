@@ -22,12 +22,13 @@ const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 @Injectable()
 export class GeminiService {
-  async generate(input: { apiKey: string; model: string; system: string; message: string }): Promise<string> {
+  async generate(input: { apiKey: string; model: string; system: string; message: string; temperature?: number }): Promise<string> {
     const turn = await this.generateTurn({
       apiKey: input.apiKey,
       model: input.model,
       system: input.system,
       contents: [{ role: "user", parts: [{ text: input.message }] }],
+      temperature: input.temperature,
     });
 
     if (turn.type !== "text") throw new Error("Gemini solicitó una herramienta no disponible.");
@@ -41,12 +42,14 @@ export class GeminiService {
     contents: GeminiContent[];
     functions?: GeminiFunctionDeclaration[];
     googleSearch?: boolean;
+    temperature?: number;
   }): Promise<GeminiTurn> {
     const model = encodeURIComponent(input.model || "gemini-2.5-flash");
     const body: Record<string, unknown> = {
       system_instruction: { parts: [{ text: input.system }] },
       contents: input.contents,
     };
+    if (typeof input.temperature === "number") body.generationConfig = { temperature: input.temperature };
 
     const tools: Record<string, unknown>[] = [];
     if (input.googleSearch) tools.push({ google_search: {} });
