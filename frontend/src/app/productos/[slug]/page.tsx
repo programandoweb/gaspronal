@@ -206,7 +206,7 @@ export default async function ProductDetailPage({
             </p>
           ) : null}
 
-          <h1 className="mt-3 text-4xl font-black leading-[0.98] tracking-[-0.05em] text-[var(--steel)] sm:text-6xl">
+          <h1 className="mt-3 text-[1.6875rem] font-black leading-[1.05] tracking-[-0.05em] text-[var(--steel)] sm:text-[2.8125rem]">
             {product.name}
           </h1>
 
