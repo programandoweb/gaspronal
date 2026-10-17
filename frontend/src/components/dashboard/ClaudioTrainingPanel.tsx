@@ -122,10 +122,10 @@ export default function ClaudioTrainingPanel() {
     finally { setBusy(false); }
   }
 
-  return <div className="flex min-h-0 flex-1 flex-col bg-[var(--app-bg)]">
-    <div className="border-b border-[var(--border)] bg-white px-4 py-3 sm:px-6">
+  return <div className="flex min-h-0 flex-1 flex-col bg-white">
+    <div className="border-b border-orange-200 bg-orange-50 px-4 py-3 sm:px-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <span className="inline-flex items-center gap-2 text-sm font-bold text-emerald-700"><ShieldCheck size={18}/> Modo entrenador activo</span>
+        <span className="inline-flex items-center gap-2 text-sm font-bold text-orange-800"><ShieldCheck size={18}/> Modo entrenamiento activo</span>
         <button type="button" onClick={() => void createSession()} disabled={busy} className="inline-flex min-h-9 items-center gap-1 rounded-lg bg-[var(--brand)] px-3 text-xs font-bold text-white disabled:opacity-50"><Plus size={15}/> Nuevo entrenamiento</button>
       </div>
       <p className="mt-1 text-xs text-[var(--muted)]">Claudio propondrá cambios, pero no los aplicará hasta que los apruebes.</p>
@@ -135,10 +135,10 @@ export default function ClaudioTrainingPanel() {
     </div>
     <div className="grid min-h-0 flex-1 grid-cols-1 overflow-hidden lg:grid-cols-[minmax(0,1fr)_320px]">
       <div className="flex min-h-0 flex-col">
-        <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-4 py-5 sm:px-6">
+        <div className="min-h-0 flex-1 overflow-y-auto"><div className="mx-auto flex w-full max-w-3xl flex-col gap-5 px-4 py-6">
           {!thread && <p className="mx-auto max-w-lg py-10 text-center text-sm text-[var(--muted)]">Crea un entrenamiento para explicarle a Claudio cómo debe atender a tus clientes.</p>}
           {thread?.messages.map(message => <div key={message.id} className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}>
-            <div className={`max-w-[90%] rounded-2xl px-4 py-3 text-sm leading-6 sm:max-w-[75%] ${message.role === "user" ? "bg-[var(--brand)] text-white" : "border border-[var(--border)] bg-white"}`}>
+            <div className={`max-w-[90%] px-4 py-2 text-sm leading-7 sm:max-w-[75%] ${message.role === "user" ? "rounded-3xl bg-[var(--brand)] text-white" : "text-[var(--app-fg)]"}`}>
               <span className="mb-1 block text-[10px] font-bold uppercase opacity-70">{message.role === "user" ? "Entrenador" : "Claudio"}</span>
               <p className="whitespace-pre-wrap">{message.content}</p>
             </div>
@@ -154,11 +154,8 @@ export default function ClaudioTrainingPanel() {
           </div>)}
           {busy && <p className="flex items-center gap-2 text-sm text-[var(--muted)]"><LoaderCircle size={16} className="animate-spin"/> Procesando…</p>}
           <div ref={bottom}/>
-        </div>
-        <form onSubmit={send} className="border-t border-[var(--border)] bg-white p-4 sm:px-6">
-          <div className="flex gap-2"><textarea rows={2} maxLength={5000} value={draft} onChange={event => setDraft(event.target.value)} disabled={!thread || busy} placeholder="Claudio, quiero enseñarte cómo responder cuando un cliente me dice hola…" className="min-h-12 min-w-0 flex-1 resize-none rounded-xl border border-[var(--border)] p-3 text-sm outline-none focus:border-[var(--brand)] disabled:bg-slate-100"/><button type="submit" aria-label="Enviar instrucción" disabled={!draft.trim() || !thread || busy} className="grid size-12 shrink-0 place-items-center rounded-xl bg-[var(--brand)] text-white disabled:opacity-40"><Send size={19}/></button></div>
-          {error && <p role="alert" className="mt-2 text-xs text-red-700">{error}</p>}
-        </form>
+        </div></div>
+        <form onSubmit={send} className="shrink-0 bg-white px-4 pb-4 pt-2 sm:px-6"><div className="mx-auto max-w-3xl"><div className="flex items-end gap-2 rounded-3xl border border-[var(--border)] bg-white px-4 py-2 shadow-sm focus-within:border-[var(--brand)]"><textarea rows={1} maxLength={5000} value={draft} onChange={event => { setDraft(event.target.value); event.currentTarget.style.height="auto"; event.currentTarget.style.height=`${Math.min(event.currentTarget.scrollHeight,160)}px`; }} disabled={!thread || busy} placeholder="Escribe la instrucción que Claudio debe aprender…" className="max-h-40 min-h-9 min-w-0 flex-1 resize-none bg-transparent py-2 text-sm outline-none disabled:cursor-not-allowed"/><button type="submit" aria-label="Enviar instrucción" disabled={!draft.trim() || !thread || busy} className="mb-1 grid size-9 shrink-0 place-items-center rounded-full bg-[var(--brand)] text-white disabled:opacity-40"><Send size={17}/></button></div>{error ? <p role="alert" className="mt-2 text-xs text-red-700">{error}</p> : <p className="mt-1 text-center text-[11px] text-[var(--muted)]">Cada instrucción genera una propuesta para tu aprobación.</p>}</div></form>
       </div>
       <aside className="max-h-72 overflow-y-auto border-t border-[var(--border)] bg-white p-4 lg:max-h-none lg:border-l lg:border-t-0">
         <h3 className="mb-3 flex items-center gap-2 text-sm font-bold"><BookOpen size={17}/> Instrucciones activas</h3>
