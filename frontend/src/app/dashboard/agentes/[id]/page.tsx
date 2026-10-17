@@ -8,6 +8,7 @@ import ClaudioAdminChatDrawer from "@/components/dashboard/ClaudioAdminChatDrawe
 import ClaudioWhatsAppConversations from "@/components/dashboard/ClaudioWhatsAppConversations";
 import ClaudioWhatsAppConversationDrawer from "@/components/dashboard/ClaudioWhatsAppConversationDrawer";
 import ClaudioWebConversations from "@/components/dashboard/ClaudioWebConversations";
+import ClaudioWebConversationDrawer from "@/components/dashboard/ClaudioWebConversationDrawer";
 import AgentWhatsAppConnection from "@/components/dashboard/AgentWhatsAppConnection";
 import { connectAgentSocket, type AgentSocket } from "@/lib/agent-socket";
 
@@ -131,6 +132,7 @@ export default function AgentChatPage({ params }:{ params:Promise<{id:string}> }
   const [answers,setAnswers]=useState<Record<number,string>>({});
   const [claudioChatDrawerOpen,setClaudioChatDrawerOpen]=useState(false);
   const [claudioWhatsAppConversationId,setClaudioWhatsAppConversationId]=useState<number|null>(null);
+  const [claudioWebSessionId,setClaudioWebSessionId]=useState<number|null>(null);
   const socketRef=useRef<AgentSocket|null>(null);
   const bottomRef=useRef<HTMLDivElement|null>(null);
 
@@ -774,8 +776,9 @@ export default function AgentChatPage({ params }:{ params:Promise<{id:string}> }
 
     {id!=="claudio"&&<AgentWhatsAppConnection agentId={id}/>}
     {id==="claudio"&&claudioTab==="whatsapp"&&<ClaudioWhatsAppConversations onOpenConversation={setClaudioWhatsAppConversationId}/>}
-    {id==="claudio"&&claudioTab==="web"&&<ClaudioWebConversations/>}
+    {id==="claudio"&&claudioTab==="web"&&<ClaudioWebConversations onOpenSession={setClaudioWebSessionId}/>}
     {id==="claudio"&&<ClaudioAdminChatDrawer open={claudioChatDrawerOpen} onClose={()=>setClaudioChatDrawerOpen(false)}/>}
     {id==="claudio"&&<ClaudioWhatsAppConversationDrawer conversationId={claudioWhatsAppConversationId} onClose={()=>setClaudioWhatsAppConversationId(null)}/>}
+    {id==="claudio"&&<ClaudioWebConversationDrawer sessionId={claudioWebSessionId} onClose={()=>setClaudioWebSessionId(null)}/>}
   </div>;
 }
