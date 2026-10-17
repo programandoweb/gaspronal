@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, Box, Tag } from "lucide-react";
-import HomeCategoryCard from "@/components/public/HomeCategoryCard";
+import StickyCategoryGrid from "@/components/public/StickyCategoryGrid";
 import ProductCardImage from "@/components/public/ProductCardImage";
 
 export const metadata: Metadata = {
@@ -121,7 +121,7 @@ export default async function ProductsPage({
       </header>
 
       <section className="border-b border-slate-200 bg-white">
-        <div className="mx-auto max-w-[1440px] px-4 py-14 sm:px-6 sm:py-20 lg:px-10">
+        <div className="mx-auto max-w-[1440px] px-4 py-3 sm:px-6 sm:py-4 lg:px-10">
           <p className="text-xs font-black uppercase tracking-[0.2em] text-[var(--accent)]">
             Catálogo Gaspronal
           </p>
@@ -131,31 +131,20 @@ export default async function ProductsPage({
         </div>
       </section>
 
-      <section className="mx-auto max-w-[1440px] px-4 py-8 sm:px-6 lg:px-10">
-        <nav aria-label="Categorías de productos" className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
-          {categories.map((item, index) => {
-            const imageUrl = item.image_url?.startsWith("/api/catalog-media/") || item.image_url?.startsWith("/api/category-media/")
-              ? item.image_url
-              : item.image_url?.startsWith("/")
-                ? (process.env.PUBLIC_BACKEND_URL ?? "https://backend.gaspronal.programandoweb.net").replace(/\/$/, "") + item.image_url
-                : item.image_url ?? null;
-            return (
-              <div
-                key={item.id}
-                className={`min-w-0 rounded-2xl ${category === item.slug ? "ring-2 ring-[var(--brand)] ring-offset-2" : ""}`}
-              >
-                <HomeCategoryCard
-                  id={item.id}
-                  name={item.name}
-                  slug={item.slug}
-                  imageUrl={imageUrl}
-                  index={index}
-                />
-              </div>
-            );
-          })}
-        </nav>
-      </section>
+      <StickyCategoryGrid
+        categories={categories.map((item) => ({
+          id: item.id,
+          name: item.name,
+          slug: item.slug,
+          image_url: item.image_url?.startsWith("/api/catalog-media/") || item.image_url?.startsWith("/api/category-media/")
+            ? item.image_url
+            : item.image_url?.startsWith("/")
+              ? (process.env.PUBLIC_BACKEND_URL ?? "https://backend.gaspronal.programandoweb.net").replace(/\/$/, "") + item.image_url
+              : item.image_url ?? null,
+        }))}
+        activeCategory={category}
+      />
+
 
       <section className="mx-auto max-w-[1440px] px-4 pb-20 sm:px-6 lg:px-10">
         {products.data.length > 0 ? (
