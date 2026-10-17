@@ -6,6 +6,7 @@ import { ArrowLeft, BookOpen, Bot, CheckCircle2, HelpCircle, KeyRound, LoaderCir
 import { use, useEffect, useRef, useState } from "react";
 import ClaudioAdminChatDrawer from "@/components/dashboard/ClaudioAdminChatDrawer";
 import ClaudioWhatsAppConversations from "@/components/dashboard/ClaudioWhatsAppConversations";
+import ClaudioWhatsAppConversationDrawer from "@/components/dashboard/ClaudioWhatsAppConversationDrawer";
 import ClaudioWebConversations from "@/components/dashboard/ClaudioWebConversations";
 import AgentWhatsAppConnection from "@/components/dashboard/AgentWhatsAppConnection";
 import { connectAgentSocket, type AgentSocket } from "@/lib/agent-socket";
@@ -129,6 +130,7 @@ export default function AgentChatPage({ params }:{ params:Promise<{id:string}> }
   const [unansweredMessage,setUnansweredMessage]=useState("");
   const [answers,setAnswers]=useState<Record<number,string>>({});
   const [claudioChatDrawerOpen,setClaudioChatDrawerOpen]=useState(false);
+  const [claudioWhatsAppConversationId,setClaudioWhatsAppConversationId]=useState<number|null>(null);
   const socketRef=useRef<AgentSocket|null>(null);
   const bottomRef=useRef<HTMLDivElement|null>(null);
 
@@ -771,8 +773,9 @@ export default function AgentChatPage({ params }:{ params:Promise<{id:string}> }
     </section>}
 
     {id!=="claudio"&&<AgentWhatsAppConnection agentId={id}/>}
-    {id==="claudio"&&claudioTab==="whatsapp"&&<ClaudioWhatsAppConversations/>}
+    {id==="claudio"&&claudioTab==="whatsapp"&&<ClaudioWhatsAppConversations onOpenConversation={setClaudioWhatsAppConversationId}/>}
     {id==="claudio"&&claudioTab==="web"&&<ClaudioWebConversations/>}
     {id==="claudio"&&<ClaudioAdminChatDrawer open={claudioChatDrawerOpen} onClose={()=>setClaudioChatDrawerOpen(false)}/>}
+    {id==="claudio"&&<ClaudioWhatsAppConversationDrawer conversationId={claudioWhatsAppConversationId} onClose={()=>setClaudioWhatsAppConversationId(null)}/>}
   </div>;
 }
