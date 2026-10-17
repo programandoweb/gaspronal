@@ -47,17 +47,42 @@ class InternalAgentCommercialController extends Controller
     {
         $query = trim((string) ($arguments['query'] ?? ''));
 
+        // Search plural/singular variants and relevant words, including category slugs.
+        // Only published catalog entries are exposed to the commercial agent.
+        $normalized = mb_strtolower($query);
+        $terms = preg_split('/\\s+/u', $normalized, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+        $stopWords = ['de', 'del', 'la', 'las', 'el', 'los', 'en', 'para', 'por', 'con', 'un', 'una', 'y', 'que', 'tienen', 'tiene', 'busco', 'quiero', 'necesito'];
+        $terms = array_values(array_filter($terms, fn ($term) => mb_strlen($term) >= 4 && ! in_array($term, $stopWords, true)));
+        $variants = [$normalized];
+        foreach ($terms as $term) {
+            $variants[] = $term;
+            if (str_ends_with($term, 'es') && mb_strlen($term) > 5) {
+                $variants[] = mb_substr($term, 0, -2);
+            } elseif (str_ends_with($term, 's') && mb_strlen($term) > 4) {
+                $variants[] = mb_substr($term, 0, -1);
+            }
+        }
+        $variants = array_values(array_unique(array_filter($variants)));
+
         $items = CatalogItem::query()
             ->with('category:id,name,slug')
             ->where('status', 'published')
-            ->when($query !== '', fn ($q) => $q->where(fn ($inner) => $inner
-                ->where('name', 'like', "%{$query}%")
-                ->orWhere('reference', 'like', "%{$query}%")
-                ->orWhere('short_description', 'like', "%{$query}%")
-                ->orWhere('description', 'like', "%{$query}%")
-                ->orWhere('applications', 'like', "%{$query}%")
-                ->orWhere('specifications', 'like', "%{$query}%")
-                ->orWhereHas('category', fn ($category) => $category->where('name', 'like', "%{$query}%"))))
+            ->when($query !== '', function ($builder) use ($variants) {
+                $builder->where(function ($matches) use ($variants) {
+                    foreach ($variants as $variant) {
+                        $pattern = '%'.addcslashes($variant, '%_\\\\').'%';
+                        $matches->orWhere('name', 'like', $pattern)
+                            ->orWhere('reference', 'like', $pattern)
+                            ->orWhere('short_description', 'like', $pattern)
+                            ->orWhere('description', 'like', $pattern)
+                            ->orWhere('applications', 'like', $pattern)
+                            ->orWhere('specifications', 'like', $pattern)
+                            ->orWhereHas('category', fn ($category) => $category
+                                ->where('name', 'like', $pattern)
+                                ->orWhere('slug', 'like', $pattern));
+                    }
+                });
+            })
             ->orderBy('name')
             ->limit(10)
             ->get([
