@@ -565,7 +565,7 @@ export default function AgentChatPage({ params }:{ params:Promise<{id:string}> }
         </form>
       </div>}
 
-      <aside className="space-y-5">
+      <aside className={id==="claudio"?"grid gap-5 xl:grid-cols-3":"space-y-5"}>
         {id==="lucia"&&<section className="space-y-4 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
           <div>
             <div className="flex items-center gap-2"><Search size={18} className="text-[var(--brand)]"/><h2 className="font-bold">Proceso editorial en vivo</h2></div>
@@ -591,7 +591,7 @@ export default function AgentChatPage({ params }:{ params:Promise<{id:string}> }
             {luciaRun.error&&<p className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs leading-5 text-red-700">{luciaRun.error}</p>}
           </>}
         </section>}
-        {id==="claudio"&&<section className="space-y-4 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
+        {id==="claudio"&&<section className="order-2 space-y-4 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
           <div className="flex items-start justify-between gap-3">
             <div>
               <div className="flex items-center gap-2"><HelpCircle size={18} className="text-[var(--brand)]"/><h2 className="font-bold">Preguntas pendientes del RAG</h2></div>
@@ -643,7 +643,7 @@ export default function AgentChatPage({ params }:{ params:Promise<{id:string}> }
 
           {unansweredMessage&&<p className="text-xs font-medium text-[var(--brand)]">{unansweredMessage}</p>}
         </section>}
-        {id==="claudio"&&<AgentWhatsAppConnection agentId={id}/>}
+        {id==="claudio"&&<div className="order-3"><AgentWhatsAppConnection agentId={id}/></div>}
 
         {id==="jorge"&&<section className="space-y-4 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
           <div className="flex items-center gap-2"><Search size={18} className="text-[var(--brand)]"/><h2 className="font-bold">Investigación del catálogo</h2></div>
@@ -722,13 +722,13 @@ export default function AgentChatPage({ params }:{ params:Promise<{id:string}> }
           {imageEnhancementMessage&&<p className="text-xs font-medium text-[var(--brand)]">{imageEnhancementMessage}</p>}
         </section>}
 
-        {id!=="lucia"&&<form onSubmit={saveSettings} className="space-y-4 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
+        {id!=="lucia"&&<form onSubmit={saveSettings} className={`space-y-4 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm ${id==="claudio"?"order-1":""}`}>
           <div className="flex items-center gap-2"><KeyRound size={18} className="text-[var(--brand)]"/><h2 className="font-bold">Modelo de IA</h2></div>
           <p className="text-sm leading-6 text-[var(--muted)]">
             El agente intenta primero el modelo principal. Si falla, utiliza automáticamente el fallback.
           </p>
 
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className={`grid gap-4 ${id==="claudio"?"":"md:grid-cols-2"}`}>
             <label className="block space-y-2">
               <span className="text-sm font-medium">Modelo principal</span>
               <select
