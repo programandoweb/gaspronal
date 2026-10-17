@@ -95,9 +95,9 @@ type UnansweredQuestion = {
 type ClaudioTab = "agent"|"web"|"whatsapp";
 
 const CLAUDIO_TABS:Record<ClaudioTab,string> = {
-  agent:"1",
-  web:"2",
-  whatsapp:"3",
+  web:"1",
+  whatsapp:"2",
+  agent:"3",
 };
 
 export default function AgentChatPage({ params }:{ params:Promise<{id:string}> }) {
@@ -160,6 +160,7 @@ export default function AgentChatPage({ params }:{ params:Promise<{id:string}> }
   },[id]);
 
   useEffect(()=>{
+    if(id==="claudio")return;
     let active=true;
 
     async function connect(){
@@ -457,10 +458,10 @@ export default function AgentChatPage({ params }:{ params:Promise<{id:string}> }
 
   const name=agent?.name??id.charAt(0).toUpperCase()+id.slice(1);
   const claudioTab:ClaudioTab=searchParams.get("tab")==="2"
-    ?"web"
+    ?"whatsapp"
     :searchParams.get("tab")==="3"
-      ?"whatsapp"
-      :"agent";
+      ?"agent"
+      :"web";
 
   function selectClaudioTab(tab:ClaudioTab){
     router.push(`/dashboard/agentes/claudio?tab=${CLAUDIO_TABS[tab]}`);
@@ -475,9 +476,9 @@ export default function AgentChatPage({ params }:{ params:Promise<{id:string}> }
             <span className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--brand)]">Agente Gaspronal</span>
             <div className="flex flex-wrap items-center gap-3">
               <h1 className="text-3xl font-bold">{name}</h1>
-              <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold ${transport==="socket.io"?"border-emerald-200 bg-emerald-50 text-emerald-700":"border-amber-200 bg-amber-50 text-amber-800"}`}>
+              {id!=="claudio"&&<span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold ${transport==="socket.io"?"border-emerald-200 bg-emerald-50 text-emerald-700":"border-amber-200 bg-amber-50 text-amber-800"}`}>
                 <PlugZap size={14}/>{transport==="connecting"?"Conectando…":transport==="socket.io"?"Socket.IO":"REST fallback"}
-              </span>
+              </span>}
             </div>
           </div>
         </div>
@@ -490,13 +491,6 @@ export default function AgentChatPage({ params }:{ params:Promise<{id:string}> }
 
     {id==="claudio"&&<div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-1.5 shadow-sm">
       <div className="grid grid-cols-2 gap-1 sm:grid-cols-4">
-        <button
-          type="button"
-          onClick={()=>selectClaudioTab("agent")}
-          className={`inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-4 text-sm font-bold transition ${claudioTab==="agent"?"bg-[var(--brand)] text-white shadow-sm":"text-[var(--muted)] hover:bg-[var(--app-bg)] hover:text-[var(--app-fg)]"}`}
-        >
-          <Bot size={17}/>Agente
-        </button>
         <button
           type="button"
           onClick={()=>selectClaudioTab("web")}
@@ -513,6 +507,13 @@ export default function AgentChatPage({ params }:{ params:Promise<{id:string}> }
         </button>
         <button
           type="button"
+          onClick={()=>selectClaudioTab("agent")}
+          className={`inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-4 text-sm font-bold transition ${claudioTab==="agent"?"bg-[var(--brand)] text-white shadow-sm":"text-[var(--muted)] hover:bg-[var(--app-bg)] hover:text-[var(--app-fg)]"}`}
+        >
+          <Bot size={17}/>Agente
+        </button>
+        <button
+          type="button"
           onClick={()=>setClaudioChatDrawerOpen(true)}
           className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-4 text-sm font-bold text-[var(--muted)] transition hover:bg-[var(--app-bg)] hover:text-[var(--app-fg)]"
         >
@@ -521,8 +522,8 @@ export default function AgentChatPage({ params }:{ params:Promise<{id:string}> }
       </div>
     </div>}
 
-    {(id!=="claudio"||claudioTab==="agent")&&<section className={id==="lucia"?"grid gap-6":"grid gap-6 xl:grid-cols-[1.55fr_.75fr]"}>
-      <div className="flex min-h-[640px] flex-col overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-sm">
+    {(id!=="claudio"||claudioTab==="agent")&&<section className={id==="claudio"||id==="lucia"?"grid gap-6":"grid gap-6 xl:grid-cols-[1.55fr_.75fr]"}>
+      {id!=="claudio"&&<div className="flex min-h-[640px] flex-col overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-sm">
         <div className="border-b border-[var(--border)] px-5 py-4">
           <h2 className="font-bold">Chat con {name}</h2>
           {agent?.role&&<p className="mt-1 text-sm text-[var(--muted)]">{agent.role}</p>}
@@ -560,7 +561,7 @@ export default function AgentChatPage({ params }:{ params:Promise<{id:string}> }
             <button disabled={sending||!draft.trim()} className="inline-flex min-h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[var(--brand)] text-white disabled:opacity-45" aria-label="Enviar mensaje"><Send size={18}/></button>
           </div>
         </form>
-      </div>
+      </div>}
 
       <aside className="space-y-5">
         {id==="lucia"&&<section className="space-y-4 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
