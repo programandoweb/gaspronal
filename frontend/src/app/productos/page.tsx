@@ -146,7 +146,7 @@ export default async function ProductsPage({
       />
 
 
-      <section className="mx-auto max-w-[1440px] px-4 pt-[200px] pb-20 sm:px-6 lg:px-10">
+      <section className="mx-auto max-w-[1440px] px-4 pt-[120px] pb-20 sm:px-6 lg:px-10">
         {products.data.length > 0 ? (
           <>
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
