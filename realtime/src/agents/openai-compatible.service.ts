@@ -25,11 +25,12 @@ export type OpenAiTurn =
 
 @Injectable()
 export class OpenAiCompatibleService {
-  async generate(input: { model: RuntimeAiModel; system: string; message: string }): Promise<string> {
+  async generate(input: { model: RuntimeAiModel; system: string; message: string; temperature?: number }): Promise<string> {
     const turn = await this.generateTurn({
       model: input.model,
       system: input.system,
       messages: [{ role: "user", content: input.message }],
+      temperature: input.temperature,
     });
 
     if (turn.type !== "text") {
@@ -44,6 +45,7 @@ export class OpenAiCompatibleService {
     system: string;
     messages: OpenAiMessage[];
     functions?: GeminiFunctionDeclaration[];
+    temperature?: number;
   }): Promise<OpenAiTurn> {
     const provider = input.model.provider;
     const controller = new AbortController();
@@ -87,6 +89,7 @@ export class OpenAiCompatibleService {
             ...input.messages,
           ],
           ...(tools.length ? { tools, tool_choice: "auto" } : {}),
+          ...(typeof input.temperature === "number" ? { temperature: input.temperature } : {}),
           stream: false,
         }),
       });
