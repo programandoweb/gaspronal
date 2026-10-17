@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, BookOpen, Bot, CheckCircle2, HelpCircle, KeyRound, LoaderCircle, MessageCircle, Pause, Play, PlugZap, Save, Search, Send, ShieldCheck, Square, XCircle } from "lucide-react";
 import { use, useEffect, useRef, useState } from "react";
 import ClaudioAdminChatDrawer from "@/components/dashboard/ClaudioAdminChatDrawer";
@@ -91,9 +92,18 @@ type UnansweredQuestion = {
   last_asked_at?:string|null;
   created_at:string;
 };
+type ClaudioTab = "agent"|"web"|"whatsapp";
+
+const CLAUDIO_TABS:Record<ClaudioTab,string> = {
+  agent:"1",
+  web:"2",
+  whatsapp:"3",
+};
 
 export default function AgentChatPage({ params }:{ params:Promise<{id:string}> }) {
   const { id } = use(params);
+  const router=useRouter();
+  const searchParams=useSearchParams();
   const [agent,setAgent]=useState<Agent|null>(null);
   const [settings,setSettings]=useState<Settings|null>(null);
   const [aiModels,setAiModels]=useState<AiModelOption[]>([]);
@@ -118,7 +128,6 @@ export default function AgentChatPage({ params }:{ params:Promise<{id:string}> }
   const [unansweredLoading,setUnansweredLoading]=useState(false);
   const [unansweredMessage,setUnansweredMessage]=useState("");
   const [answers,setAnswers]=useState<Record<number,string>>({});
-  const [claudioTab,setClaudioTab]=useState<"agent"|"web"|"whatsapp">("agent");
   const [claudioChatDrawerOpen,setClaudioChatDrawerOpen]=useState(false);
   const socketRef=useRef<AgentSocket|null>(null);
   const bottomRef=useRef<HTMLDivElement|null>(null);
@@ -447,6 +456,15 @@ export default function AgentChatPage({ params }:{ params:Promise<{id:string}> }
   }
 
   const name=agent?.name??id.charAt(0).toUpperCase()+id.slice(1);
+  const claudioTab:ClaudioTab=searchParams.get("tab")==="2"
+    ?"web"
+    :searchParams.get("tab")==="3"
+      ?"whatsapp"
+      :"agent";
+
+  function selectClaudioTab(tab:ClaudioTab){
+    router.push(`/dashboard/agentes/claudio?tab=${CLAUDIO_TABS[tab]}`);
+  }
 
   return <div className="w-full max-w-none space-y-6">
     <header className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -474,21 +492,21 @@ export default function AgentChatPage({ params }:{ params:Promise<{id:string}> }
       <div className="grid grid-cols-2 gap-1 sm:grid-cols-4">
         <button
           type="button"
-          onClick={()=>setClaudioTab("agent")}
+          onClick={()=>selectClaudioTab("agent")}
           className={`inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-4 text-sm font-bold transition ${claudioTab==="agent"?"bg-[var(--brand)] text-white shadow-sm":"text-[var(--muted)] hover:bg-[var(--app-bg)] hover:text-[var(--app-fg)]"}`}
         >
           <Bot size={17}/>Agente
         </button>
         <button
           type="button"
-          onClick={()=>setClaudioTab("web")}
+          onClick={()=>selectClaudioTab("web")}
           className={`inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-4 text-sm font-bold transition ${claudioTab==="web"?"bg-[var(--brand)] text-white shadow-sm":"text-[var(--muted)] hover:bg-[var(--app-bg)] hover:text-[var(--app-fg)]"}`}
         >
           <MessageCircle size={17}/>Atención Web
         </button>
         <button
           type="button"
-          onClick={()=>setClaudioTab("whatsapp")}
+          onClick={()=>selectClaudioTab("whatsapp")}
           className={`inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-4 text-sm font-bold transition ${claudioTab==="whatsapp"?"bg-[var(--brand)] text-white shadow-sm":"text-[var(--muted)] hover:bg-[var(--app-bg)] hover:text-[var(--app-fg)]"}`}
         >
           <MessageCircle size={17}/>WhatsApp
