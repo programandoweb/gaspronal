@@ -9,6 +9,8 @@ import { useState } from "react";
 
 type PublicHeaderProps = { whatsappHref: string };
 
+const adviserWhatsappHref = "https://wa.me/573128669885";
+
 const navigation = [
   { label: "Productos", href: "/productos" },
   { label: "Servicios", href: "/#servicios" },
@@ -92,14 +94,15 @@ export default function PublicHeader({ whatsappHref: _whatsappHref }: PublicHead
             304 552 7575
           </a>
           <SocialLinks className="text-[var(--steel)]" />
-          <button
-            type="button"
-            onClick={() => window.dispatchEvent(new Event("gaspronal:open-claudio"))}
+          <a
+            href={adviserWhatsappHref}
+            target="_blank"
+            rel="noopener noreferrer"
             className="inline-flex h-11 items-center gap-2 rounded-full bg-[var(--accent)] px-5 text-sm font-bold text-white transition hover:bg-[var(--accent-hover)]"
           >
             Hablar con un asesor
             <MessageCircle size={17} />
-          </button>
+          </a>
         </motion.div>
 
         <details className="group relative lg:hidden">
@@ -126,13 +129,14 @@ export default function PublicHeader({ whatsappHref: _whatsappHref }: PublicHead
             </nav>
             <div className="mt-3 flex items-center gap-2">
               <SocialLinks className="shrink-0 text-[var(--steel)]" />
-            <button
-              type="button"
-              onClick={() => window.dispatchEvent(new Event("gaspronal:open-claudio"))}
+            <a
+            href={adviserWhatsappHref}
+            target="_blank"
+            rel="noopener noreferrer"
               className="flex min-h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-[var(--accent)] px-3 text-xs font-bold text-white"
             >
               Hablar con un asesor <MessageCircle size={17} />
-            </button>
+            </a>
             </div>
           </motion.div>
         </details>
