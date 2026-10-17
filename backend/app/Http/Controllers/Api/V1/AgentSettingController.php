@@ -34,6 +34,10 @@ class AgentSettingController extends Controller
                 'has_api_key' => filled($setting?->api_key),
                 'primary_ai_model_id' => $setting?->primary_ai_model_id,
                 'fallback_ai_model_id' => $setting?->fallback_ai_model_id,
+                'ai_temperature' => (float) ($setting?->ai_temperature ?? 0.75),
+                'tone_profile' => $setting?->tone_profile ?? 'paisa_amable',
+                'response_style' => $setting?->response_style ?? 'balanced',
+                'tone_instructions' => $setting?->tone_instructions,
                 'web_channel_enabled' => $agent === 'claudio' ? (bool) ($setting?->web_channel_enabled ?? false) : false,
                 'web_welcome_message' => $agent === 'claudio' ? $setting?->web_welcome_message : null,
                 'primary_ai_model' => $this->serializeAiModel($setting?->primaryAiModel),
@@ -52,6 +56,10 @@ class AgentSettingController extends Controller
             'api_key' => ['sometimes', 'nullable', 'string', 'max:500'],
             'primary_ai_model_id' => ['sometimes', 'nullable', 'integer', 'exists:ai_models,id'],
             'fallback_ai_model_id' => ['sometimes', 'nullable', 'integer', 'different:primary_ai_model_id', 'exists:ai_models,id'],
+            'ai_temperature' => ['sometimes', 'numeric', 'min:0', 'max:1.5'],
+            'tone_profile' => ['sometimes', Rule::in(['paisa_amable', 'professional_close', 'formal_consultative', 'direct'])],
+            'response_style' => ['sometimes', Rule::in(['brief', 'balanced', 'detailed'])],
+            'tone_instructions' => ['sometimes', 'nullable', 'string', 'max:3000'],
             'web_channel_enabled' => ['sometimes', 'boolean'],
             'web_welcome_message' => ['sometimes', 'nullable', 'string', 'max:2000'],
         ]);
@@ -70,6 +78,15 @@ class AgentSettingController extends Controller
 
         if (array_key_exists('fallback_ai_model_id', $data)) {
             $setting->fallback_ai_model_id = $data['fallback_ai_model_id'];
+        }
+
+        foreach (['ai_temperature', 'tone_profile', 'response_style'] as $field) {
+            if (array_key_exists($field, $data)) {
+                $setting->{$field} = $data[$field];
+            }
+        }
+        if (array_key_exists('tone_instructions', $data)) {
+            $setting->tone_instructions = filled($data['tone_instructions']) ? trim((string) $data['tone_instructions']) : null;
         }
 
         if ($agent === 'claudio' && array_key_exists('web_channel_enabled', $data)) {
@@ -111,6 +128,10 @@ class AgentSettingController extends Controller
                 'api_key' => $setting?->api_key,
                 'primary' => $this->serializeRuntimeModel($setting?->primaryAiModel),
                 'fallback' => $this->serializeRuntimeModel($setting?->fallbackAiModel),
+                'temperature' => (float) ($setting?->ai_temperature ?? 0.75),
+                'tone_profile' => $setting?->tone_profile ?? 'paisa_amable',
+                'response_style' => $setting?->response_style ?? 'balanced',
+                'tone_instructions' => $setting?->tone_instructions,
                 'training_instructions' => $agent === 'claudio' ? DB::table('agent_training_rules')->where('agent_id', 'claudio')->where('is_active', true)->orderBy('category')->get(['category', 'content'])->map(fn ($row) => ['category' => $row->category, 'content' => $row->content])->all() : [],
             ],
         ]);
