@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, BookOpen, Bot, CheckCircle2, HelpCircle, KeyRound, LoaderCircle, MessageCircle, Pause, Play, PlugZap, Save, Search, Send, ShieldCheck, Square, XCircle } from "lucide-react";
+import { ArrowLeft, BookOpen, Bot, CheckCircle2, HelpCircle, KeyRound, LoaderCircle, MessageCircle, Pause, Play, PlugZap, Save, Search, Send, Square, XCircle } from "lucide-react";
 import { use, useEffect, useRef, useState } from "react";
 import ClaudioAdminChatDrawer from "@/components/dashboard/ClaudioAdminChatDrawer";
 import ClaudioWhatsAppConversations from "@/components/dashboard/ClaudioWhatsAppConversations";
@@ -724,40 +724,37 @@ export default function AgentChatPage({ params }:{ params:Promise<{id:string}> }
             El agente intenta primero el modelo principal. Si falla, utiliza automáticamente el fallback.
           </p>
 
-          <label className="block space-y-2">
-            <span className="text-sm font-medium">Modelo principal</span>
-            <select
-              value={primaryAiModelId}
-              onChange={e=>{
-                setPrimaryAiModelId(e.target.value);
-                if(e.target.value===fallbackAiModelId)setFallbackAiModelId("");
-              }}
-              className="min-h-11 w-full rounded-xl border border-[var(--border)] bg-transparent px-3"
-            >
-              <option value="">Selecciona un modelo</option>
-              {aiModels.map(item=><option key={item.id} value={item.id}>
-                {item.name} · {item.provider?.name??"Sin proveedor"} · {item.model_identifier}
-              </option>)}
-            </select>
-          </label>
+          <div className="grid gap-4 md:grid-cols-2">
+            <label className="block space-y-2">
+              <span className="text-sm font-medium">Modelo principal</span>
+              <select
+                value={primaryAiModelId}
+                onChange={e=>{
+                  setPrimaryAiModelId(e.target.value);
+                  if(e.target.value===fallbackAiModelId)setFallbackAiModelId("");
+                }}
+                className="min-h-11 w-full rounded-xl border border-[var(--border)] bg-transparent px-3"
+              >
+                <option value="">Selecciona un modelo</option>
+                {aiModels.map(item=><option key={item.id} value={item.id}>
+                  {item.name} · {item.provider?.name??"Sin proveedor"} · {item.model_identifier}
+                </option>)}
+              </select>
+            </label>
 
-          <label className="block space-y-2">
-            <span className="text-sm font-medium">Modelo fallback</span>
-            <select
-              value={fallbackAiModelId}
-              onChange={e=>setFallbackAiModelId(e.target.value)}
-              className="min-h-11 w-full rounded-xl border border-[var(--border)] bg-transparent px-3"
-            >
-              <option value="">Sin fallback</option>
-              {aiModels.filter(item=>String(item.id)!==primaryAiModelId).map(item=><option key={item.id} value={item.id}>
-                {item.name} · {item.provider?.name??"Sin proveedor"} · {item.model_identifier}
-              </option>)}
-            </select>
-          </label>
-
-          <div className="flex items-start gap-2 rounded-xl border border-[var(--border)] bg-[var(--app-bg)] p-3 text-xs leading-5 text-[var(--muted)]">
-            <ShieldCheck size={16} className="mt-0.5 shrink-0 text-[var(--brand)]"/>
-            Las credenciales pertenecen al proveedor central. El agente no almacena API keys propias.
+            <label className="block space-y-2">
+              <span className="text-sm font-medium">Modelo fallback</span>
+              <select
+                value={fallbackAiModelId}
+                onChange={e=>setFallbackAiModelId(e.target.value)}
+                className="min-h-11 w-full rounded-xl border border-[var(--border)] bg-transparent px-3"
+              >
+                <option value="">Sin fallback</option>
+                {aiModels.filter(item=>String(item.id)!==primaryAiModelId).map(item=><option key={item.id} value={item.id}>
+                  {item.name} · {item.provider?.name??"Sin proveedor"} · {item.model_identifier}
+                </option>)}
+              </select>
+            </label>
           </div>
 
           <Link href="/dashboard/ia" className="inline-flex text-sm font-semibold text-[var(--brand)] hover:underline">
