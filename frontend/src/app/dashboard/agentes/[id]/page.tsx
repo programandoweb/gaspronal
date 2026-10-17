@@ -640,6 +640,7 @@ export default function AgentChatPage({ params }:{ params:Promise<{id:string}> }
 
           {unansweredMessage&&<p className="text-xs font-medium text-[var(--brand)]">{unansweredMessage}</p>}
         </section>}
+        {id==="claudio"&&<AgentWhatsAppConnection agentId={id}/>}
 
         {id==="jorge"&&<section className="space-y-4 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
           <div className="flex items-center gap-2"><Search size={18} className="text-[var(--brand)]"/><h2 className="font-bold">Investigación del catálogo</h2></div>
@@ -768,7 +769,7 @@ export default function AgentChatPage({ params }:{ params:Promise<{id:string}> }
       </aside>
     </section>}
 
-    <AgentWhatsAppConnection agentId={id}/>
+    {id!=="claudio"&&<AgentWhatsAppConnection agentId={id}/>}
     {id==="claudio"&&claudioTab==="whatsapp"&&<ClaudioWhatsAppConversations/>}
     {id==="claudio"&&claudioTab==="web"&&<ClaudioWebConversations/>}
     {id==="claudio"&&<ClaudioAdminChatDrawer open={claudioChatDrawerOpen} onClose={()=>setClaudioChatDrawerOpen(false)}/>}
