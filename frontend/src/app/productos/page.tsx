@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, Box, Search, Tag } from "lucide-react";
+import { ArrowLeft, ArrowRight, Box, Tag } from "lucide-react";
 import HomeCategoryCard from "@/components/public/HomeCategoryCard";
 import ProductCardImage from "@/components/public/ProductCardImage";
 
@@ -125,43 +125,9 @@ export default async function ProductsPage({
           <p className="text-xs font-black uppercase tracking-[0.2em] text-[var(--accent)]">
             Catálogo Gaspronal
           </p>
-          <div className="mt-4 grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
-            <div>
-              <h1 className="max-w-4xl text-4xl font-black tracking-[-0.05em] text-[var(--steel)] sm:text-6xl">
-                Equipos industriales para trabajo real.
-              </h1>
-              <p className="mt-5 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
-                Explora productos Gaspronal por categoría, referencia o aplicación.
-              </p>
-            </div>
-            <div className="inline-flex w-fit items-center gap-2 rounded-full bg-[var(--brand-soft)] px-4 py-2 text-sm font-bold text-[var(--brand)]">
-              <Box size={17} />
-              {products.total} productos publicados
-            </div>
-          </div>
-
-          <form action="/productos" className="mt-9 flex max-w-3xl flex-col gap-3 sm:flex-row">
-            {category ? <input type="hidden" name="categoria" value={category} /> : null}
-            <label className="relative min-w-0 flex-1">
-              <Search
-                size={18}
-                className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
-              />
-              <input
-                type="search"
-                name="buscar"
-                defaultValue={search}
-                placeholder="Buscar por nombre, referencia o categoría..."
-                className="min-h-13 w-full rounded-2xl border border-slate-300 bg-white pl-11 pr-4 text-sm outline-none transition focus:border-[var(--brand)]"
-              />
-            </label>
-            <button
-              type="submit"
-              className="min-h-13 rounded-2xl bg-[var(--brand)] px-6 text-sm font-bold text-white transition hover:bg-[var(--brand-hover)]"
-            >
-              Buscar
-            </button>
-          </form>
+          <h1 className="mt-4 max-w-4xl text-4xl font-black tracking-[-0.05em] text-[var(--steel)] sm:text-6xl">
+            Equipos industriales para trabajo real.
+          </h1>
         </div>
       </section>
 
