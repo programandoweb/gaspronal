@@ -96,8 +96,8 @@ type UnansweredQuestion = {
 type ClaudioTab = "agent"|"web"|"whatsapp";
 
 const CLAUDIO_TABS:Record<ClaudioTab,string> = {
-  web:"1",
-  whatsapp:"2",
+  whatsapp:"1",
+  web:"2",
   agent:"3",
 };
 
@@ -460,10 +460,10 @@ export default function AgentChatPage({ params }:{ params:Promise<{id:string}> }
 
   const name=agent?.name??id.charAt(0).toUpperCase()+id.slice(1);
   const claudioTab:ClaudioTab=searchParams.get("tab")==="2"
-    ?"whatsapp"
+    ?"web"
     :searchParams.get("tab")==="3"
       ?"agent"
-      :"web";
+      :"whatsapp";
 
   function selectClaudioTab(tab:ClaudioTab){
     router.push(`/dashboard/agentes/claudio?tab=${CLAUDIO_TABS[tab]}`);
@@ -495,17 +495,17 @@ export default function AgentChatPage({ params }:{ params:Promise<{id:string}> }
       <div className="grid grid-cols-2 gap-1 sm:grid-cols-4">
         <button
           type="button"
-          onClick={()=>selectClaudioTab("web")}
-          className={`inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-4 text-sm font-bold transition ${claudioTab==="web"?"bg-[var(--brand)] text-white shadow-sm":"text-[var(--muted)] hover:bg-[var(--app-bg)] hover:text-[var(--app-fg)]"}`}
-        >
-          <MessageCircle size={17}/>Atención Web
-        </button>
-        <button
-          type="button"
           onClick={()=>selectClaudioTab("whatsapp")}
           className={`inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-4 text-sm font-bold transition ${claudioTab==="whatsapp"?"bg-[var(--brand)] text-white shadow-sm":"text-[var(--muted)] hover:bg-[var(--app-bg)] hover:text-[var(--app-fg)]"}`}
         >
           <MessageCircle size={17}/>WhatsApp
+        </button>
+        <button
+          type="button"
+          onClick={()=>selectClaudioTab("web")}
+          className={`inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-4 text-sm font-bold transition ${claudioTab==="web"?"bg-[var(--brand)] text-white shadow-sm":"text-[var(--muted)] hover:bg-[var(--app-bg)] hover:text-[var(--app-fg)]"}`}
+        >
+          <MessageCircle size={17}/>Atención Web
         </button>
         <button
           type="button"
