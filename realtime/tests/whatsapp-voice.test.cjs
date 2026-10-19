@@ -1,3 +1,4 @@
+require("reflect-metadata");
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const { checkVoiceAudio, voiceErrorMessage } = require("../dist/channels/whatsapp-voice.service");
