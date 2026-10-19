@@ -14,6 +14,7 @@ import { HealthController } from "./health.controller";
 import { ChannelsController } from "./channels/channels.controller";
 import { ChannelsRuntimeService } from "./channels/channels-runtime.service";
 import { LaravelChannelsClient } from "./channels/laravel-channels.client";
+import { WhatsAppVoiceService } from "./channels/whatsapp-voice.service";
 import { BrowserBridgeService } from "./browser/browser-bridge.service";
 import { ContentCreatorService } from "./agents/content-creator.service";
 import { LaravelContentTraceClient } from "./agents/laravel-content-trace.client";
@@ -37,6 +38,7 @@ import { ExtensionsGateway } from "./extensions/extensions.gateway";
     LaravelKnowledgeClient,
     LaravelAgentAnalyticsClient,
     LaravelChannelsClient,
+    WhatsAppVoiceService,
     ChannelsRuntimeService,
     BrowserBridgeService,
     ContentCreatorService,
