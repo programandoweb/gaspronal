@@ -97,7 +97,7 @@ class CommunicationConversationController extends Controller
             'Debes tomar control de la conversación antes de responder.',
         );
         abort_if(! $conversation->provider_id, 409, 'La conversación no tiene un proveedor de WhatsApp asociado.');
-        abort_if(! $conversation->contact_phone, 409, 'La conversación no tiene un número de WhatsApp válido.');
+        abort_if(! $conversation->external_thread_id, 409, 'La conversación no tiene un identificador de WhatsApp válido.');
 
         if ($conversation->status === 'waiting_human') {
             $conversation->update([
@@ -116,7 +116,8 @@ class CommunicationConversationController extends Controller
             ->acceptJson()
             ->timeout(30)
             ->post($url, [
-                'recipient' => $conversation->contact_phone,
+                // Send to the original WhatsApp chat identity, including @lid.
+                'recipient' => $conversation->external_thread_id,
                 'text' => trim((string) $data['message']),
             ]);
 
@@ -149,7 +150,7 @@ class CommunicationConversationController extends Controller
             'provider_id' => ['required', 'integer', 'exists:communication_providers,id'],
             'external_thread_id' => ['required', 'string', 'max:191'],
             'external_message_id' => ['required', 'string', 'max:191'],
-            'contact_phone' => ['required', 'string', 'max:40'],
+            'contact_phone' => ['nullable', 'string', 'max:40', 'regex:/^\\+[1-9]\\d{7,14}$/'],
             'contact_name' => ['nullable', 'string', 'max:190'],
             'text' => ['required', 'string', 'max:20000'],
             'metadata' => ['nullable', 'array'],
@@ -173,9 +174,11 @@ class CommunicationConversationController extends Controller
                 ],
             );
 
-            $user = User::query()->where('whatsapp', $data['contact_phone'])->first();
+            $contactPhone = $data['contact_phone'] ?? null;
+            $user = $contactPhone ? User::query()->where('whatsapp', $contactPhone)->first() : null;
             $updates = [
-                'contact_phone' => $data['contact_phone'],
+                // Clear a previously fabricated phone when the sender is LID-only.
+                'contact_phone' => $contactPhone,
                 'last_message_at' => now(),
             ];
 

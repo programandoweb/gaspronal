@@ -18,6 +18,7 @@ import { randomUUID } from "node:crypto";
 import { promises as fs } from "node:fs";
 import { resolve } from "node:path";
 import { LaravelChannelsClient } from "./laravel-channels.client";
+import { parseInboundWhatsAppJid, resolveWhatsAppRecipientJid } from "./baileys-address";
 import { AgentRuntimeService } from "../agents/agent-runtime.service";
 import type {
   Channel,
@@ -371,10 +372,15 @@ export class ChannelsRuntimeService implements OnModuleInit, OnModuleDestroy {
     const text = this.messageText(message);
     if (!text) return;
 
-    const digits = remoteJid.split("@")[0].split(":")[0].replace(/\D/g, "");
-    if (!digits) return;
+    // LID is an opaque WhatsApp identity, NOT the customer's phone number.
+    // Preserve the actual chat JID for replies and keep phone unknown unless PN.
+    const sender = parseInboundWhatsAppJid(remoteJid);
+    if (!sender) {
+      this.logger.warn(`WhatsApp inbound ${provider.id}: unsupported sender JID domain`);
+      return;
+    }
 
-    const contactPhone = `+${digits}`;
+    const contactPhone = sender.contactPhone;
     const inbound = await this.client.receiveInbound({
       provider_id: Number(provider.id),
       external_thread_id: remoteJid,
@@ -384,6 +390,7 @@ export class ChannelsRuntimeService implements OnModuleInit, OnModuleDestroy {
       text,
       metadata: {
         message_type: Object.keys(message.message ?? {})[0] ?? "text",
+        address_type: sender.addressType,
       },
     });
 
@@ -397,7 +404,7 @@ export class ChannelsRuntimeService implements OnModuleInit, OnModuleDestroy {
         context: {
           channel: "whatsapp",
           communicationConversationId: inbound.conversation.id,
-          customerPhone: contactPhone,
+          customerPhone: contactPhone ?? undefined,
           customerName: inbound.customer?.name ?? inbound.conversation.contact_name ?? undefined,
           customerEmail: inbound.customer?.email ?? undefined,
           hasDataProcessingConsent: inbound.customer?.has_data_processing_consent ?? false,
@@ -417,7 +424,7 @@ export class ChannelsRuntimeService implements OnModuleInit, OnModuleDestroy {
       }
 
       const sent = await this.send(provider.id, {
-        recipient: contactPhone,
+        recipient: sender.chatJid,
         text: response.message,
       });
 
@@ -428,14 +435,14 @@ export class ChannelsRuntimeService implements OnModuleInit, OnModuleDestroy {
         status: "sent",
       });
     } catch (error) {
-      this.logger.warn(`Agente de WhatsApp no pudo responder ${contactPhone}: ${this.errorMessage(error)}`);
+      this.logger.warn(`Agente de WhatsApp no pudo responder ${sender.chatJid}: ${this.errorMessage(error)}`);
       await this.client.updateConversation(inbound.conversation.id, "waiting_human").catch(() => undefined);
 
       const fallback = "Gracias por escribir a Gaspronal. En este momento no pude completar la atención automática. Dejé tu conversación pendiente para que un asesor pueda continuarla.";
 
       try {
         const sent = await this.send(provider.id, {
-          recipient: contactPhone,
+          recipient: sender.chatJid,
           text: fallback,
         });
 
@@ -446,7 +453,7 @@ export class ChannelsRuntimeService implements OnModuleInit, OnModuleDestroy {
           status: "sent",
         });
       } catch (sendError) {
-        this.logger.error(`No fue posible enviar fallback WhatsApp ${contactPhone}: ${this.errorMessage(sendError)}`);
+        this.logger.error(`No fue posible enviar fallback WhatsApp ${sender.chatJid}: ${this.errorMessage(sendError)}`);
       }
     }
   }
@@ -482,10 +489,12 @@ export class ChannelsRuntimeService implements OnModuleInit, OnModuleDestroy {
         throw new ConflictException("WhatsApp no está conectado.");
       }
 
-      const digits = payload.recipient.replace(/\D/g, "");
-      if (!digits) throw new BadRequestException("Destinatario WhatsApp inválido.");
+      const jid = resolveWhatsAppRecipientJid(payload?.recipient);
+      if (!jid || typeof payload?.text !== "string" || !payload.text.trim()) {
+        throw new BadRequestException("Destinatario o mensaje WhatsApp inválido.");
+      }
 
-      const result = await current.socket.sendMessage(`${digits}@s.whatsapp.net`, { text: payload.text });
+      const result = await current.socket.sendMessage(jid, { text: payload.text });
       return { message_id: result?.key.id ?? undefined };
     }
 

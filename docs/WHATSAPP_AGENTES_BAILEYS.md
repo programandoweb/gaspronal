@@ -7,7 +7,10 @@
 - El webhook interno atribuye la conversación al agente asignado y NestJS ejecuta el mismo runtime de modelos, herramientas y prompts que utiliza el agente en el dashboard.
 - Los registros y estados internos de conversaciones admiten agentes distintos de Claudio; la interfaz de atención humana existente continúa siendo específica de Claudio.
 - Proveedores Baileys históricos sin agent_id se mantienen asociados a Claudio.
-- Desconectar desde la ficha no elimina las credenciales de WhatsApp (logout:false).
+- Desvincular desde la ficha elimina las credenciales de WhatsApp (logout:true) y desactiva la reconexión automática hasta conectar nuevamente.
+- Los mensajes entrantes pueden usar identificadores `@lid`, que no son teléfonos. NestJS conserva el JID original para responder con Baileys, registra `contact_phone=null` cuando no existe un PN verificado y evita vincular usuarios por números deducidos del LID.
+- El envío humano desde el dashboard utiliza `external_thread_id` (identidad real del chat) en lugar del campo de teléfono opcional. El envío manual sigue aceptando números internacionales.
+- `sent` indica que Baileys devolvió un identificador de mensaje; no certifica entrega al teléfono del cliente. La confirmación de entrega requiere procesar recibos/ACK.
 
 ## Despliegue
 ```bash
