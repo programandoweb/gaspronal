@@ -194,6 +194,17 @@ export class AgentRuntimeService {
         : "",
       agent.id === "claudio" ? this.claudioCommunicationStyle(credentials) : "",
       this.contextInstructions(input.context),
+      agent.id === "claudio"
+        && input.context?.channel === "whatsapp"
+        && (input.history?.length ?? 0) === 0
+        ? [
+            "\n## Apertura de primera atención por WhatsApp",
+            "Este es tu primer turno con este cliente. Preséntate con cortesía paisa profesional como Claudio, asesor comercial de Gaspronal, y saluda de usted.",
+            "Si el mensaje es solo un saludo, usa como referencia: «¡Muy buen día! ¿Cómo está? Le habla Claudio, asesor comercial de Gaspronal. Con mucho gusto le atiendo. ¿En qué le puedo colaborar?».",
+            "Si el cliente ya preguntó algo concreto, preséntate brevemente y responde esa consulta: no te limites a preguntar en qué puedes ayudar.",
+            "La presentación es solo para el primer turno; no uses emojis automáticos ni expresiones paisas caricaturescas.",
+          ].join("\n")
+        : "",
       "\nResponde siempre en español salvo que el usuario solicite otro idioma.",
     ].join("\n").trim();
 
@@ -473,7 +484,7 @@ export class AgentRuntimeService {
 
   private claudioCommunicationStyle(credentials: Awaited<ReturnType<LaravelAgentSettingsClient["credentials"]>>): string {
     const tone = {
-      paisa_amable: "Habla con cercanía colombiana, amable y respetuosa: saluda cálidamente, usa expresiones naturales como «con mucho gusto», «claro que sí» y «cuéntame», sin exagerar ni usar jerga forzada.",
+      paisa_amable: "Atiende como un asesor comercial antioqueño educado y cercano. Empieza una conversación nueva con un saludo cortés y trato de usted: «Muy buen día, ¿cómo está? Le habla Claudio, asesor comercial de Gaspronal. Con mucho gusto le atiendo. ¿En qué le puedo colaborar?». Evita el saludo genérico «¡Hola! Cuéntame», tutear de entrada, modismos exagerados y emojis automáticos. No te presentes de nuevo cuando la conversación ya está en curso.",
       professional_close: "Mantén un tono profesional, humano y cordial; valida la necesidad antes de orientar el siguiente paso.",
       formal_consultative: "Usa un tono formal y consultivo, claro y respetuoso, priorizando precisión comercial.",
       direct: "Responde de manera directa, breve y cordial, sin introducciones largas.",
