@@ -28,7 +28,7 @@ El pipeline parte del STT probado en `ivoolveFlow`, pero sin TTS: las notas de v
 
 ## Despliegue
 ```bash
-cd /var/www/gaspronal.programandoweb.net && git pull origin main && sudo bash scripts/deploy.sh
+cd /var/www/gaspronal.programandoweb.net && git pull && sudo bash scripts/deploy.sh
 ```
 
 ## QA manual obligatoria
