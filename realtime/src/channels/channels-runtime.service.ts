@@ -20,6 +20,7 @@ import { resolve } from "node:path";
 import { LaravelChannelsClient } from "./laravel-channels.client";
 import { parseInboundWhatsAppJid, resolveWhatsAppRecipientJid } from "./baileys-address";
 import { AgentRuntimeService } from "../agents/agent-runtime.service";
+import { WhatsAppVoiceService, getVoiceAudio, checkVoiceAudio, voiceErrorMessage, VoiceError } from "./whatsapp-voice.service";
 import type {
   Channel,
   ChannelMessage,
@@ -44,11 +45,14 @@ export class ChannelsRuntimeService implements OnModuleInit, OnModuleDestroy {
   private readonly runtime = new Map<string, RuntimeConnection>();
   private readonly reconnectTimers = new Map<string, NodeJS.Timeout>();
   private readonly inboundQueues = new Map<string, Promise<void>>();
+  private readonly voiceSeen = new Map<string, number>();
+  private readonly voiceWindows = new Map<string, { started: number; count: number }>();
   private readonly sessionsPath: string;
 
   constructor(
     private readonly client: LaravelChannelsClient,
     private readonly agents: AgentRuntimeService,
+    private readonly voice: WhatsAppVoiceService,
     config: ConfigService,
   ) {
     this.sessionsPath = resolve(
@@ -336,6 +340,8 @@ export class ChannelsRuntimeService implements OnModuleInit, OnModuleDestroy {
     }
     this.runtime.clear();
     this.inboundQueues.clear();
+    this.voiceSeen.clear();
+    this.voiceWindows.clear();
   }
 
   private enqueueIncomingMessage(provider: ChannelProvider, message: WAMessage): void {
@@ -369,17 +375,47 @@ export class ChannelsRuntimeService implements OnModuleInit, OnModuleDestroy {
       return;
     }
 
-    const text = this.messageText(message);
-    if (!text) return;
-
-    // LID is an opaque WhatsApp identity, NOT the customer's phone number.
-    // Preserve the actual chat JID for replies and keep phone unknown unless PN.
+    // Preserve @lid identity: do not infer a phone number from its digits.
     const sender = parseInboundWhatsAppJid(remoteJid);
     if (!sender) {
       this.logger.warn(`WhatsApp inbound ${provider.id}: unsupported sender JID domain`);
       return;
     }
 
+    let text = this.messageText(message);
+    let isVoiceInput = false;
+    let voiceSeconds: number | null = null;
+    const voice = getVoiceAudio(message);
+    if (!text && voice) {
+      const messageId = message.key.id;
+      // Prevent duplicate media downloads on repeated Baileys notifications.
+      if (!messageId || !this.acceptVoiceMessage(provider.id, sender.chatJid, messageId)) return;
+      const decision = checkVoiceAudio(voice);
+      if (!decision.allowed) {
+        await this.replyToVoiceFailure(provider.id, sender.chatJid, decision.reason);
+        return;
+      }
+      if (!this.withinVoiceRate(provider.id, sender.chatJid)) {
+        await this.replyToVoiceFailure(provider.id, sender.chatJid, "rate_limited");
+        return;
+      }
+      try {
+        const agentId = String(provider.settings?.agent_id ?? "claudio").toLowerCase();
+        text = await this.voice.transcribe(voice, agentId);
+        isVoiceInput = true;
+        voiceSeconds = decision.seconds;
+        if (!text) {
+          await this.replyToVoiceFailure(provider.id, sender.chatJid, "no_speech");
+          return;
+        }
+      } catch (error) {
+        const reason = error instanceof VoiceError ? error.reason : "stt_failed";
+        this.logger.warn(`WhatsApp voice provider=${provider.id} reason=${reason}`);
+        await this.replyToVoiceFailure(provider.id, sender.chatJid, reason);
+        return;
+      }
+    }
+    if (!text) return;
     const contactPhone = sender.contactPhone;
     const inbound = await this.client.receiveInbound({
       provider_id: Number(provider.id),
@@ -391,6 +427,7 @@ export class ChannelsRuntimeService implements OnModuleInit, OnModuleDestroy {
       metadata: {
         message_type: Object.keys(message.message ?? {})[0] ?? "text",
         address_type: sender.addressType,
+        ...(isVoiceInput ? { input_mode: "voice", audio_duration_seconds: voiceSeconds } : {}),
       },
     });
 
@@ -403,6 +440,7 @@ export class ChannelsRuntimeService implements OnModuleInit, OnModuleDestroy {
         history: inbound.history,
         context: {
           channel: "whatsapp",
+          voiceInput: isVoiceInput,
           communicationConversationId: inbound.conversation.id,
           customerPhone: contactPhone ?? undefined,
           customerName: inbound.customer?.name ?? inbound.conversation.contact_name ?? undefined,
@@ -455,6 +493,41 @@ export class ChannelsRuntimeService implements OnModuleInit, OnModuleDestroy {
       } catch (sendError) {
         this.logger.error(`No fue posible enviar fallback WhatsApp ${sender.chatJid}: ${this.errorMessage(sendError)}`);
       }
+    }
+  }
+
+  /** Avoid duplicate audio transcription and bound in-memory tracking. */
+  private acceptVoiceMessage(providerId: string, jid: string, messageId: string): boolean {
+    const now = Date.now();
+    for (const [key, at] of this.voiceSeen) {
+      if (now - at > 600_000) this.voiceSeen.delete(key);
+    }
+    const key = `${providerId}:${jid}:${messageId}`;
+    if (this.voiceSeen.has(key)) return false;
+    if (this.voiceSeen.size >= 3000) this.voiceSeen.delete(this.voiceSeen.keys().next().value!);
+    this.voiceSeen.set(key, now);
+    return true;
+  }
+
+  /** Ten notes per chat every ten minutes limits transcription spend. */
+  private withinVoiceRate(providerId: string, jid: string): boolean {
+    const now = Date.now();
+    for (const [key, window] of this.voiceWindows) {
+      if (now - window.started >= 600_000) this.voiceWindows.delete(key);
+    }
+    const key = `${providerId}:${jid}`;
+    const current = this.voiceWindows.get(key);
+    if (current && current.count >= 10) return false;
+    if (this.voiceWindows.size >= 3000 && !current) this.voiceWindows.delete(this.voiceWindows.keys().next().value!);
+    this.voiceWindows.set(key, current ? { started: current.started, count: current.count + 1 } : { started: now, count: 1 });
+    return true;
+  }
+
+  private async replyToVoiceFailure(id: string, jid: string, reason: string): Promise<void> {
+    try {
+      await this.send(id, { recipient: jid, text: voiceErrorMessage(reason) });
+    } catch {
+      this.logger.warn(`WhatsApp voice provider=${id}: could not send text notice`);
     }
   }
 
