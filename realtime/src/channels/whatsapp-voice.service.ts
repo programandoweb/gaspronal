@@ -87,12 +87,15 @@ export function normalizeVoiceAudio(input: Buffer): Promise<Buffer> {
     ], { stdio: ["pipe", "pipe", "pipe"] });
     const chunks: Buffer[] = [];
     let size = 0, settled = false;
+    let stderrTail = "";
+    let actualSeconds: number | null = null;
     const complete = (error?: Error) => {
       if (settled) return;
       settled = true;
       clearTimeout(timer);
       if (error) { child.kill("SIGKILL"); reject(error); }
       else if (size < 64) reject(new VoiceError("invalid_audio"));
+      else if (actualSeconds !== null && actualSeconds > 60) reject(new VoiceError("too_long"));
       else resolve(Buffer.concat(chunks, size));
     };
     const timer = setTimeout(() => complete(new VoiceError("invalid_audio")), 30_000);
@@ -101,7 +104,17 @@ export function normalizeVoiceAudio(input: Buffer): Promise<Buffer> {
       if (size > 2_097_152) return complete(new VoiceError("too_large"));
       chunks.push(chunk);
     });
-    child.stderr.resume();
+    child.stderr.on("data", (chunk: Buffer) => {
+      stderrTail = (stderrTail + chunk.toString("utf8")).slice(-512);
+      // Do not trust the WhatsApp duration field alone: check FFmpeg's decoded duration too.
+      const times = [...stderrTail.matchAll(/time=(\d+):(\d{2}):(\d{2})(?:\.(\d+))?/g)];
+      const last = times[times.length - 1];
+      if (last) {
+        const seconds = Number(last[1]) * 3600 + Number(last[2]) * 60 + Number(last[3])
+          + Number("0." + (last[4] ?? "0"));
+        actualSeconds = Math.max(actualSeconds ?? 0, seconds);
+      }
+    });
     child.on("error", () => complete(new VoiceError("unavailable")));
     child.on("close", code => complete(code === 0 ? undefined : new VoiceError("invalid_audio")));
     child.stdin.on("error", () => undefined);
