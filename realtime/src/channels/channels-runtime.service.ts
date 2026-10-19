@@ -511,7 +511,7 @@ export class ChannelsRuntimeService implements OnModuleInit, OnModuleDestroy {
   }
 
   /** Ten notes per chat every ten minutes limits transcription spend. */
-  private withinVoiceRate(providerId: string, jid: string): boolean {
+  private withinVoiceRate(providerId: string, jid: string): boolean | undefined {
     const now = Date.now();
     for (const [key, window] of this.voiceWindows) {
       if (now - window.started >= 600_000) this.voiceWindows.delete(key);
