@@ -456,6 +456,11 @@ export class AgentRuntimeService {
     args: Record<string, unknown>,
     context?: AgentExecutionContext,
   ): Promise<unknown> {
+    // Voice transcriptions are not written authorization for commercial writes.
+    if (agentId === "claudio" && context?.voiceInput &&
+        ["register_customer", "create_quote", "create_appointment", "handoff_to_human"].includes(name)) {
+      return { ok: false, error: "Solicite confirmación escrita por WhatsApp antes de realizar esta acción." };
+    }
     let toolArgs: Record<string, unknown> = { ...args };
 
     if (agentId === "claudio" && context?.channel === "web") {
@@ -524,7 +529,10 @@ export class AgentRuntimeService {
     const lines = [
       "\n## Contexto de WhatsApp",
       "Estás atendiendo una conversación real del WhatsApp comercial de Gaspronal.",
-      "El número del remitente proviene del canal y debe considerarse el WhatsApp confirmado del cliente.",
+      context.voiceInput
+        ? "El cliente envió una nota de voz que fue transcrita automáticamente. Responde exclusivamente con TEXTO, nunca audio. La transcripción no autoriza registro de datos, citas, cotizaciones ni escalamiento; pide confirmación por escrito para esos pasos. Si hay cifras o datos dudosos, pregunta."
+        : "",
+      "El remitente puede estar identificado por un LID de WhatsApp. Si no se proporciona un teléfono confirmado, no lo inventes.",
       context.customerPhone ? `WhatsApp confirmado: ${context.customerPhone}. No vuelvas a pedir el número; usa este valor cuando una herramienta lo requiera.` : "",
       context.customerName ? `Cliente vinculado: ${context.customerName}.` : "",
       context.customerEmail ? `Correo ya vinculado: ${context.customerEmail}.` : "",
