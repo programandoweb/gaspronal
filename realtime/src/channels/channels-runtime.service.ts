@@ -395,8 +395,9 @@ export class ChannelsRuntimeService implements OnModuleInit, OnModuleDestroy {
         await this.replyToVoiceFailure(provider.id, sender.chatJid, decision.reason);
         return;
       }
-      if (!this.withinVoiceRate(provider.id, sender.chatJid)) {
-        await this.replyToVoiceFailure(provider.id, sender.chatJid, "rate_limited");
+      const voiceRate = this.withinVoiceRate(provider.id, sender.chatJid);
+      if (voiceRate !== true) {
+        if (voiceRate === false) await this.replyToVoiceFailure(provider.id, sender.chatJid, "rate_limited");
         return;
       }
       try {
@@ -517,7 +518,14 @@ export class ChannelsRuntimeService implements OnModuleInit, OnModuleDestroy {
     }
     const key = `${providerId}:${jid}`;
     const current = this.voiceWindows.get(key);
-    if (current && current.count >= 10) return false;
+    if (current && current.count >= 10) {
+      // Notify only once; additional rejected notes are silently ignored to prevent outbound spam.
+      if (current.count === 10) {
+        current.count++;
+        return false;
+      }
+      return undefined;
+    }
     if (this.voiceWindows.size >= 3000 && !current) this.voiceWindows.delete(this.voiceWindows.keys().next().value!);
     this.voiceWindows.set(key, current ? { started: current.started, count: current.count + 1 } : { started: now, count: 1 });
     return true;
