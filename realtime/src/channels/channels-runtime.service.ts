@@ -156,7 +156,9 @@ export class ChannelsRuntimeService implements OnModuleInit, OnModuleDestroy {
       const latest = await this.findProvider(id);
       if (!latest) return;
 
-      const active = this.runtime.get(id) ?? { status: "disconnected" as const };
+      // Ignore delayed events from sockets already replaced or manually closed.
+      const active = this.runtime.get(id);
+      if (!active || active.socket !== socket || active.manualClose) return;
 
       if (update.qr) {
         const qrDataUrl = await QRCode.toDataURL(update.qr, { width: 320, margin: 2 });
