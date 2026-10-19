@@ -16,6 +16,7 @@ export type AgentConversationMessage = {
 
 export type AgentExecutionContext = {
   channel?: "dashboard" | "whatsapp" | "web";
+  voiceInput?: boolean;
   communicationConversationId?: number;
   customerPhone?: string;
   customerName?: string;
