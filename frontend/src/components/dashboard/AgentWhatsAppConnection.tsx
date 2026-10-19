@@ -23,11 +23,23 @@ export default function AgentWhatsAppConnection({agentId}:{agentId:string}){
   }catch(e){setError(e instanceof Error?e.message:"Error consultando WhatsApp");}
  },[agentId]);
  useEffect(()=>{void refresh();const timer=setInterval(()=>void refresh(),5000);return()=>clearInterval(timer);},[refresh]);
+ async function updateAutoConnect(value:boolean){
+  if(!provider)throw new Error("Proveedor no encontrado.");
+  const res=await fetch("/api/admin/communications/providers/"+provider.id,{
+   method:"PUT",headers:{"Content-Type":"application/json"},
+   body:JSON.stringify({name:provider.name,channel:"whatsapp",driver:"baileys",enabled:provider.enabled,
+    is_fallback:false,priority:100,auto_connect:value,settings:provider.settings})
+  });
+  const data=await res.json().catch(()=>({}));
+  if(!res.ok)throw new Error(data.message??"No fue posible actualizar la reconexión automática.");
+ }
  async function action(kind:"create"|"connect"|"disconnect"){
   setBusy(true);setError("");
   try{
+   if(kind==="disconnect") await updateAutoConnect(false);
+   if(kind==="connect") await updateAutoConnect(true);
    const url=kind==="create"?"/api/admin/communications/providers":`/api/channels/${provider?.id}/${kind}`;
-   const res=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(kind==="create"?{name:"WhatsApp "+agentId,channel:"whatsapp",driver:"baileys",enabled:true,auto_connect:true,is_fallback:false,priority:100,settings:{agent_id:agentId}}:{logout:false})});
+   const res=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(kind==="create"?{name:"WhatsApp "+agentId,channel:"whatsapp",driver:"baileys",enabled:true,auto_connect:true,is_fallback:false,priority:100,settings:{agent_id:agentId}} :{logout:kind==="disconnect"})});
    const json=await res.json().catch(()=>({}));
    if(!res.ok)throw new Error(json.message??"No se pudo actualizar la conexión.");
    await refresh();
@@ -44,7 +56,7 @@ export default function AgentWhatsAppConnection({agentId}:{agentId:string}){
   <div className="mt-4 flex flex-wrap gap-2">
    {!provider?<button disabled={busy} onClick={()=>void action("create")} className="rounded-xl bg-[var(--brand)] px-4 py-2 font-semibold text-white">Crear WhatsApp</button>:<>
    <button disabled={busy} onClick={()=>void action("connect")} className="rounded-xl bg-[var(--brand)] px-4 py-2 font-semibold text-white">Conectar / generar QR</button>
-   <button disabled={busy} onClick={()=>void action("disconnect")} className="rounded-xl border border-[var(--border)] px-4 py-2 font-semibold">Desconectar</button>
+   <button disabled={busy} onClick={()=>void action("disconnect")} className="rounded-xl border border-[var(--border)] px-4 py-2 font-semibold">Desvincular y generar nuevo QR</button>
    </>}
   </div>
   {error&&<p role="alert" className="mt-3 text-sm text-red-700">{error}</p>}
