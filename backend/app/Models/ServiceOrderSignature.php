@@ -1,0 +1,2 @@
+<?php
+namespace App\Models; use Illuminate\Database\Eloquent\Model; use Illuminate\Database\Eloquent\Relations\BelongsTo; class ServiceOrderSignature extends Model { protected $fillable=['user_id','role','signer_name','path','accepted','ip_address','signed_at']; protected function casts():array{return ['accepted'=>'boolean','signed_at'=>'datetime'];} public function user():BelongsTo{return $this->belongsTo(User::class);} }

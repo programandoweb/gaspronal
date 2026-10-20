@@ -27,6 +27,7 @@ class AccessControlSeeder extends Seeder
             'extensions.view', 'extensions.manage',
             'commercial.quotes.view', 'commercial.quotes.manage',
             'commercial.appointments.view', 'commercial.appointments.manage',
+            'service_orders.view', 'service_orders.create', 'service_orders.assign', 'service_orders.execute', 'service_orders.close', 'service_orders.share', 'service_orders.manage', 'service_orders.view_own',
             'seo.view', 'seo.manage',
             'deployments.view', 'deployments.manage',
             'security.users.view', 'security.users.manage',
@@ -39,7 +40,10 @@ class AccessControlSeeder extends Seeder
 
         $root = Role::findOrCreate('root', 'api');
         $admin = Role::findOrCreate('admin', 'api');
-        Role::findOrCreate('cliente', 'api');
+        $client = Role::findOrCreate('cliente', 'api');
+        $client->syncPermissions(['service_orders.view_own']);
+        $technician = Role::findOrCreate('tecnico', 'api');
+        $technician->syncPermissions(['service_orders.execute']);
 
         $allPermissions = Permission::where('guard_name', 'api')->get();
         $root->syncPermissions($allPermissions);

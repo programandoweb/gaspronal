@@ -29,11 +29,13 @@ use App\Http\Controllers\Api\V1\UserAccessController;
 use App\Http\Controllers\Api\V1\HeroSlideController;
 use App\Http\Controllers\Api\V1\PageBlockController;
 use App\Http\Controllers\Api\V1\BrowserExtensionController;
+use App\Http\Controllers\Api\V1\ServiceOrders\ServiceOrderController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function (): void {
     Route::get('health', HealthController::class);
     Route::get('public/commercial/quotes/{commercialQuote}/share', [CommercialQuoteController::class, 'publicShare'])->name('commercial.quotes.public-share')->middleware('throttle:30,1');
+    Route::get('service-orders/{serviceOrder}/shared-pdf', [ServiceOrderController::class, 'sharedPdf'])->name('service-orders.shared-pdf')->middleware('signed:relative,throttle:30,1');
     Route::get('seo/redirects/resolve', [SeoRedirectController::class, 'resolve']);
     Route::get('catalog/public/items', [CatalogController::class, 'publicIndex']);
     Route::get('catalog/public/use-cases', [CatalogController::class, 'publicUseCases']);
@@ -91,6 +93,29 @@ Route::prefix('v1')->group(function (): void {
     });
 
     Route::middleware('auth:api')->group(function (): void {
+        Route::prefix('service-orders')->group(function (): void {
+            Route::get('customers', [ServiceOrderController::class, 'customers']);
+            Route::post('customers', [ServiceOrderController::class, 'storeCustomer']);
+            Route::get('technicians', [ServiceOrderController::class, 'technicians']);
+            Route::get('my-orders', [ServiceOrderController::class, 'myOrders']);
+            Route::get('my-assigned', [ServiceOrderController::class, 'myAssigned']);
+            Route::get('/', [ServiceOrderController::class, 'index']);
+            Route::post('/', [ServiceOrderController::class, 'store']);
+            Route::get('{serviceOrder}', [ServiceOrderController::class, 'show']);
+            Route::patch('{serviceOrder}', [ServiceOrderController::class, 'update']);
+            Route::post('{serviceOrder}/assign', [ServiceOrderController::class, 'assign']);
+            Route::post('{serviceOrder}/start', [ServiceOrderController::class, 'start']);
+            Route::post('{serviceOrder}/activities', [ServiceOrderController::class, 'activity']);
+            Route::post('{serviceOrder}/evidences', [ServiceOrderController::class, 'evidence']);
+            Route::get('{serviceOrder}/evidences/{evidence}', [ServiceOrderController::class, 'evidenceFile']);
+            Route::post('{serviceOrder}/complete', [ServiceOrderController::class, 'complete']);
+            Route::post('{serviceOrder}/signatures', [ServiceOrderController::class, 'signature']);
+            Route::post('{serviceOrder}/close', [ServiceOrderController::class, 'close']);
+            Route::get('{serviceOrder}/pdf', [ServiceOrderController::class, 'pdf']);
+            Route::get('{serviceOrder}/events', [ServiceOrderController::class, 'events']);
+            Route::post('{serviceOrder}/share-link', [ServiceOrderController::class, 'shareLink']);
+            Route::post('{serviceOrder}/send-pdf', [ServiceOrderController::class, 'sendPdf']);
+        });
         Route::get('dashboard/metrics', DashboardController::class)->middleware('permission:dashboard.view');
         Route::get('deployments', [DeploymentController::class, 'index'])->middleware('permission:deployments.view');
         Route::get('agents/dashboard', [AgentAnalyticsController::class, 'dashboard'])->middleware('permission:agents.view');

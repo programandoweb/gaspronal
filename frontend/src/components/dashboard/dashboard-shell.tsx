@@ -20,6 +20,7 @@ import {
   RotateCcw,
   Settings,
   ShieldCheck,
+  Wrench,
   X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -41,6 +42,9 @@ const navItems = [
   { href: "/dashboard/canales", label: "Canales", icon: MessagesSquare, exact: false, permission: "channels.view" },
   { href: "/dashboard/comercial/propuestas", label: "Propuestas", icon: FileCheck2, exact: false, permission: "commercial.quotes.view" },
   { href: "/dashboard/comercial/citas", label: "Citas", icon: CalendarDays, exact: false, permission: "commercial.appointments.view" },
+  { href: "/dashboard/servicios/ordenes", label: "Órdenes de servicio", icon: Wrench, exact: false, permission: "service_orders.view" },
+  { href: "/dashboard/tecnico/ordenes", label: "Mis órdenes técnicas", icon: Wrench, exact: false, permission: "service_orders.execute" },
+  { href: "/dashboard/mis-ordenes", label: "Mis órdenes", icon: FileCheck2, exact: false, permission: "service_orders.view_own" },
   { href: "/dashboard/configuracion", label: "Configuración", icon: Settings, exact: false, permission: "deployments.view" },
   { href: "/dashboard/seguridad", label: "Usuarios y roles", icon: ShieldCheck, exact: false, permission: "security.users.view" },
 ] as const;
