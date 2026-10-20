@@ -42,11 +42,11 @@ const navItems = [
   { href: "/dashboard/canales", label: "Canales", icon: MessagesSquare, exact: false, permission: "channels.view" },
   { href: "/dashboard/comercial/propuestas", label: "Propuestas", icon: FileCheck2, exact: false, permission: "commercial.quotes.view" },
   { href: "/dashboard/comercial/citas", label: "Citas", icon: CalendarDays, exact: false, permission: "commercial.appointments.view" },
-  { href: "/dashboard/servicios/ordenes", label: "Órdenes de servicio", icon: Wrench, exact: false, permission: "service_orders.view" },
-  { href: "/dashboard/tecnico/ordenes", label: "Mis órdenes técnicas", icon: Wrench, exact: false, permission: "service_orders.execute" },
-  { href: "/dashboard/mis-ordenes", label: "Mis órdenes", icon: FileCheck2, exact: false, permission: "service_orders.view_own" },
-  { href: "/dashboard/configuracion", label: "Configuración", icon: Settings, exact: false, permission: "deployments.view" },
-  { href: "/dashboard/seguridad", label: "Usuarios y roles", icon: ShieldCheck, exact: false, permission: "security.users.view" },
+  { href: "/dashboard/servicios/ordenes", label: "Centro de órdenes", icon: Wrench, exact: false, permission: "service_orders.view", group: "service" },
+  { href: "/dashboard/tecnico/ordenes", label: "Mis órdenes técnicas", icon: Wrench, exact: false, permission: "service_orders.execute", group: "service" },
+  { href: "/dashboard/mis-ordenes", label: "Mis órdenes", icon: FileCheck2, exact: false, permission: "service_orders.view_own", group: "service" },
+  { href: "/dashboard/configuracion", label: "Configuración", icon: Settings, exact: false, permission: "deployments.view", group: "settings" },
+  { href: "/dashboard/seguridad", label: "Usuarios y roles", icon: ShieldCheck, exact: false, permission: "security.users.view", group: "settings" },
 ] as const;
 
 export function DashboardShell({ children, user, impersonating = false }: { children: React.ReactNode; user: User; impersonating?: boolean }) {
@@ -82,6 +82,11 @@ export function DashboardShell({ children, user, impersonating = false }: { chil
   }
 
   const visibleNavItems = navItems.filter((item) => user.permissions.includes(item.permission));
+  const navGroups = [
+    { label: null, items: visibleNavItems.filter((item) => !("group" in item)) },
+    { label: "Órdenes de servicio", items: visibleNavItems.filter((item) => "group" in item && item.group === "service") },
+    { label: "Configuración", items: visibleNavItems.filter((item) => "group" in item && item.group === "settings") },
+  ].filter((group) => group.items.length > 0);
 
   return (
     <div className="min-h-screen bg-[var(--app-bg)] text-[var(--app-fg)]">
@@ -150,8 +155,11 @@ export function DashboardShell({ children, user, impersonating = false }: { chil
             Administración
           </p>
 
-          <div className="space-y-1">
-            {visibleNavItems.map((item) => {
+          <div className="space-y-4">
+            {navGroups.map((group) => <div key={group.label ?? "main"} className={group.label ? "rounded-2xl bg-white/5 p-1.5" : "space-y-1"}>
+              {group.label && <p className={["px-2 pb-1 pt-1 text-[10px] font-bold uppercase tracking-[.14em] text-white/50", collapsed ? "lg:hidden" : ""].join(" ")}>{group.label}</p>}
+              <div className="space-y-1">
+              {group.items.map((item) => {
               const Icon = item.icon;
               const active = item.exact
                 ? pathname === item.href
@@ -176,7 +184,9 @@ export function DashboardShell({ children, user, impersonating = false }: { chil
                   <span className={collapsed ? "lg:hidden" : ""}>{item.label}</span>
                 </Link>
               );
-            })}
+              })}
+              </div>
+            </div>)}
           </div>
         </nav>
 
