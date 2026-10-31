@@ -44,8 +44,8 @@ class CatalogController extends Controller
                                 ->where('name', 'like', $like));
                     });
                 })
-                ->orderByDesc('published_at')
-                ->orderBy('name')
+                ->orderByDesc('created_at')
+                ->orderByDesc('id')
                 ->paginate(min(max($request->integer('per_page', 24), 1), 48))
         );
     }
