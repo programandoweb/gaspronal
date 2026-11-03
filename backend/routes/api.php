@@ -28,6 +28,7 @@ use App\Http\Controllers\Api\V1\AiProviderController;
 use App\Http\Controllers\Api\V1\UserAccessController;
 use App\Http\Controllers\Api\V1\HeroSlideController;
 use App\Http\Controllers\Api\V1\PageBlockController;
+use App\Http\Controllers\Api\V1\InstitutionalContentController;
 use App\Http\Controllers\Api\V1\BrowserExtensionController;
 use App\Http\Controllers\Api\V1\ServiceOrders\ServiceOrderController;
 use Illuminate\Support\Facades\Route;
@@ -117,6 +118,8 @@ Route::prefix('v1')->group(function (): void {
             Route::post('{serviceOrder}/send-pdf', [ServiceOrderController::class, 'sendPdf']);
         });
         Route::get('dashboard/metrics', DashboardController::class)->middleware('permission:dashboard.view');
+        Route::get('institutional', [InstitutionalContentController::class, 'show'])->middleware('permission:institutional.view');
+        Route::put('institutional', [InstitutionalContentController::class, 'update'])->middleware('permission:institutional.manage');
         Route::get('deployments', [DeploymentController::class, 'index'])->middleware('permission:deployments.view');
         Route::get('agents/dashboard', [AgentAnalyticsController::class, 'dashboard'])->middleware('permission:agents.view');
         Route::get('agents/{agent}/settings', [AgentSettingController::class, 'show'])->middleware('permission:agents.view');
