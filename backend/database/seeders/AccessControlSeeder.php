@@ -21,6 +21,7 @@ class AccessControlSeeder extends Seeder
             'catalog.view', 'catalog.manage',
             'content.view', 'content.manage',
             'heroes.view', 'heroes.manage',
+            'institutional.view', 'institutional.manage',
             'agents.view', 'agents.manage', 'agents.train', 'agents.training.approve',
             'ai.view', 'ai.manage',
             'channels.view', 'channels.manage',
