@@ -47,7 +47,7 @@ export default function StickyCategoryGrid({
 
   return (
     <>
-      <nav aria-label="Categorías de productos" className="mx-auto max-w-[1440px] px-4 py-3 sm:px-6 lg:px-10">
+      <nav id="categorias-productos" aria-label="Categorías de productos" className="mx-auto max-w-[1440px] scroll-mt-4 px-4 py-3 sm:px-6 lg:px-10">
         <div className="grid grid-cols-4 gap-2 sm:gap-3 xl:grid-cols-6">
           {categories.map((item, index) => (
             <div
@@ -66,7 +66,7 @@ export default function StickyCategoryGrid({
             {categories.map((item) => (
               <Link
                 key={item.id}
-                href={`/productos?categoria=${encodeURIComponent(item.slug)}`}
+                href={`/productos?categoria=${encodeURIComponent(item.slug)}#catalogo-productos`}
                 title={item.name}
                 aria-label={`Ver productos de ${item.name}`}
                 aria-current={activeCategory === item.slug ? "page" : undefined}

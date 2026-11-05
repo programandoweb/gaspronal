@@ -94,6 +94,7 @@ export default async function ProductsPage({
   const search = params.buscar?.trim() || undefined;
   const page = Math.max(Number(params.pagina || "1") || 1, 1);
   const { products, categories } = await getCatalog(category, search, page);
+  const activeCategoryName = categories.find((item) => item.slug === category)?.name;
 
   return (
     <main className="min-h-screen bg-[var(--surface-muted)] text-[var(--foreground)]">
@@ -146,47 +147,69 @@ export default async function ProductsPage({
       />
 
 
-      <section className="mx-auto max-w-[1440px] px-4 pt-[120px] pb-20 sm:px-6 lg:px-10">
+      <section className="mx-auto max-w-[1440px] px-3 pb-20 pt-5 sm:px-6 sm:pt-[120px] lg:px-10">
+        <div id="catalogo-productos" className="h-px scroll-mt-5 xl:scroll-mt-36" aria-hidden="true" />
+        <div className="mb-4 flex items-center justify-between gap-3 sm:hidden">
+          <div className="min-w-0">
+            <p className="text-[10px] font-black uppercase tracking-[0.15em] text-[var(--accent)]">
+              {products.total} {products.total === 1 ? "producto" : "productos"}
+            </p>
+            <h2
+              title={activeCategoryName ?? "Todos los productos"}
+              className="mt-0.5 truncate text-lg font-black tracking-[-0.035em] text-[var(--steel)]"
+            >
+              {activeCategoryName ?? "Todos los productos"}
+            </h2>
+          </div>
+          <a
+            href="#categorias-productos"
+            aria-label="Volver al selector de categorías"
+            className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 text-xs font-bold text-[var(--brand)] shadow-sm"
+          >
+            <ArrowLeft size={14} className="rotate-90" />
+            Categorías
+          </a>
+        </div>
         {products.data.length > 0 ? (
           <>
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
               {products.data.map((product) => {
                 const image = productImage(product);
 
                 return (
                   <article
                     key={product.id}
-                    className="group overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white transition duration-300 hover:-translate-y-1 hover:shadow-xl"
+                    className="group flex h-full min-w-0 flex-col overflow-hidden rounded-[1.15rem] border border-slate-200 bg-white shadow-[0_6px_20px_rgba(15,23,42,0.06)] transition duration-300 hover:-translate-y-1 hover:shadow-xl sm:block sm:rounded-[1.75rem] sm:shadow-none"
                   >
-                    <div className="relative aspect-[4/3] overflow-hidden bg-[var(--brand-soft)]">
-                      <ProductCardImage src={image} alt={product.name} />
+                    <div className="relative aspect-square overflow-hidden bg-[var(--brand-soft)] sm:aspect-[4/3]">
+                      <ProductCardImage src={image} alt={product.name} compactMobile />
 
                       {product.category ? (
-                        <span className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.08em] text-[var(--brand)] shadow-sm">
-                          <Tag size={12} />
-                          {product.category.name}
+                        <span className="absolute left-2 right-2 top-2 inline-flex max-w-[calc(100%-1rem)] items-center gap-1 rounded-full bg-white/95 px-2 py-1 text-[9px] font-black uppercase tracking-[0.02em] text-[var(--brand)] shadow-sm sm:left-4 sm:right-auto sm:top-4 sm:max-w-none sm:gap-1.5 sm:px-3 sm:py-1.5 sm:text-[11px] sm:tracking-[0.08em]">
+                          <Tag size={12} className="hidden shrink-0 sm:block" />
+                          <span className="min-w-0 truncate">{product.category.name}</span>
                         </span>
                       ) : null}
                     </div>
 
-                    <div className="p-5">
+                    <div className="flex flex-1 flex-col p-3 sm:block sm:p-5">
                       {product.reference ? (
-                        <p className="text-xs font-black uppercase tracking-[0.12em] text-[var(--accent)]">
+                        <p className="truncate text-[10px] font-black uppercase tracking-[0.08em] text-[var(--accent)] sm:text-xs sm:tracking-[0.12em]">
                           {product.reference}
                         </p>
                       ) : null}
-                      <h2 className="mt-2 text-xl font-black leading-tight tracking-[-0.025em] text-[var(--steel)]">
+                      <h2 title={product.name} className="mt-1.5 line-clamp-3 text-[13px] font-black leading-[1.3] tracking-[-0.025em] text-[var(--steel)] sm:mt-2 sm:line-clamp-none sm:text-xl sm:leading-tight">
                         {product.name}
                       </h2>
                       {product.short_description ? (
-                        <p className="mt-3 line-clamp-3 text-sm leading-6 text-slate-600">
+                        <p className="hidden text-sm leading-6 text-slate-600 sm:mt-3 sm:line-clamp-3">
                           {product.short_description}
                         </p>
                       ) : null}
 
                       <Link
                         href={`/productos/${product.slug}`}
-                        className="mt-5 inline-flex items-center gap-2 text-sm font-black text-[var(--brand)] transition group-hover:gap-3"
+                        className="mt-auto inline-flex min-h-10 items-center justify-between gap-1.5 border-t border-slate-100 pt-2 text-[11px] font-black text-[var(--brand)] transition group-hover:gap-3 sm:mt-5 sm:min-h-0 sm:justify-start sm:gap-2 sm:border-0 sm:pt-0 sm:text-sm"
                       >
                         Ver producto
                         <ArrowRight size={16} />

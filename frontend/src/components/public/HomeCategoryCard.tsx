@@ -30,7 +30,7 @@ export default function HomeCategoryCard({
 
   return (
     <Link
-      href={`/productos?categoria=${encodeURIComponent(slug)}`}
+      href={`/productos?categoria=${encodeURIComponent(slug)}${compactMobile ? "#catalogo-productos" : ""}`}
       aria-label={`Ver productos de ${name}`}
       data-category-id={id}
       className={`group relative block w-full overflow-hidden border border-[var(--brand)] bg-white transition duration-300 hover:-translate-y-1 hover:shadow-xl ${compactMobile ? "aspect-square rounded-xl p-1 md:rounded-2xl md:p-4 xl:aspect-auto xl:h-[215px] xl:p-5" : "h-[215px] rounded-2xl p-5"}`}

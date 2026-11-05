@@ -4,9 +4,9 @@ import { useState } from "react";
 
 const LOGO = "/programandoweb/brand/logo-gaspronal-horizontal-full-color.png";
 
-type Props = { src: string | null; alt: string };
+type Props = { src: string | null; alt: string; compactMobile?: boolean };
 
-export default function ProductCardImage({ src, alt }: Props) {
+export default function ProductCardImage({ src, alt, compactMobile = false }: Props) {
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
   const validSrc = src?.trim() || null;
   const showImage = Boolean(validSrc && validSrc !== failedSrc);
@@ -19,7 +19,7 @@ export default function ProductCardImage({ src, alt }: Props) {
           alt={alt}
           loading="lazy"
           onError={() => setFailedSrc(validSrc)}
-          className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+          className={`h-full w-full transition duration-500 group-hover:scale-[1.03] ${compactMobile ? "object-contain p-2 sm:object-cover sm:p-0" : "object-cover"}`}
         />
       ) : (
         <img
