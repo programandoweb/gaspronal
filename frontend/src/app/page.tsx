@@ -1,4 +1,6 @@
 import SocialLinks from "@/components/public/SocialLinks";
+import InstagramFeed from "@/components/public/InstagramFeed";
+import { getInstagramFeed } from "@/lib/instagram-feed";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -225,7 +227,7 @@ const advantages = [
 ];
 
 export default async function HomePage() {
-  const [useCases, managedHeroes, blocks, categories, latestNota] = await Promise.all([getUseCases(), getManagedHeroes(), getManagedBlocks(), getHomeCategories(), getLatestGasproNota()]);
+  const [useCases, managedHeroes, blocks, categories, latestNota, instagramPosts] = await Promise.all([getUseCases(), getManagedHeroes(), getManagedBlocks(), getHomeCategories(), getLatestGasproNota(), getInstagramFeed()]);
   const heroOption = managedHeroes.activeOption;
   return (
     <main className="min-h-screen overflow-hidden bg-white text-[var(--foreground)]">
@@ -467,6 +469,8 @@ export default async function HomePage() {
               </article>
             </div>
           </div>
+          <InstagramFeed posts={instagramPosts} />
+
           <div className="mt-10 overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
             <iframe
               title="Ubicación de Gaspronal en Medellín, Colombia"
