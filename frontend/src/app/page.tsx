@@ -440,40 +440,42 @@ export default async function HomePage() {
               </a>
             </div>
 
-            <div className="space-y-6">
+            <div className="min-w-0">
               <ContactForm />
-              <div className="grid gap-4 sm:grid-cols-2">
-              <article className="rounded-[2rem] border border-slate-200 bg-white p-7">
-                <p className="text-xs font-black uppercase tracking-[0.16em] text-[var(--brand)]">Medellín, Antioquia</p>
-                <h3 className="mt-4 text-xl font-black text-[var(--steel)]">Sede Gaspronal</h3>
-                <p className="mt-4 text-sm leading-6 text-slate-600">
-                  Carrera 45 No. 40-61<br />
-                  Sector El Palo con Los Huesos
-                </p>
-                <div className="mt-6 space-y-2 text-sm font-semibold text-slate-700">
-                  <a className="block hover:text-[var(--brand)]" href="tel:+573045527575">Ventas: 304 552 7575</a>
-                  <a className="block hover:text-[var(--brand)]" href="tel:+573165251351">Servicio técnico: 316 525 1351</a>
-                  <a className="block break-all hover:text-[var(--brand)]" href="mailto:servicioalcliente@gaspronal.com">
-                    servicioalcliente@gaspronal.com
-                  </a>
-                </div>
-              </article>
-
-              <article className="rounded-[2rem] border border-slate-200 bg-white p-7">
-                <p className="text-xs font-black uppercase tracking-[0.16em] text-[var(--brand)]">Caucasia, Antioquia</p>
-                <h3 className="mt-4 text-xl font-black text-[var(--steel)]">Almacén industrial</h3>
-                <p className="mt-4 text-sm leading-6 text-slate-600">
-                  Carrera 9 No. 22-40<br />
-                  Barrio Kennedy
-                </p>
-                <p className="mt-6 text-sm leading-6 text-slate-500">
-                  Atención de lunes a sábado. Consulta disponibilidad y horario antes de desplazarte.
-                </p>
-              </article>
-              </div>
             </div>
           </div>
           <InstagramFeed posts={instagramPosts} />
+
+          <div className="mt-8 grid w-full grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
+            <article className="rounded-[2rem] border border-slate-200 bg-white p-7">
+              <p className="text-xs font-black uppercase tracking-[0.16em] text-[var(--brand)]">Medellín, Antioquia</p>
+              <h3 className="mt-4 text-xl font-black text-[var(--steel)]">Sede Gaspronal</h3>
+              <p className="mt-4 text-sm leading-6 text-slate-600">
+                Carrera 45 No. 40-61<br />
+                Sector El Palo con Los Huesos
+              </p>
+              <div className="mt-6 space-y-2 text-sm font-semibold text-slate-700">
+                <a className="block hover:text-[var(--brand)]" href="tel:+573045527575">Ventas: 304 552 7575</a>
+                <a className="block hover:text-[var(--brand)]" href="tel:+573165251351">Servicio técnico: 316 525 1351</a>
+                <a className="block break-all hover:text-[var(--brand)]" href="mailto:servicioalcliente@gaspronal.com">
+                  servicioalcliente@gaspronal.com
+                </a>
+              </div>
+            </article>
+
+            <article className="rounded-[2rem] border border-slate-200 bg-white p-7">
+              <p className="text-xs font-black uppercase tracking-[0.16em] text-[var(--brand)]">Caucasia, Antioquia</p>
+              <h3 className="mt-4 text-xl font-black text-[var(--steel)]">Almacén industrial</h3>
+              <p className="mt-4 text-sm leading-6 text-slate-600">
+                Carrera 9 No. 22-40<br />
+                Barrio Kennedy
+              </p>
+              <p className="mt-6 text-sm leading-6 text-slate-500">
+                Atención de lunes a sábado. Consulta disponibilidad y horario antes de desplazarte.
+              </p>
+            </article>
+          </div>
+
 
           <div className="mt-10 overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
             <iframe
