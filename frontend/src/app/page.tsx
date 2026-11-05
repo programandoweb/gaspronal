@@ -1,4 +1,5 @@
 import SocialLinks from "@/components/public/SocialLinks";
+import ContactForm from "@/components/public/ContactForm";
 import InstagramFeed from "@/components/public/InstagramFeed";
 import { getInstagramFeed } from "@/lib/instagram-feed";
 import type { Metadata } from "next";
@@ -439,7 +440,9 @@ export default async function HomePage() {
               </a>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-6">
+              <ContactForm />
+              <div className="grid gap-4 sm:grid-cols-2">
               <article className="rounded-[2rem] border border-slate-200 bg-white p-7">
                 <p className="text-xs font-black uppercase tracking-[0.16em] text-[var(--brand)]">Medellín, Antioquia</p>
                 <h3 className="mt-4 text-xl font-black text-[var(--steel)]">Sede Gaspronal</h3>
@@ -467,6 +470,7 @@ export default async function HomePage() {
                   Atención de lunes a sábado. Consulta disponibilidad y horario antes de desplazarte.
                 </p>
               </article>
+              </div>
             </div>
           </div>
           <InstagramFeed posts={instagramPosts} />

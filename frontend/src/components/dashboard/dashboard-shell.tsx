@@ -38,6 +38,7 @@ const navItems = [
   { href: "/dashboard/catalogo", label: "Productos", icon: Boxes, exact: false, permission: "catalog.view" },
   { href: "/dashboard/gaspro-notas", label: "Gaspro CMS", icon: BookOpen, exact: false, permission: "content.view" },
   { href: "/dashboard/mision-vision", label: "Misión y visión", icon: FileText, exact: false, permission: "institutional.view" },
+  { href: "/dashboard/contactos", label: "Mensajes de contacto", icon: MessagesSquare, exact: false, permission: "contacts.view" },
   { href: "/dashboard/diseno", label: "Diseño", icon: PanelsTopLeft, exact: false, permission: "heroes.view" },
   { href: "/dashboard/agentes", label: "Agentes", icon: Bot, exact: false, permission: "agents.view" },
   { href: "/dashboard/ia", label: "Proveedores IA", icon: BrainCircuit, exact: false, permission: "ai.view" },

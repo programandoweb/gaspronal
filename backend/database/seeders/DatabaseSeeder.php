@@ -41,6 +41,9 @@ class DatabaseSeeder extends Seeder
         // Idempotente: mantiene sincronizados roles/permisos y cuentas base.
         $this->call(AccessControlSeeder::class);
 
+        // Solo inserta la configuración inicial si no existe; no sobrescribe ediciones.
+        $this->call(ContactSettingsSeeder::class);
+
         // Idempotente y no destructivo: garantiza únicamente los heroes base que falten.
         $this->call(HeroSlideSeeder::class);
     }
