@@ -23,6 +23,7 @@ class AccessControlSeeder extends Seeder
             'heroes.view', 'heroes.manage',
             'institutional.view', 'institutional.manage',
             'contacts.view', 'contacts.manage',
+            'instagram.view', 'instagram.manage',
             'agents.view', 'agents.manage', 'agents.train', 'agents.training.approve',
             'ai.view', 'ai.manage',
             'channels.view', 'channels.manage',

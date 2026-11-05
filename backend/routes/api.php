@@ -29,6 +29,8 @@ use App\Http\Controllers\Api\V1\UserAccessController;
 use App\Http\Controllers\Api\V1\HeroSlideController;
 use App\Http\Controllers\Api\V1\PageBlockController;
 use App\Http\Controllers\Api\V1\InstitutionalContentController;
+use App\Http\Controllers\Api\V1\InstagramSettingsController;
+use App\Http\Controllers\Api\V1\InstagramFeedController;
 use App\Http\Controllers\Api\V1\ContactController;
 use App\Http\Controllers\Api\V1\BrowserExtensionController;
 use App\Http\Controllers\Api\V1\ServiceOrders\ServiceOrderController;
@@ -36,6 +38,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function (): void {
     Route::get('health', HealthController::class);
+    Route::get('public/instagram/feed', [InstagramFeedController::class, 'index'])->middleware('throttle:60,1');
     Route::post('public/contact', [ContactController::class, 'store'])->middleware('throttle:100,1');
     Route::get('public/commercial/quotes/{commercialQuote}/share', [CommercialQuoteController::class, 'publicShare'])->name('commercial.quotes.public-share')->middleware('throttle:30,1');
     Route::get('service-orders/{serviceOrder}/shared-pdf', [ServiceOrderController::class, 'sharedPdf'])->name('service-orders.shared-pdf')->middleware('signed:relative,throttle:30,1');
@@ -120,6 +123,8 @@ Route::prefix('v1')->group(function (): void {
             Route::post('{serviceOrder}/send-pdf', [ServiceOrderController::class, 'sendPdf']);
         });
         Route::get('dashboard/metrics', DashboardController::class)->middleware('permission:dashboard.view');
+        Route::get('settings/instagram', [InstagramSettingsController::class, 'show'])->middleware('permission:instagram.view');
+        Route::put('settings/instagram', [InstagramSettingsController::class, 'update'])->middleware('permission:instagram.manage');
         Route::get('contacts', [ContactController::class, 'index'])->middleware('permission:contacts.view');
         Route::get('contacts/settings', [ContactController::class, 'settings'])->middleware('permission:contacts.view');
         Route::put('contacts/settings', [ContactController::class, 'updateSettings'])->middleware('permission:contacts.manage');
