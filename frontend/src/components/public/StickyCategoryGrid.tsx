@@ -48,13 +48,13 @@ export default function StickyCategoryGrid({
   return (
     <>
       <nav aria-label="Categorías de productos" className="mx-auto max-w-[1440px] px-4 py-3 sm:px-6 lg:px-10">
-        <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+        <div className="grid grid-cols-4 gap-2 sm:gap-3 xl:grid-cols-6">
           {categories.map((item, index) => (
             <div
               key={item.id}
               className={`min-w-0 rounded-2xl ${activeCategory === item.slug ? "ring-2 ring-[var(--brand)] ring-offset-2" : ""}`}
             >
-              <HomeCategoryCard id={item.id} name={item.name} slug={item.slug} imageUrl={item.image_url} index={index} />
+              <HomeCategoryCard id={item.id} name={item.name} slug={item.slug} imageUrl={item.image_url} index={index} compactMobile />
             </div>
           ))}
         </div>
